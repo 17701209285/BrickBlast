@@ -127,6 +127,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 496390562418560539, guid: c73e3b456a696044e98a92b9a4dceb1f, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1870455989406667921, guid: c73e3b456a696044e98a92b9a4dceb1f, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3671070632749081175, guid: c73e3b456a696044e98a92b9a4dceb1f, type: 3}
       propertyPath: m_Name
       value: UIRoot
