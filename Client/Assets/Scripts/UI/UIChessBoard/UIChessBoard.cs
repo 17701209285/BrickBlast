@@ -19,9 +19,9 @@ public class UIChessBoard : MonoBehaviour
     {
         chessElements = new ArrayList<ChessElement>(GlobleValue.ChessWidth, GlobleValue.ChessHeight);
 
-        for (int i = 0; i < GlobleValue.ChessHeight; i++)
+        for (int y = 0; y < GlobleValue.ChessHeight; y++)
         {
-            for (int j = 0; j < GlobleValue.ChessWidth; j++)
+            for (int x = 0; x < GlobleValue.ChessWidth; x++)
             {
                 var chessElement = InstanceChessElement(OriginPrefab);
                 if (chessElement == null)
@@ -29,8 +29,8 @@ public class UIChessBoard : MonoBehaviour
 
                 chessElement.transform.SetParent(ParentTransform, false);
                 chessElement.gameObject.SetActive(true);
-                chessElement.InIt(new ChessElementData(j, i));
-                chessElements.Set(j, i, chessElement);
+                chessElement.InIt(new ChessElementData(x, y));
+                chessElements.Set(x, y, chessElement);
             }
         }
     }
