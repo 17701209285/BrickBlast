@@ -182,10 +182,11 @@ public class AimLinePresenter : MonoBehaviour
         PrimaryBoundaryHitPoint = previewPath.PrimarySegment.BoundaryHitPoint;
         ReflectionBoundaryType = previewPath.HasReflectionSegment ? previewPath.ReflectionSegment.BoundaryType : AimBoundaryType.None;
         ReflectionBoundaryHitPoint = previewPath.HasReflectionSegment ? previewPath.ReflectionSegment.BoundaryHitPoint : previewPath.PrimarySegment.EndPoint;
+        var impactData = AimPreviewBlockScanner.BuildImpactData(ChessBoard, AimArea, previewPath, GetPreviewBallRadius());
         AimLineView.Show(previewPath);
         if (AimImpactEffectView != null)
         {
-            AimImpactEffectView.Show(previewPath);
+            AimImpactEffectView.Show(previewPath, impactData);
         }
         AimPreviewBlockScanner.ApplyPreview(ChessBoard, AimArea, previewPath);
     }
@@ -252,6 +253,16 @@ public class AimLinePresenter : MonoBehaviour
 
         var rect = AimArea.rect;
         return new Vector2(rect.center.x + LaunchOriginOffset.x, rect.yMin + LaunchOriginOffset.y);
+    }
+
+    private float GetPreviewBallRadius()
+    {
+        if (AimOrigin == null)
+        {
+            return 25f;
+        }
+
+        return Mathf.Min(AimOrigin.rect.width, AimOrigin.rect.height) * 0.5f;
     }
 
     private Camera GetEventCamera()

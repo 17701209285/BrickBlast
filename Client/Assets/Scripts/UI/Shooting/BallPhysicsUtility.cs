@@ -150,6 +150,19 @@ public static class BallPhysicsUtility
         return foundHit;
     }
 
+    public static bool TryGetFirstBlockHit(
+        UIChessBoard board,
+        RectTransform simulationSpace,
+        Vector2 origin,
+        Vector2 direction,
+        float radius,
+        float maxDistance,
+        float epsilon,
+        out BallCollisionHit hit)
+    {
+        return TryGetBlockHit(board, simulationSpace, origin, direction, radius, maxDistance, epsilon, out hit);
+    }
+
     private static bool TryGetCollectorHit(
         Rect bounds,
         Vector2 origin,

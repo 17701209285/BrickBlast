@@ -38,3 +38,17 @@ public struct AimPreviewPath
     public AimPreviewSegment ReflectionSegment;
     public bool HasReflectionSegment;
 }
+
+public struct AimPreviewImpactData
+{
+    public bool HasBlockImpact;
+    public bool IsReflectionImpact;
+    public Vector2 BlockImpactCenterPoint;
+
+    public AimPreviewImpactData(bool hasBlockImpact, bool isReflectionImpact, Vector2 blockImpactCenterPoint)
+    {
+        HasBlockImpact = hasBlockImpact;
+        IsReflectionImpact = isReflectionImpact;
+        BlockImpactCenterPoint = blockImpactCenterPoint;
+    }
+}
