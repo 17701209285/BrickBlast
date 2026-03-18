@@ -8,23 +8,8 @@ public class ArrayList<T> where T : class
 
     public T this[int x, int y]
     {
-        get
-        {
-            if (IsValid(x, y))
-            {
-                return items[ToIndex(x, y)];
-            }
-
-            return null;
-        }
-        set
-        {
-            if (!IsValid(x, y))
-            {
-                return;
-            }
-            items[ToIndex(x, y)] = value;
-        }
+        get => Get(x, y);
+        set => Set(x, y,value);
     }
 
     public ArrayList(int InWidth,int InHeight) 
