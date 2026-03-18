@@ -247,6 +247,7 @@ public class LevelConfigScritableEditor : Editor
     private const float CellSize = 40f;
 
     private GUIStyle previewLabelStyle;
+    private GUIStyle previewTypeStyle;
 
     public override void OnInspectorGUI()
     {
@@ -313,13 +314,20 @@ public class LevelConfigScritableEditor : Editor
         EditorGUI.DrawRect(rect, LevelCell.GetPreviewColor(type, life));
         GUI.Box(rect, GUIContent.none);
 
-        var label = GetCellLabel(cell);
-        if (!string.IsNullOrEmpty(label))
+        var lifeLabel = LevelCell.GetPreviewLifeLabel(type, life);
+        if (!string.IsNullOrEmpty(lifeLabel))
         {
             GUI.Label(
                 rect,
-                new GUIContent(label, $"X:{x} GlobalY:{globalY} Type:{type} Life:{life}"),
-                GetPreviewLabelStyle());
+                new GUIContent(lifeLabel, $"X:{x} GlobalY:{globalY} Type:{type} Life:{life}"),
+                GetPreviewLabelStyle(LevelCell.GetPreviewTextColor(type, life)));
+        }
+
+        var typeMarker = LevelCell.GetPreviewTypeMarker(type, life);
+        if (!string.IsNullOrEmpty(typeMarker))
+        {
+            var markerRect = new Rect(rect.x + 2f, rect.y + 2f, rect.width - 4f, 12f);
+            GUI.Label(markerRect, typeMarker, GetPreviewTypeStyle(LevelCell.GetPreviewTextColor(type, life)));
         }
     }
 
@@ -345,28 +353,36 @@ public class LevelConfigScritableEditor : Editor
         return cellMap;
     }
 
-    private GUIStyle GetPreviewLabelStyle()
+    private GUIStyle GetPreviewLabelStyle(Color textColor)
     {
         if (previewLabelStyle != null)
         {
+            previewLabelStyle.normal.textColor = textColor;
             return previewLabelStyle;
         }
 
         previewLabelStyle = new GUIStyle(EditorStyles.miniBoldLabel)
         {
-            alignment = TextAnchor.MiddleCenter
+            alignment = TextAnchor.MiddleCenter,
+            fontSize = 12
         };
-        previewLabelStyle.normal.textColor = Color.black;
+        previewLabelStyle.normal.textColor = textColor;
         return previewLabelStyle;
     }
-    private static string GetCellLabel(FCell cell)
+
+    private GUIStyle GetPreviewTypeStyle(Color textColor)
     {
-        if (cell == null || cell.Life <= 0 || cell.Type == LevelCellType.Empty)
+        if (previewTypeStyle == null)
         {
-            return string.Empty;
+            previewTypeStyle = new GUIStyle(EditorStyles.miniBoldLabel)
+            {
+                alignment = TextAnchor.UpperLeft,
+                fontSize = 9
+            };
         }
 
-        return $"{(cell.Type == LevelCellType.Triangle ? "T" : "S")}{cell.Life}";
+        previewTypeStyle.normal.textColor = textColor;
+        return previewTypeStyle;
     }
 }
 #endif

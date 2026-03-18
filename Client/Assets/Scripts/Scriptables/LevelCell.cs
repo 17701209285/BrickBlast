@@ -122,6 +122,46 @@ public class LevelCell : MonoBehaviour
             t);
     }
 
+    public static string GetPreviewLifeLabel(LevelCellType type, int currentLife)
+    {
+        return type == LevelCellType.Empty || currentLife <= 0 ? string.Empty : currentLife.ToString();
+    }
+
+    public static string GetPreviewTypeMarker(LevelCellType type, int currentLife)
+    {
+        if (type == LevelCellType.Empty || currentLife <= 0)
+        {
+            return string.Empty;
+        }
+
+        return type == LevelCellType.Triangle ? "T" : string.Empty;
+    }
+
+    public static Color GetPreviewTextColor(LevelCellType type, int currentLife)
+    {
+        if (type == LevelCellType.Empty || currentLife <= 0)
+        {
+            return new Color(0f, 0f, 0f, 0f);
+        }
+
+        var backgroundColor = GetPreviewColor(type, currentLife);
+        var luminance = (backgroundColor.r * 0.299f) + (backgroundColor.g * 0.587f) + (backgroundColor.b * 0.114f);
+        return luminance < 0.58f ? Color.white : new Color(0.12f, 0.12f, 0.12f, 1f);
+    }
+
+    public static Color GetPreviewOutlineColor(LevelCellType type, int currentLife)
+    {
+        if (type == LevelCellType.Empty || currentLife <= 0)
+        {
+            return new Color(0f, 0f, 0f, 0f);
+        }
+
+        var textColor = GetPreviewTextColor(type, currentLife);
+        return textColor.grayscale < 0.5f
+            ? new Color(1f, 1f, 1f, 0.45f)
+            : new Color(0f, 0f, 0f, 0.65f);
+    }
+
     private void CacheComponents()
     {
         if (previewImage == null)

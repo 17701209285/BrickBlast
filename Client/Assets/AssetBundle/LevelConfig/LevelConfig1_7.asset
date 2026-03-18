@@ -1,0 +1,171 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1006f56108cecc46b1800745f2abf0a, type: 3}
+  m_Name: LevelConfig1_7
+  m_EditorClassIdentifier: Assembly-CSharp::LevelConfigScritable
+  Width: 8
+  VisibleHeight: 10
+  TotalRows: 19
+  DropRowCount: 1
+  Cells:
+  - X: 1
+    Y: 7
+    Type: 1
+    Life: 66
+  - X: 2
+    Y: 7
+    Type: 1
+    Life: 66
+  - X: 5
+    Y: 7
+    Type: 1
+    Life: 66
+  - X: 6
+    Y: 7
+    Type: 1
+    Life: 66
+  - X: 2
+    Y: 8
+    Type: 0
+    Life: 66
+  - X: 3
+    Y: 8
+    Type: 0
+    Life: 66
+  - X: 4
+    Y: 8
+    Type: 0
+    Life: 66
+  - X: 5
+    Y: 8
+    Type: 0
+    Life: 66
+  - X: 1
+    Y: 11
+    Type: 0
+    Life: 65
+  - X: 2
+    Y: 11
+    Type: 0
+    Life: 65
+  - X: 3
+    Y: 11
+    Type: 0
+    Life: 65
+  - X: 4
+    Y: 11
+    Type: 0
+    Life: 65
+  - X: 5
+    Y: 11
+    Type: 0
+    Life: 65
+  - X: 6
+    Y: 11
+    Type: 0
+    Life: 65
+  - X: 0
+    Y: 12
+    Type: 1
+    Life: 65
+  - X: 2
+    Y: 12
+    Type: 0
+    Life: 65
+  - X: 3
+    Y: 12
+    Type: 0
+    Life: 65
+  - X: 4
+    Y: 12
+    Type: 0
+    Life: 65
+  - X: 5
+    Y: 12
+    Type: 0
+    Life: 65
+  - X: 7
+    Y: 12
+    Type: 1
+    Life: 65
+  - X: 1
+    Y: 13
+    Type: 0
+    Life: 65
+  - X: 2
+    Y: 13
+    Type: 0
+    Life: 65
+  - X: 3
+    Y: 13
+    Type: 0
+    Life: 65
+  - X: 4
+    Y: 13
+    Type: 0
+    Life: 65
+  - X: 5
+    Y: 13
+    Type: 0
+    Life: 65
+  - X: 6
+    Y: 13
+    Type: 0
+    Life: 65
+  - X: 0
+    Y: 14
+    Type: 1
+    Life: 65
+  - X: 1
+    Y: 14
+    Type: 0
+    Life: 65
+  - X: 3
+    Y: 14
+    Type: 0
+    Life: 65
+  - X: 4
+    Y: 14
+    Type: 0
+    Life: 65
+  - X: 6
+    Y: 14
+    Type: 0
+    Life: 65
+  - X: 7
+    Y: 14
+    Type: 1
+    Life: 65
+  - X: 1
+    Y: 15
+    Type: 0
+    Life: 65
+  - X: 2
+    Y: 15
+    Type: 0
+    Life: 65
+  - X: 3
+    Y: 15
+    Type: 0
+    Life: 65
+  - X: 4
+    Y: 15
+    Type: 0
+    Life: 65
+  - X: 5
+    Y: 15
+    Type: 0
+    Life: 65
+  - X: 6
+    Y: 15
+    Type: 0
+    Life: 65

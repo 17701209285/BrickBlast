@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class ChessElement : MonoBehaviour
 {
@@ -28,6 +29,11 @@ public class ChessElement : MonoBehaviour
     [SerializeField]
     [Min(0f)]
     private float m_AimPreviewPulseDuration = 0.2f;
+
+    [SerializeField]
+    TextMeshProUGUI m_BrickLife;
+
+    private static readonly Color DarkLifeTextColor = new Color(0.12f, 0.12f, 0.12f, 1f);
 
     private ChessElementData ChessData;
     private RectTransform selfRectTransform;
@@ -227,6 +233,8 @@ public class ChessElement : MonoBehaviour
             var baseColor = GetContentColor(Type, Life);
             image.color = aimPreviewActive ? Color.Lerp(baseColor, Color.white, m_AimPreviewHighlight) : baseColor;
         }
+
+        RefreshLifeLabel();
     }
 
     private Color GetContentColor(LevelCellType type, int currentLife)
@@ -268,7 +276,55 @@ public class ChessElement : MonoBehaviour
             image = GetComponent<Image>();
         }
 
+        if (m_BrickLife == null)
+        {
+            var lifeLabels = GetComponentsInChildren<TextMeshProUGUI>(true);
+            for (int i = 0; i < lifeLabels.Length; i++)
+            {
+                if (lifeLabels[i] != null && lifeLabels[i].gameObject != gameObject)
+                {
+                    m_BrickLife = lifeLabels[i];
+                    break;
+                }
+            }
+        }
+
         cellSize = selfRectTransform.sizeDelta;
+    }
+
+    private void RefreshLifeLabel()
+    {
+        if (m_BrickLife == null)
+        {
+            return;
+        }
+
+        var hasContent = HasContent;
+        if (m_BrickLife.gameObject.activeSelf != hasContent)
+        {
+            m_BrickLife.gameObject.SetActive(hasContent);
+        }
+
+        if (!hasContent)
+        {
+            m_BrickLife.text = string.Empty;
+            return;
+        }
+
+        m_BrickLife.text = life.ToString();
+        m_BrickLife.color = GetLifeTextColor(Type, Life);
+    }
+
+    private Color GetLifeTextColor(LevelCellType type, int currentLife)
+    {
+        if (type == LevelCellType.Empty || currentLife <= 0)
+        {
+            return Color.clear;
+        }
+
+        var backgroundColor = GetContentColor(type, currentLife);
+        var luminance = (backgroundColor.r * 0.299f) + (backgroundColor.g * 0.587f) + (backgroundColor.b * 0.114f);
+        return luminance < 0.58f ? Color.white : DarkLifeTextColor;
     }
 
     private void CacheHitEffectPlayers()

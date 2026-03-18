@@ -13,69 +13,159 @@ MonoBehaviour:
   m_Name: LevelConfig1_2
   m_EditorClassIdentifier: Assembly-CSharp::LevelConfigScritable
   Width: 8
-  Height: 10
+  VisibleHeight: 10
+  TotalRows: 18
+  DropRowCount: 1
   Cells:
-  - X: 2
-    Y: 0
-    Type: 0
-    Life: 1
-  - X: 3
-    Y: 0
-    Type: 0
-    Life: 1
+  - X: 0
+    Y: 6
+    Type: 1
+    Life: 54
   - X: 1
-    Y: 1
-    Type: 0
-    Life: 1
-  - X: 2
-    Y: 1
-    Type: 0
-    Life: 1
-  - X: 3
-    Y: 1
-    Type: 0
-    Life: 1
-  - X: 4
-    Y: 1
-    Type: 0
-    Life: 1
-  - X: 5
-    Y: 1
-    Type: 0
-    Life: 1
-  - X: 1
-    Y: 2
-    Type: 0
-    Life: 1
-  - X: 2
-    Y: 2
-    Type: 0
-    Life: 1
-  - X: 3
-    Y: 2
-    Type: 0
-    Life: 1
-  - X: 4
-    Y: 2
-    Type: 0
-    Life: 1
-  - X: 5
-    Y: 2
-    Type: 0
-    Life: 1
+    Y: 6
+    Type: 1
+    Life: 54
   - X: 6
-    Y: 2
-    Type: 0
-    Life: 1
+    Y: 6
+    Type: 1
+    Life: 54
+  - X: 7
+    Y: 6
+    Type: 1
+    Life: 54
   - X: 2
-    Y: 3
+    Y: 7
     Type: 0
-    Life: 1
+    Life: 54
   - X: 3
-    Y: 3
+    Y: 7
     Type: 0
-    Life: 1
+    Life: 54
   - X: 4
-    Y: 3
+    Y: 7
     Type: 0
-    Life: 1
+    Life: 54
+  - X: 5
+    Y: 7
+    Type: 0
+    Life: 54
+  - X: 0
+    Y: 10
+    Type: 1
+    Life: 53
+  - X: 1
+    Y: 10
+    Type: 0
+    Life: 53
+  - X: 2
+    Y: 10
+    Type: 0
+    Life: 53
+  - X: 5
+    Y: 10
+    Type: 0
+    Life: 53
+  - X: 6
+    Y: 10
+    Type: 0
+    Life: 53
+  - X: 7
+    Y: 10
+    Type: 1
+    Life: 53
+  - X: 1
+    Y: 11
+    Type: 0
+    Life: 53
+  - X: 2
+    Y: 11
+    Type: 0
+    Life: 53
+  - X: 3
+    Y: 11
+    Type: 0
+    Life: 53
+  - X: 4
+    Y: 11
+    Type: 0
+    Life: 53
+  - X: 5
+    Y: 11
+    Type: 0
+    Life: 53
+  - X: 6
+    Y: 11
+    Type: 0
+    Life: 53
+  - X: 0
+    Y: 12
+    Type: 1
+    Life: 53
+  - X: 1
+    Y: 12
+    Type: 0
+    Life: 53
+  - X: 3
+    Y: 12
+    Type: 0
+    Life: 53
+  - X: 4
+    Y: 12
+    Type: 0
+    Life: 53
+  - X: 6
+    Y: 12
+    Type: 0
+    Life: 53
+  - X: 7
+    Y: 12
+    Type: 1
+    Life: 53
+  - X: 1
+    Y: 13
+    Type: 0
+    Life: 53
+  - X: 2
+    Y: 13
+    Type: 0
+    Life: 53
+  - X: 3
+    Y: 13
+    Type: 0
+    Life: 53
+  - X: 4
+    Y: 13
+    Type: 0
+    Life: 53
+  - X: 5
+    Y: 13
+    Type: 0
+    Life: 53
+  - X: 6
+    Y: 13
+    Type: 0
+    Life: 53
+  - X: 0
+    Y: 14
+    Type: 1
+    Life: 53
+  - X: 1
+    Y: 14
+    Type: 0
+    Life: 53
+  - X: 2
+    Y: 14
+    Type: 0
+    Life: 53
+  - X: 5
+    Y: 14
+    Type: 0
+    Life: 53
+  - X: 6
+    Y: 14
+    Type: 0
+    Life: 53
+  - X: 7
+    Y: 14
+    Type: 1
+    Life: 53

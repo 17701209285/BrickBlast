@@ -1,9 +1,12 @@
+using System;
 using DG.Tweening;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class UIChessBoard : MonoBehaviour
 {
+    public event Action<bool> GameOverStateChanged;
+
     public readonly struct CollisionCandidate
     {
         public ChessElement Element { get; }
@@ -58,10 +61,13 @@ public class UIChessBoard : MonoBehaviour
     private int boardWidth;
     private int boardHeight;
     private int visibleStartRow;
+    private bool isGameOver;
 
     public int BoardWidth => boardWidth;
     public int BoardHeight => boardHeight;
+    public int BottomRowIndex => Mathf.Max(0, boardHeight - 1);
     public IReadOnlyList<CollisionCandidate> CollisionCandidates => collisionCandidates;
+    public bool IsGameOver => isGameOver;
 
     private void Start()
     {
@@ -196,6 +202,26 @@ public class UIChessBoard : MonoBehaviour
         return true;
     }
 
+    public bool HasBrickReachedBottomRow()
+    {
+        if (chessElements == null || boardHeight <= 0)
+        {
+            return false;
+        }
+
+        var bottomRow = BottomRowIndex;
+        for (int x = 0; x < boardWidth; x++)
+        {
+            var chessElement = chessElements.Get(x, bottomRow);
+            if (chessElement != null && chessElement.HasContent)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public bool TryDropNextBatchIfCleared()
     {
         if (!AreVisibleBricksCleared() || !HasPendingDropBatch())
@@ -268,6 +294,7 @@ public class UIChessBoard : MonoBehaviour
     {
         LevelConfig = levelConfig;
         visibleStartRow = LevelConfig == null ? 0 : LevelConfig.GetInitialVisibleStartRow();
+        SetGameOverState(false);
     }
 
     private void InitChessBoard(int width, int height)
@@ -325,6 +352,7 @@ public class UIChessBoard : MonoBehaviour
             }
         }
 
+        SetGameOverState(false);
         RebuildCollisionCandidates();
     }
 
@@ -374,6 +402,7 @@ public class UIChessBoard : MonoBehaviour
             }
         }
 
+        EvaluateBottomRowGameOver();
         RebuildCollisionCandidates();
     }
 
@@ -400,7 +429,29 @@ public class UIChessBoard : MonoBehaviour
             }
         }
 
+        EvaluateBottomRowGameOver();
         RebuildCollisionCandidates();
+    }
+
+    private void EvaluateBottomRowGameOver()
+    {
+        if (isGameOver || !HasBrickReachedBottomRow())
+        {
+            return;
+        }
+
+        SetGameOverState(true);
+    }
+
+    private void SetGameOverState(bool value)
+    {
+        if (isGameOver == value)
+        {
+            return;
+        }
+
+        isGameOver = value;
+        GameOverStateChanged?.Invoke(isGameOver);
     }
 
     private void PlayDropAnimation(ChessElement chessElement, int rowCount)
@@ -455,7 +506,7 @@ public class UIChessBoard : MonoBehaviour
         }
     }
 
-    private T InstanceChessElement<T>(T inOrigin) where T : Object
+    private T InstanceChessElement<T>(T inOrigin) where T : UnityEngine.Object
     {
         var insPrefab = Instantiate(inOrigin);
         if (insPrefab == null)

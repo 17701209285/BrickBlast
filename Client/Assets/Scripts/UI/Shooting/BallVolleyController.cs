@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 [DisallowMultipleComponent]
 public class BallVolleyController : MonoBehaviour
@@ -16,6 +17,9 @@ public class BallVolleyController : MonoBehaviour
 
     [SerializeField]
     private RectTransform ProjectileContainer;
+
+    [SerializeField]
+    private TextMeshProUGUI LaunchBallCountLabel;
 
     [SerializeField]
     [Min(1)]
@@ -56,7 +60,8 @@ public class BallVolleyController : MonoBehaviour
     private readonly List<BallProjectile> activeProjectiles = new List<BallProjectile>(64);
 
     private Graphic launchBallGraphic;
-    private bool isSubscribed;
+    private bool isAimSubscribed;
+    private bool isBoardStateSubscribed;
     private bool volleyActive;
     private int currentBallCount;
     private int pendingLaunchCount;
@@ -78,7 +83,9 @@ public class BallVolleyController : MonoBehaviour
         EnsureDependencies();
         currentBallCount = Mathf.Max(1, InitialBallCount);
         CacheLaunchBallGraphic();
+        RefreshLaunchBallCountLabel();
         SetLaunchBallVisible(true);
+        SetLaunchBallCountVisible(true);
     }
 
     private void OnEnable()
@@ -101,7 +108,11 @@ public class BallVolleyController : MonoBehaviour
             aimUnlockTimer = Mathf.Max(0f, aimUnlockTimer - deltaTime);
             if (aimUnlockTimer <= 0f)
             {
-                AimLinePresenter?.SetAimInputEnabled(true);
+                if (ChessBoard == null || !ChessBoard.IsGameOver)
+                {
+                    AimLinePresenter?.SetAimInputEnabled(true);
+                    SetLaunchBallCountVisible(true);
+                }
             }
         }
 
@@ -139,6 +150,7 @@ public class BallVolleyController : MonoBehaviour
     public void SetBallCount(int ballCount)
     {
         currentBallCount = Mathf.Max(1, ballCount);
+        RefreshLaunchBallCountLabel();
     }
 
     public void NotifyProjectileReturned(BallProjectile projectile, Vector2 landingPoint)
@@ -168,7 +180,7 @@ public class BallVolleyController : MonoBehaviour
 
     private void HandleAimReleased(Vector2 originLocalPosition, Vector2 aimDirection)
     {
-        if (volleyActive || AimLinePresenter == null || ChessBoard == null)
+        if (volleyActive || AimLinePresenter == null || ChessBoard == null || ChessBoard.IsGameOver)
         {
             return;
         }
@@ -179,7 +191,7 @@ public class BallVolleyController : MonoBehaviour
     private void BeginVolley(Vector2 originLocalPosition, Vector2 aimDirection)
     {
         EnsureDependencies();
-        if (LaunchBall == null)
+        if (LaunchBall == null || (ChessBoard != null && ChessBoard.IsGameOver))
         {
             return;
         }
@@ -199,6 +211,7 @@ public class BallVolleyController : MonoBehaviour
         ChessBoard?.RefreshCollisionCandidates(GetSimulationSpace());
 
         SetLaunchBallVisible(false);
+        SetLaunchBallCountVisible(false);
         AimLinePresenter?.SetAimInputEnabled(false);
     }
 
@@ -239,20 +252,28 @@ public class BallVolleyController : MonoBehaviour
 
         MoveLaunchBallTo(firstLandingPoint);
         SetLaunchBallVisible(true);
+        RefreshLaunchBallCountLabel();
 
         var aimLockDuration = 0f;
         if (MoveBoardDownAfterVolley && ChessBoard != null)
         {
             ChessBoard.MoveBoardDownOneRow();
+            if (ChessBoard.IsGameOver)
+            {
+                return;
+            }
+
             aimLockDuration = ChessBoard.GetPredictedDropAnimationDuration(1);
         }
 
         if (aimLockDuration > 0f)
         {
             aimUnlockTimer = aimLockDuration;
+            SetLaunchBallCountVisible(false);
             return;
         }
 
+        SetLaunchBallCountVisible(true);
         AimLinePresenter?.SetAimInputEnabled(true);
     }
 
@@ -271,7 +292,13 @@ public class BallVolleyController : MonoBehaviour
         activeProjectiles.Clear();
 
         SetLaunchBallVisible(true);
-        AimLinePresenter?.SetAimInputEnabled(true);
+        RefreshLaunchBallCountLabel();
+        SetLaunchBallCountVisible(true);
+
+        if (ChessBoard == null || !ChessBoard.IsGameOver)
+        {
+            AimLinePresenter?.SetAimInputEnabled(true);
+        }
     }
 
     private void EnsureDependencies()
@@ -303,29 +330,52 @@ public class BallVolleyController : MonoBehaviour
             ProjectileContainer = transform.Find("Ball Runtime") as RectTransform;
         }
 
+        if (LaunchBallCountLabel == null && LaunchBall != null)
+        {
+            var labelTransform = LaunchBall.Find("Number");
+            if (labelTransform != null)
+            {
+                LaunchBallCountLabel = labelTransform.GetComponent<TextMeshProUGUI>();
+            }
+
+            if (LaunchBallCountLabel == null)
+            {
+                LaunchBallCountLabel = LaunchBall.GetComponentInChildren<TextMeshProUGUI>(true);
+            }
+        }
+
         EnsureProjectileCanvas();
     }
 
     private void Subscribe()
     {
-        if (isSubscribed || AimLinePresenter == null)
+        if (!isAimSubscribed && AimLinePresenter != null)
         {
-            return;
+            AimLinePresenter.AimReleased += HandleAimReleased;
+            isAimSubscribed = true;
         }
 
-        AimLinePresenter.AimReleased += HandleAimReleased;
-        isSubscribed = true;
+        if (!isBoardStateSubscribed && ChessBoard != null)
+        {
+            ChessBoard.GameOverStateChanged += HandleChessBoardGameOverStateChanged;
+            isBoardStateSubscribed = true;
+            HandleChessBoardGameOverStateChanged(ChessBoard.IsGameOver);
+        }
     }
 
     private void Unsubscribe()
     {
-        if (!isSubscribed || AimLinePresenter == null)
+        if (isAimSubscribed && AimLinePresenter != null)
         {
-            return;
+            AimLinePresenter.AimReleased -= HandleAimReleased;
+            isAimSubscribed = false;
         }
 
-        AimLinePresenter.AimReleased -= HandleAimReleased;
-        isSubscribed = false;
+        if (isBoardStateSubscribed && ChessBoard != null)
+        {
+            ChessBoard.GameOverStateChanged -= HandleChessBoardGameOverStateChanged;
+            isBoardStateSubscribed = false;
+        }
     }
 
     private BallProjectile GetOrCreateProjectile()
@@ -346,6 +396,12 @@ public class BallVolleyController : MonoBehaviour
         var projectileObject = Instantiate(LaunchBall.gameObject, GetOrCreateProjectileContainer(), false);
         projectileObject.name = $"Projectile {projectilePool.Count + 1}";
         projectileObject.SetActive(false);
+
+        var projectileCountLabel = projectileObject.transform.Find("Number");
+        if (projectileCountLabel != null)
+        {
+            projectileCountLabel.gameObject.SetActive(false);
+        }
 
         var projectileGraphic = projectileObject.GetComponent<Graphic>();
         if (projectileGraphic != null)
@@ -464,6 +520,64 @@ public class BallVolleyController : MonoBehaviour
         }
 
         launchBallGraphic = LaunchBall.GetComponent<Graphic>();
+    }
+
+    private void HandleChessBoardGameOverStateChanged(bool isGameOver)
+    {
+        if (isGameOver)
+        {
+            pendingLaunchCount = 0;
+            aimUnlockTimer = 0f;
+
+            if (!volleyActive)
+            {
+                SetLaunchBallVisible(true);
+                RefreshLaunchBallCountLabel();
+                SetLaunchBallCountVisible(true);
+            }
+
+            AimLinePresenter?.SetAimInputEnabled(false);
+            OnBottomRowGameOver();
+            return;
+        }
+
+        if (!volleyActive && aimUnlockTimer <= 0f)
+        {
+            SetLaunchBallVisible(true);
+            RefreshLaunchBallCountLabel();
+            SetLaunchBallCountVisible(true);
+            AimLinePresenter?.SetAimInputEnabled(true);
+        }
+    }
+
+    protected virtual void OnBottomRowGameOver()
+    {
+        var bottomRowIndex = ChessBoard == null ? -1 : ChessBoard.BottomRowIndex;
+        Debug.Log($"[BallVolleyController] Game over: a brick reached the last row ({bottomRowIndex}). Launching is now disabled.", this);
+    }
+
+    private void RefreshLaunchBallCountLabel()
+    {
+        if (LaunchBallCountLabel == null)
+        {
+            return;
+        }
+
+        LaunchBallCountLabel.text = currentBallCount.ToString();
+        LaunchBallCountLabel.raycastTarget = false;
+    }
+
+    private void SetLaunchBallCountVisible(bool visible)
+    {
+        if (LaunchBallCountLabel == null)
+        {
+            return;
+        }
+
+        if (LaunchBallCountLabel.gameObject.activeSelf != visible)
+        {
+            LaunchBallCountLabel.gameObject.SetActive(visible);
+        }
     }
 
     private void SetLaunchBallVisible(bool visible)

@@ -503,6 +503,8 @@ public class LevelConfigEditor : Editor
     private LevelCellType brushType = LevelCellType.Square;
     private int brushLife = 1;
     private Vector2 scrollPosition;
+    private GUIStyle cellLifeStyle;
+    private GUIStyle cellTypeStyle;
 
     private void OnEnable()
     {
@@ -700,18 +702,19 @@ public class LevelConfigEditor : Editor
 
     private void DrawCellButton(LevelConfig config, LevelCell cell, int x, int localY, int globalY)
     {
+        var type = cell == null ? LevelCellType.Empty : cell.Type;
+        var life = cell == null ? 0 : cell.Life;
         var rect = GUILayoutUtility.GetRect(CellSize, CellSize, GUILayout.Width(CellSize), GUILayout.Height(CellSize));
-        var originalColor = GUI.backgroundColor;
-        GUI.backgroundColor = cell != null ? LevelCell.GetPreviewColor(cell.Type, cell.Life) : Color.black;
+        EditorGUI.DrawRect(rect, LevelCell.GetPreviewColor(type, life));
+        GUI.Box(rect, GUIContent.none);
 
-        var label = GetCellLabel(cell);
         var tooltip = $"X:{x} LocalY:{localY} GlobalY:{globalY}";
         if (cell != null)
         {
             tooltip = $"X:{cell.X} LocalY:{cell.Y} GlobalY:{globalY} Type:{cell.Type} Life:{cell.Life}";
         }
 
-        if (GUI.Button(rect, new GUIContent(label, tooltip)))
+        if (GUI.Button(rect, new GUIContent(string.Empty, tooltip), GUIStyle.none))
         {
             PaintCell(config, cell, brushType, brushLife);
         }
@@ -726,7 +729,29 @@ public class LevelConfigEditor : Editor
             currentEvent.Use();
         }
 
-        GUI.backgroundColor = originalColor;
+        DrawCellOverlay(rect, type, life);
+    }
+
+    private void DrawCellOverlay(Rect rect, LevelCellType type, int life)
+    {
+        var lifeLabel = LevelCell.GetPreviewLifeLabel(type, life);
+        if (string.IsNullOrEmpty(lifeLabel))
+        {
+            return;
+        }
+
+        var textColor = LevelCell.GetPreviewTextColor(type, life);
+        var lifeStyle = GetCellLifeStyle(textColor);
+        GUI.Label(rect, lifeLabel, lifeStyle);
+
+        var typeMarker = LevelCell.GetPreviewTypeMarker(type, life);
+        if (string.IsNullOrEmpty(typeMarker))
+        {
+            return;
+        }
+
+        var markerRect = new Rect(rect.x + 2f, rect.y + 2f, rect.width - 4f, 12f);
+        GUI.Label(markerRect, typeMarker, GetCellTypeStyle(textColor));
     }
 
     private void PaintCell(LevelConfig config, LevelCell cell, LevelCellType type, int life)
@@ -925,15 +950,34 @@ public class LevelConfigEditor : Editor
         }
     }
 
-    private static string GetCellLabel(LevelCell cell)
+    private GUIStyle GetCellLifeStyle(Color textColor)
     {
-        if (cell == null || cell.Type == LevelCellType.Empty || cell.Life <= 0)
+        if (cellLifeStyle == null)
         {
-            return string.Empty;
+            cellLifeStyle = new GUIStyle(EditorStyles.boldLabel)
+            {
+                alignment = TextAnchor.MiddleCenter,
+                fontSize = 13
+            };
         }
 
-        var typeLabel = cell.Type == LevelCellType.Triangle ? "T" : "S";
-        return $"{typeLabel}{cell.Life}";
+        cellLifeStyle.normal.textColor = textColor;
+        return cellLifeStyle;
+    }
+
+    private GUIStyle GetCellTypeStyle(Color textColor)
+    {
+        if (cellTypeStyle == null)
+        {
+            cellTypeStyle = new GUIStyle(EditorStyles.miniBoldLabel)
+            {
+                alignment = TextAnchor.UpperLeft,
+                fontSize = 9
+            };
+        }
+
+        cellTypeStyle.normal.textColor = textColor;
+        return cellTypeStyle;
     }
 }
 #endif
