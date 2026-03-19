@@ -1528,6 +1528,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: UIChessBoard
       objectReference: {fileID: 0}
+    - target: {fileID: 4285825462255419185, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
+      propertyPath: LevelConfig
+      value: 
+      objectReference: {fileID: 11400000, guid: b938cfb62a5cc2b752e3858c980314c0, type: 2}
     - target: {fileID: 5191878036652039999, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
       propertyPath: m_text
       value: X 180
