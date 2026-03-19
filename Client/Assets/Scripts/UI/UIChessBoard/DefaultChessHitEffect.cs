@@ -69,6 +69,7 @@ public class DefaultChessHitEffect : MonoBehaviour, IChessHitEffectPlayer
         // 后面你可以直接删掉这个组件，换成粒子、Shader 或 Spine。
         var totalDuration = context.IsDestroyed ? DestroyedDuration : HitDuration;
         var targetScale = context.IsDestroyed ? DestroyedScale : HitScale;
+        var isBlastDamage = context.DamageSource == ChessDamageSource.HorizontalBlast || context.DamageSource == ChessDamageSource.VerticalBlast;
 
         if (EnableScaleEffect && selfRectTransform != null && !Mathf.Approximately(targetScale, 1f))
         {
@@ -87,16 +88,20 @@ public class DefaultChessHitEffect : MonoBehaviour, IChessHitEffectPlayer
                 });
         }
 
-        if (image == null || context.IsDestroyed)
+        if (image == null)
         {
             return;
         }
 
-        var baseColor = image.color;
-        var flashColor = Color.Lerp(baseColor, Color.white, FlashStrength);
+        var targetColor = image.color;
+        var baseColor = context.PreHitColor.a > 0f ? context.PreHitColor : targetColor;
+        var flashStrength = isBlastDamage
+            ? Mathf.Clamp01(FlashStrength * LevelCellTypeConstants.BlastHitEffectFlashMultiplier)
+            : FlashStrength;
+        var flashColor = Color.Lerp(baseColor, Color.white, flashStrength);
         image.color = flashColor;
         colorTween = image
-            .DOColor(baseColor, totalDuration)
+            .DOColor(targetColor, totalDuration)
             .SetEase(Ease.OutQuad)
             .SetLink(gameObject)
             .OnComplete(() => colorTween = null);

@@ -3,6 +3,27 @@ using DG.Tweening;
 using System.Collections.Generic;
 using UnityEngine;
 
+public readonly struct ProjectileHitEffectResult
+{
+    public bool SplitIntoThreeWay { get; }
+    public bool PassThrough { get; }
+    public Vector2 SplitOrigin { get; }
+
+    public ProjectileHitEffectResult(bool splitIntoThreeWay, bool passThrough, Vector2 splitOrigin)
+    {
+        SplitIntoThreeWay = splitIntoThreeWay;
+        PassThrough = passThrough;
+        SplitOrigin = splitOrigin;
+    }
+}
+
+public enum ChessDamageSource
+{
+    Projectile = 0,
+    HorizontalBlast = 1,
+    VerticalBlast = 2
+}
+
 public class UIChessBoard : MonoBehaviour
 {
     public event Action<bool> GameOverStateChanged;
@@ -192,7 +213,7 @@ public class UIChessBoard : MonoBehaviour
             for (int x = 0; x < boardWidth; x++)
             {
                 var chessElement = chessElements.Get(x, y);
-                if (chessElement != null && chessElement.HasContent)
+                if (chessElement != null && chessElement.CountsAsBrick)
                 {
                     return false;
                 }
@@ -213,7 +234,7 @@ public class UIChessBoard : MonoBehaviour
         for (int x = 0; x < boardWidth; x++)
         {
             var chessElement = chessElements.Get(x, bottomRow);
-            if (chessElement != null && chessElement.HasContent)
+            if (chessElement != null && chessElement.CountsAsBrick)
             {
                 return true;
             }
@@ -236,6 +257,40 @@ public class UIChessBoard : MonoBehaviour
     public int GetPendingDropRowCount()
     {
         return LevelConfig == null ? 0 : LevelConfig.GetNextDropCount(visibleStartRow);
+    }
+
+    public ProjectileHitEffectResult ResolveProjectileBlockHit(ChessElement target, Vector2 hitPointInBoardSpace)
+    {
+        var result = default(ProjectileHitEffectResult);
+        ApplyDamageWithEffects(target, 1, hitPointInBoardSpace, ChessDamageSource.Projectile, ref result);
+        RebuildCollisionCandidates();
+        return result;
+    }
+
+    public void ClearTouchedSpecialItemsAtTurnEnd()
+    {
+        if (chessElements == null)
+        {
+            return;
+        }
+
+        var clearedAny = false;
+        for (int y = 0; y < boardHeight; y++)
+        {
+            for (int x = 0; x < boardWidth; x++)
+            {
+                var chessElement = chessElements.Get(x, y);
+                if (chessElement != null && chessElement.ClearTouchedSpecialAtTurnEnd())
+                {
+                    clearedAny = true;
+                }
+            }
+        }
+
+        if (clearedAny)
+        {
+            RebuildCollisionCandidates();
+        }
     }
 
     public float GetPredictedDropAnimationDuration(int rowCount)
@@ -390,9 +445,12 @@ public class UIChessBoard : MonoBehaviour
                 if (sourceY >= 0)
                 {
                     var sourceIndex = sourceY * boardWidth + x;
+                    var sourceType = sourceTypes[sourceIndex];
                     var sourceLife = sourceLives[sourceIndex];
-                    target.SetCellContent(sourceTypes[sourceIndex], sourceLife);
-                    PlayDropAnimation(target, sourceLife > 0 ? rowCount : 0);
+                    target.SetCellContent(sourceType, sourceLife);
+
+                    var shouldAnimateDrop = LevelCellTypeUtility.HasSerializedContent(sourceType, sourceLife);
+                    PlayDropAnimation(target, shouldAnimateDrop ? rowCount : 0);
                 }
                 else
                 {
@@ -490,6 +548,96 @@ public class UIChessBoard : MonoBehaviour
     private int GetBoardHeight()
     {
         return LevelConfig != null ? Mathf.Max(1, LevelConfig.VisibleHeight) : Mathf.Max(1, GlobleValue.ChessHeight);
+    }
+
+    private void ApplyDamageWithEffects(
+        ChessElement target,
+        int damage,
+        Vector2 hitPointInBoardSpace,
+        ChessDamageSource source,
+        ref ProjectileHitEffectResult projectileHitEffect)
+    {
+        if (target == null || damage <= 0 || !target.HasContent)
+        {
+            return;
+        }
+
+        var isSpecialItem = target.IsSpecialItem;
+        if (!target.TryApplyDamage(damage, hitPointInBoardSpace, source, out _))
+        {
+            return;
+        }
+
+        if (!isSpecialItem)
+        {
+            return;
+        }
+
+        var specialEffectResult = ChessSpecialEffectProcessor.TryTrigger(this, target, source);
+        if (specialEffectResult.IsTriggered)
+        {
+            projectileHitEffect = specialEffectResult.ToProjectileHitEffectResult();
+        }
+    }
+
+    internal bool ApplyBlastDamageToTarget(ChessElement target, ChessDamageSource source)
+    {
+        if (target == null || !target.CountsAsBrick)
+        {
+            return false;
+        }
+
+        var previousType = target.Type;
+        var previousLife = target.Life;
+        var ignoredProjectileHit = default(ProjectileHitEffectResult);
+        ApplyDamageWithEffects(
+            target,
+            LevelCellTypeConstants.SpecialBlastDamage,
+            GetElementCenterInBoardSpace(target),
+            source,
+            ref ignoredProjectileHit);
+        return previousType != target.Type || previousLife != target.Life;
+    }
+
+    private Vector2 GetElementCenterInBoardSpace(ChessElement target)
+    {
+        if (target == null)
+        {
+            return Vector2.zero;
+        }
+
+        var boardRectTransform = transform as RectTransform;
+        if (boardRectTransform == null)
+        {
+            return Vector2.zero;
+        }
+
+        var rect = target.GetRectInSpace(boardRectTransform);
+        return rect.center;
+    }
+
+    internal Vector2 GetSplitLaunchOrigin(ChessElement target)
+    {
+        if (target == null)
+        {
+            return Vector2.zero;
+        }
+
+        var boardRectTransform = transform as RectTransform;
+        if (boardRectTransform == null)
+        {
+            return Vector2.zero;
+        }
+
+        var rect = target.GetRectInSpace(boardRectTransform);
+        if (rect.width <= 0f || rect.height <= 0f)
+        {
+            return rect.center;
+        }
+
+        return new Vector2(
+            rect.center.x,
+            rect.yMax + Mathf.Max(LevelCellTypeConstants.SplitLaunchMinOffset, rect.height * LevelCellTypeConstants.SplitLaunchHeightRatio));
     }
 
     private void ClearInstancedElements()

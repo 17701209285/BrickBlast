@@ -11,7 +11,10 @@ public enum LevelCellType
 {
     Square = 0,
     Triangle = 1,
-    Empty = 2
+    Empty = 2,
+    HorizontalBlast = 3,
+    VerticalBlast = 4,
+    SplitThreeWay = 5
 }
 
 [Serializable]
@@ -69,13 +72,13 @@ public class LevelConfigScritable : ScriptableObject
     public int GetLife(int x, int y)
     {
         var cell = FindCell(x, y);
-        return cell == null ? 0 : Mathf.Max(0, cell.Life);
+        return cell == null ? 0 : LevelCellTypeUtility.NormalizeLife(cell.Type, cell.Life);
     }
 
     public LevelCellType GetCellType(int x, int y)
     {
         var cell = FindCell(x, y);
-        return cell == null ? LevelCellType.Empty : NormalizeType(cell.Type, cell.Life);
+        return cell == null ? LevelCellType.Empty : LevelCellTypeUtility.NormalizeType(cell.Type, cell.Life);
     }
 
     public bool IsValidCoordinate(int x, int y)
@@ -181,7 +184,13 @@ public class LevelConfigScritable : ScriptableObject
                 continue;
             }
 
-            if (cell.X < 0 || cell.X >= width || cell.Y < 0 || cell.Y >= totalRows || cell.Life <= 0)
+            if (cell.X < 0 || cell.X >= width || cell.Y < 0 || cell.Y >= totalRows)
+            {
+                continue;
+            }
+
+            var normalizedType = LevelCellTypeUtility.NormalizeType(cell.Type, cell.Life);
+            if (normalizedType == LevelCellType.Empty)
             {
                 continue;
             }
@@ -189,8 +198,8 @@ public class LevelConfigScritable : ScriptableObject
             uniqueCells[new Vector2Int(cell.X, cell.Y)] = new FCell(
                 cell.X,
                 cell.Y,
-                NormalizeType(cell.Type, cell.Life),
-                cell.Life);
+                normalizedType,
+                LevelCellTypeUtility.NormalizeLife(normalizedType, cell.Life));
         }
 
         if (uniqueCells.Count == 0)
@@ -231,11 +240,6 @@ public class LevelConfigScritable : ScriptableObject
     {
         var yCompare = left.Y.CompareTo(right.Y);
         return yCompare != 0 ? yCompare : left.X.CompareTo(right.X);
-    }
-
-    private static LevelCellType NormalizeType(LevelCellType type, int life)
-    {
-        return life <= 0 ? LevelCellType.Empty : type;
     }
 }
 
@@ -342,7 +346,7 @@ public class LevelConfigScritableEditor : Editor
         for (int i = 0; i < config.Cells.Length; i++)
         {
             var cell = config.Cells[i];
-            if (cell == null || cell.Life <= 0)
+            if (cell == null || !LevelCellTypeUtility.HasSerializedContent(cell.Type, cell.Life))
             {
                 continue;
             }

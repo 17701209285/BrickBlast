@@ -40,37 +40,24 @@ public class BallProjectile : MonoBehaviour
         Simulate(deltaTime);
     }
 
-    public void Launch(
-        BallVolleyController inOwner,
-        UIChessBoard inChessBoard,
-        RectTransform inSimulationSpace,
-        Vector2 startLocalPosition,
-        Vector2 inDirection,
-        float inSpeed,
-        float inRadius,
-        Rect inCollisionBounds,
-        float inCollectorY,
-        float inCollisionSkin,
-        float inSimulationStep,
-        int inMaxCollisionsPerStep,
-        float inFallbackSubstepDistance)
+    public void Launch(in BallProjectileLaunchData launchData)
     {
         CacheComponents();
         ConfigureVisuals();
 
-        owner = inOwner;
-        chessBoard = inChessBoard;
-        simulationSpace = inSimulationSpace;
-        collisionBounds = inCollisionBounds;
-        localPosition = startLocalPosition;
-        direction = inDirection.normalized;
-        speed = Mathf.Max(0f, inSpeed);
-        radius = Mathf.Max(0f, inRadius);
-        collectorY = inCollectorY;
-        collisionSkin = Mathf.Max(0.01f, inCollisionSkin);
-        simulationStep = Mathf.Max(0.001f, inSimulationStep);
-        maxCollisionsPerStep = Mathf.Max(1, inMaxCollisionsPerStep);
-        fallbackSubstepDistance = Mathf.Max(0.5f, inFallbackSubstepDistance);
+        owner = launchData.Owner;
+        chessBoard = launchData.ChessBoard;
+        simulationSpace = launchData.SimulationSpace;
+        collisionBounds = launchData.CollisionBounds;
+        localPosition = launchData.StartLocalPosition;
+        direction = launchData.Direction;
+        speed = Mathf.Max(0f, launchData.Speed);
+        radius = Mathf.Max(0f, launchData.Radius);
+        collectorY = launchData.CollectorY;
+        collisionSkin = Mathf.Max(0.01f, launchData.CollisionSkin);
+        simulationStep = Mathf.Max(0.001f, launchData.SimulationStep);
+        maxCollisionsPerStep = Mathf.Max(1, launchData.MaxCollisionsPerStep);
+        fallbackSubstepDistance = Mathf.Max(0.5f, launchData.FallbackSubstepDistance);
         simulationAccumulator = 0f;
         isFlying = true;
 
@@ -138,7 +125,19 @@ public class BallProjectile : MonoBehaviour
 
             if (hit.Type == BallCollisionType.Block && hit.Block != null)
             {
-                hit.Block.TryApplyDamage(1, hit.ImpactPoint, out _);
+                var effectResult = chessBoard != null
+                    ? chessBoard.ResolveProjectileBlockHit(hit.Block, hit.ImpactPoint)
+                    : default;
+                if (TryHandleProjectileHitEffect(effectResult))
+                {
+                    return;
+                }
+
+                if (effectResult.PassThrough)
+                {
+                    AdvancePassThrough(ref remainingDistance);
+                    continue;
+                }
             }
 
             direction = BallPhysicsUtility.Reflect(direction, hit.Normal);
@@ -217,7 +216,19 @@ public class BallProjectile : MonoBehaviour
 
                 if (overlapHit.Block != null)
                 {
-                    overlapHit.Block.TryApplyDamage(1, overlapHit.ImpactPoint, out _);
+                    var effectResult = chessBoard != null
+                        ? chessBoard.ResolveProjectileBlockHit(overlapHit.Block, overlapHit.ImpactPoint)
+                        : default;
+                    if (TryHandleProjectileHitEffect(effectResult))
+                    {
+                        return;
+                    }
+
+                    if (effectResult.PassThrough)
+                    {
+                        localPosition = nextPosition + (direction * GetPassThroughOffset());
+                        continue;
+                    }
                 }
 
                 direction = BallPhysicsUtility.Reflect(direction, overlapHit.Normal);
@@ -228,6 +239,37 @@ public class BallProjectile : MonoBehaviour
         }
 
         ApplyPosition();
+    }
+
+    private bool TryHandleProjectileHitEffect(ProjectileHitEffectResult effectResult)
+    {
+        if (effectResult.SplitIntoThreeWay)
+        {
+            if (owner != null)
+            {
+                owner.HandleSplitTrigger(this, effectResult.SplitOrigin);
+            }
+            else
+            {
+                ReturnToPool();
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private void AdvancePassThrough(ref float remainingDistance)
+    {
+        var passThroughOffset = GetPassThroughOffset();
+        localPosition += direction * passThroughOffset;
+        remainingDistance = Mathf.Max(0f, remainingDistance - passThroughOffset);
+    }
+
+    private float GetPassThroughOffset()
+    {
+        return Mathf.Max(collisionSkin, radius * BallShootingConstants.PassThroughOffsetRadiusRatio);
     }
 
     private bool TryResolveBoundsFallback(ref Vector2 nextPosition, ref Vector2 nextDirection, out Vector2? collectedPoint)

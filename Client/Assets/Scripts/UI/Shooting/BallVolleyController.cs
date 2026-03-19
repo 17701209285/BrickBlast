@@ -27,38 +27,46 @@ public class BallVolleyController : MonoBehaviour
 
     [SerializeField]
     [Min(100f)]
-    private float BallSpeed = 2600f;
+    private float BallSpeed = BallShootingConstants.DefaultBallSpeed;
 
     [SerializeField]
     [Min(0f)]
-    private float LaunchInterval = 0.02f;
+    private float LaunchInterval = BallShootingConstants.DefaultLaunchInterval;
+
+    [SerializeField]
+    [Range(5f, 85f)]
+    private float SplitFanHalfAngle = BallShootingConstants.DefaultSplitFanHalfAngle;
 
     [SerializeField]
     [Range(0.6f, 1f)]
-    private float BallCollisionRadiusScale = 1f;
+    private float BallCollisionRadiusScale = BallShootingConstants.DefaultCollisionRadiusScale;
 
     [SerializeField]
     [Min(0.01f)]
-    private float CollisionSkin = 1f;
+    private float CollisionSkin = BallShootingConstants.DefaultCollisionSkin;
 
     [SerializeField]
     [Min(0.001f)]
-    private float SimulationStep = 1f / 90f;
+    private float SimulationStep = BallShootingConstants.DefaultSimulationStep;
 
     [SerializeField]
     [Range(1, 16)]
-    private int MaxCollisionsPerStep = 6;
+    private int MaxCollisionsPerStep = BallShootingConstants.DefaultMaxCollisionsPerStep;
 
     [SerializeField]
     [Min(0.5f)]
-    private float FallbackSubstepDistance = 6f;
+    private float FallbackSubstepDistance = BallShootingConstants.DefaultFallbackSubstepDistance;
+
+    [SerializeField]
+    [Min(1)]
+    private int MaxRuntimeProjectileCount = BallShootingConstants.DefaultMaxRuntimeProjectileCount;
 
     [SerializeField]
     private bool MoveBoardDownAfterVolley = true;
 
-    private readonly List<BallProjectile> projectilePool = new List<BallProjectile>();
     private readonly List<BallProjectile> activeProjectiles = new List<BallProjectile>(64);
 
+    private BallProjectilePool projectilePool;
     private Graphic launchBallGraphic;
     private bool isAimSubscribed;
     private bool isBoardStateSubscribed;
@@ -80,8 +88,9 @@ public class BallVolleyController : MonoBehaviour
 
     private void Awake()
     {
-        EnsureDependencies();
         currentBallCount = Mathf.Max(1, InitialBallCount);
+        EnsureDependencies();
+        WarmupProjectilePool();
         CacheLaunchBallGraphic();
         RefreshLaunchBallCountLabel();
         SetLaunchBallVisible(true);
@@ -150,18 +159,13 @@ public class BallVolleyController : MonoBehaviour
     public void SetBallCount(int ballCount)
     {
         currentBallCount = Mathf.Max(1, ballCount);
+        WarmupProjectilePool();
         RefreshLaunchBallCountLabel();
     }
 
     public void NotifyProjectileReturned(BallProjectile projectile, Vector2 landingPoint)
     {
-        if (projectile != null)
-        {
-            projectile.ReturnToPool();
-            activeProjectiles.Remove(projectile);
-        }
-
-        activeProjectileCount = Mathf.Max(0, activeProjectileCount - 1);
+        ReleaseActiveProjectile(projectile);
 
         // 中文备注：下一回合的起点取“本轮第一个落回底线的球”，这里记录的就是那个位置。
         if (!hasRecordedFirstLanding)
@@ -178,6 +182,33 @@ public class BallVolleyController : MonoBehaviour
         }
     }
 
+    public void HandleSplitTrigger(BallProjectile sourceProjectile, Vector2 splitOriginLocalPosition)
+    {
+        if (sourceProjectile == null)
+        {
+            return;
+        }
+
+        if (!volleyActive)
+        {
+            ReleaseActiveProjectile(sourceProjectile);
+            return;
+        }
+
+        var splitPlan = BallSplitSpawnPlanner.CreatePlan(activeProjectileCount, MaxRuntimeProjectileCount, SplitFanHalfAngle);
+        if (splitPlan.ReuseSourceProjectile)
+        {
+            sourceProjectile.Launch(CreateLaunchData(splitOriginLocalPosition, splitPlan.GetDirection(0)));
+            return;
+        }
+
+        ReleaseActiveProjectile(sourceProjectile);
+        for (int i = 0; i < splitPlan.DirectionCount; i++)
+        {
+            LaunchSplitProjectile(splitOriginLocalPosition, splitPlan.GetDirection(i));
+        }
+    }
+
     private void HandleAimReleased(Vector2 originLocalPosition, Vector2 aimDirection)
     {
         if (volleyActive || AimLinePresenter == null || ChessBoard == null || ChessBoard.IsGameOver)
@@ -191,6 +222,7 @@ public class BallVolleyController : MonoBehaviour
     private void BeginVolley(Vector2 originLocalPosition, Vector2 aimDirection)
     {
         EnsureDependencies();
+        WarmupProjectilePool();
         if (LaunchBall == null || (ChessBoard != null && ChessBoard.IsGameOver))
         {
             return;
@@ -217,26 +249,13 @@ public class BallVolleyController : MonoBehaviour
 
     private void LaunchSingleBall()
     {
-        var projectile = GetOrCreateProjectile();
+        var projectile = AcquireProjectile();
         if (projectile == null)
         {
             return;
         }
 
-        projectile.Launch(
-            this,
-            ChessBoard,
-            GetSimulationSpace(),
-            launchOrigin,
-            launchDirection,
-            BallSpeed,
-            GetCollisionRadius(),
-            shotBounds,
-            collectorY,
-            CollisionSkin,
-            SimulationStep,
-            MaxCollisionsPerStep,
-            FallbackSubstepDistance);
+        projectile.Launch(CreateLaunchData(launchOrigin, launchDirection));
         activeProjectiles.Add(projectile);
         activeProjectileCount++;
     }
@@ -255,6 +274,8 @@ public class BallVolleyController : MonoBehaviour
         RefreshLaunchBallCountLabel();
 
         var aimLockDuration = 0f;
+        ChessBoard?.ClearTouchedSpecialItemsAtTurnEnd();
+
         if (MoveBoardDownAfterVolley && ChessBoard != null)
         {
             ChessBoard.MoveBoardDownOneRow();
@@ -284,11 +305,7 @@ public class BallVolleyController : MonoBehaviour
         activeProjectileCount = 0;
         aimUnlockTimer = 0f;
 
-        for (int i = 0; i < projectilePool.Count; i++)
-        {
-            projectilePool[i]?.ReturnToPool();
-        }
-
+        projectilePool?.ReleaseAll();
         activeProjectiles.Clear();
 
         SetLaunchBallVisible(true);
@@ -345,6 +362,7 @@ public class BallVolleyController : MonoBehaviour
         }
 
         EnsureProjectileCanvas();
+        EnsureProjectilePool();
     }
 
     private void Subscribe()
@@ -378,46 +396,49 @@ public class BallVolleyController : MonoBehaviour
         }
     }
 
-    private BallProjectile GetOrCreateProjectile()
+    private BallProjectile AcquireProjectile()
     {
-        for (int i = 0; i < projectilePool.Count; i++)
-        {
-            if (projectilePool[i] != null && !projectilePool[i].IsFlying)
-            {
-                return projectilePool[i];
-            }
-        }
-
-        if (LaunchBall == null)
+        if (projectilePool == null)
         {
             return null;
         }
 
-        var projectileObject = Instantiate(LaunchBall.gameObject, GetOrCreateProjectileContainer(), false);
-        projectileObject.name = $"Projectile {projectilePool.Count + 1}";
-        projectileObject.SetActive(false);
+        return projectilePool.Acquire();
+    }
 
-        var projectileCountLabel = projectileObject.transform.Find("Number");
-        if (projectileCountLabel != null)
+    private void EnsureProjectilePool()
+    {
+        if (projectilePool != null || LaunchBall == null)
         {
-            projectileCountLabel.gameObject.SetActive(false);
+            return;
         }
 
-        var projectileGraphic = projectileObject.GetComponent<Graphic>();
-        if (projectileGraphic != null)
-        {
-            projectileGraphic.enabled = true;
-            projectileGraphic.raycastTarget = false;
-        }
+        projectilePool = new BallProjectilePool(LaunchBall.gameObject, GetOrCreateProjectileContainer());
+    }
 
-        var projectile = projectileObject.GetComponent<BallProjectile>();
+    private void LaunchSplitProjectile(Vector2 originLocalPosition, Vector2 direction)
+    {
+        var projectile = AcquireProjectile();
         if (projectile == null)
         {
-            projectile = projectileObject.AddComponent<BallProjectile>();
+            return;
         }
 
-        projectilePool.Add(projectile);
-        return projectile;
+        projectile.Launch(CreateLaunchData(originLocalPosition, direction));
+        activeProjectiles.Add(projectile);
+        activeProjectileCount++;
+    }
+
+    private void ReleaseActiveProjectile(BallProjectile projectile)
+    {
+        if (projectile == null)
+        {
+            return;
+        }
+
+        projectilePool?.Release(projectile);
+        activeProjectiles.Remove(projectile);
+        activeProjectileCount = Mathf.Max(0, activeProjectileCount - 1);
     }
 
     private RectTransform GetOrCreateProjectileContainer()
@@ -484,14 +505,23 @@ public class BallVolleyController : MonoBehaviour
     private Rect GetFallbackBounds()
     {
         var simulationSpace = GetSimulationSpace();
-        return simulationSpace == null ? new Rect(-540f, -960f, 1080f, 1920f) : simulationSpace.rect;
+        if (simulationSpace != null)
+        {
+            return simulationSpace.rect;
+        }
+
+        return new Rect(
+            -BallShootingConstants.DefaultFallbackWidth * 0.5f,
+            -BallShootingConstants.DefaultFallbackHeight * 0.5f,
+            BallShootingConstants.DefaultFallbackWidth,
+            BallShootingConstants.DefaultFallbackHeight);
     }
 
     private float GetBallRadius()
     {
         if (LaunchBall == null)
         {
-            return 25f;
+            return BallShootingConstants.DefaultBallRadius;
         }
 
         return Mathf.Min(LaunchBall.rect.width, LaunchBall.rect.height) * 0.5f;
@@ -502,6 +532,38 @@ public class BallVolleyController : MonoBehaviour
         // 中文备注：视觉半径和碰撞半径拆开，
         // 可以避免“看起来还没碰到砖，脚本已经先反弹”的空气碰撞感。
         return GetBallRadius() * Mathf.Clamp(BallCollisionRadiusScale, 0.6f, 1f);
+    }
+
+    private BallProjectileLaunchData CreateLaunchData(Vector2 originLocalPosition, Vector2 direction)
+    {
+        return new BallProjectileLaunchData(
+            this,
+            ChessBoard,
+            GetSimulationSpace(),
+            originLocalPosition,
+            direction,
+            BallSpeed,
+            GetCollisionRadius(),
+            shotBounds,
+            collectorY,
+            CollisionSkin,
+            SimulationStep,
+            MaxCollisionsPerStep,
+            FallbackSubstepDistance);
+    }
+
+    private void WarmupProjectilePool()
+    {
+        projectilePool?.Warmup(GetProjectileWarmupCount());
+    }
+
+    private int GetProjectileWarmupCount()
+    {
+        return Mathf.Max(
+            MaxRuntimeProjectileCount,
+            Mathf.Max(
+                BallShootingConstants.MinimumWarmProjectileCount,
+                Mathf.Max(1, currentBallCount) * BallShootingConstants.ProjectileWarmupMultiplier));
     }
 
     private void MoveLaunchBallTo(Vector2 localPosition)

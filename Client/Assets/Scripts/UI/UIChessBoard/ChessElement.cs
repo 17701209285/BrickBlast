@@ -6,6 +6,12 @@ using TMPro;
 
 public class ChessElement : MonoBehaviour
 {
+    private static readonly Color HorizontalBlastLowLifeColor = new Color(0.47f, 0.89f, 0.46f, 1f);
+    private static readonly Color HorizontalBlastHighLifeColor = new Color(0.16f, 0.67f, 0.31f, 1f);
+    private static readonly Color VerticalBlastLowLifeColor = new Color(0.39f, 0.86f, 0.93f, 1f);
+    private static readonly Color VerticalBlastHighLifeColor = new Color(0.10f, 0.56f, 0.89f, 1f);
+    private static readonly Color SplitThreeWayLowLifeColor = new Color(1.00f, 0.63f, 0.37f, 1f);
+    private static readonly Color SplitThreeWayHighLifeColor = new Color(0.93f, 0.32f, 0.60f, 1f);
     [SerializeField]
     private Vector2 m_Space;
     [SerializeField]
@@ -45,14 +51,20 @@ public class ChessElement : MonoBehaviour
     private Tween moveTween;
     private Tween aimPreviewTween;
     private bool aimPreviewActive;
+    private bool specialTouchedThisVolley;
+    private int specialTriggerCountThisVolley;
     private IChessHitEffectPlayer[] hitEffectPlayers;
     private readonly Vector3[] worldCornersBuffer = new Vector3[4];
 
     public int X => ChessData?.X ?? -1;
     public int Y => ChessData?.Y ?? -1;
-    public LevelCellType Type => life <= 0 ? LevelCellType.Empty : cellType;
-    public int Life => life;
-    public bool HasContent => Type != LevelCellType.Empty && Life > 0;
+    public LevelCellType Type => LevelCellTypeUtility.NormalizeType(cellType, life);
+    public int Life => LevelCellTypeUtility.NormalizeLife(cellType, life);
+    public bool HasContent => Type != LevelCellType.Empty;
+    public bool CountsAsBrick => LevelCellTypeUtility.UsesLife(Type);
+    public bool IsSpecialItem => LevelCellTypeUtility.IsSpecial(Type);
+    public bool WasSpecialTouchedThisVolley => IsSpecialItem && specialTouchedThisVolley;
+    public int SpecialTriggerCountThisVolley => specialTriggerCountThisVolley;
 
     private void Awake()
     {
@@ -88,18 +100,31 @@ public class ChessElement : MonoBehaviour
 
     public void SetCellContent(LevelCellType inType, int inLife)
     {
-        life = Mathf.Max(0, inLife);
-        cellType = life <= 0 ? LevelCellType.Empty : inType;
+        cellType = LevelCellTypeUtility.NormalizeType(inType, inLife);
+        life = LevelCellTypeUtility.NormalizeLife(cellType, inLife);
+        specialTouchedThisVolley = false;
+        specialTriggerCountThisVolley = 0;
         RefreshView();
     }
 
-    public bool TryApplyDamage(int damage, Vector2 hitPointInBoardSpace, out ChessHitEffectContext hitContext)
+    public bool TryApplyDamage(int damage, Vector2 hitPointInBoardSpace, ChessDamageSource damageSource, out ChessHitEffectContext hitContext)
     {
         hitContext = default;
         damage = Mathf.Max(0, damage);
-        if (!HasContent || damage <= 0)
+        var currentType = Type;
+        if (currentType == LevelCellType.Empty || damage <= 0)
         {
             return false;
+        }
+
+        var preHitColor = GetContentColor(currentType, Life);
+        if (LevelCellTypeUtility.IsSpecial(currentType))
+        {
+            specialTouchedThisVolley = true;
+            RefreshDebugName();
+            hitContext = new ChessHitEffectContext(this, hitPointInBoardSpace, damageSource, damage, 0, 0, preHitColor);
+            PlayHitEffect(hitContext);
+            return true;
         }
 
         // 中文备注：方块的运行时生命统一从这里扣，后面不管你换什么受击特效，都可以复用这个入口。
@@ -112,7 +137,7 @@ public class ChessElement : MonoBehaviour
 
         RefreshView();
 
-        hitContext = new ChessHitEffectContext(this, hitPointInBoardSpace, damage, previousLife, life);
+        hitContext = new ChessHitEffectContext(this, hitPointInBoardSpace, damageSource, damage, previousLife, life, preHitColor);
         PlayHitEffect(hitContext);
         return true;
     }
@@ -120,6 +145,29 @@ public class ChessElement : MonoBehaviour
     public void ClearContent()
     {
         SetCellContent(LevelCellType.Empty, 0);
+    }
+
+    public bool ClearTouchedSpecialAtTurnEnd()
+    {
+        if (!WasSpecialTouchedThisVolley)
+        {
+            return false;
+        }
+
+        ClearContent();
+        return true;
+    }
+
+    public bool TryConsumeSpecialTriggerBudget(int maxTriggerCount)
+    {
+        if (!IsSpecialItem || maxTriggerCount <= 0 || specialTriggerCountThisVolley >= maxTriggerCount)
+        {
+            return false;
+        }
+
+        specialTriggerCountThisVolley++;
+        RefreshDebugName();
+        return true;
     }
 
     public void SetAimPreviewActive(bool active)
@@ -239,18 +287,27 @@ public class ChessElement : MonoBehaviour
 
     private Color GetContentColor(LevelCellType type, int currentLife)
     {
-        if (type == LevelCellType.Empty || currentLife <= 0)
+        if (type == LevelCellType.Empty)
         {
             return m_EmptyColor;
         }
 
-        var t = Mathf.Clamp01((currentLife - 1) / 8f);
-        if (type == LevelCellType.Triangle)
+        var t = LevelCellTypeUtility.UsesLife(type)
+            ? Mathf.Clamp01((currentLife - 1) / 8f)
+            : LevelCellTypeConstants.SpecialVisualBlendFactor;
+        switch (type)
         {
-            return Color.Lerp(m_TriangleLowLifeColor, m_TriangleHighLifeColor, t);
+            case LevelCellType.Triangle:
+                return Color.Lerp(m_TriangleLowLifeColor, m_TriangleHighLifeColor, t);
+            case LevelCellType.HorizontalBlast:
+                return Color.Lerp(HorizontalBlastLowLifeColor, HorizontalBlastHighLifeColor, t);
+            case LevelCellType.VerticalBlast:
+                return Color.Lerp(VerticalBlastLowLifeColor, VerticalBlastHighLifeColor, t);
+            case LevelCellType.SplitThreeWay:
+                return Color.Lerp(SplitThreeWayLowLifeColor, SplitThreeWayHighLifeColor, t);
+            default:
+                return Color.Lerp(m_SquareLowLifeColor, m_SquareHighLifeColor, t);
         }
-
-        return Color.Lerp(m_SquareLowLifeColor, m_SquareHighLifeColor, t);
     }
 
     [System.Diagnostics.Conditional("UNITY_EDITOR")]
@@ -311,13 +368,44 @@ public class ChessElement : MonoBehaviour
             return;
         }
 
-        m_BrickLife.text = life.ToString();
+        m_BrickLife.text = GetRuntimeLifeLabel(Type, life);
         m_BrickLife.color = GetLifeTextColor(Type, Life);
+    }
+
+    private static string GetRuntimeLifeLabel(LevelCellType type, int currentLife)
+    {
+        if (type == LevelCellType.Empty)
+        {
+            return string.Empty;
+        }
+
+        var marker = GetRuntimeTypeMarker(type);
+        if (LevelCellTypeUtility.IsSpecial(type))
+        {
+            return marker;
+        }
+
+        return string.IsNullOrEmpty(marker) ? currentLife.ToString() : $"{marker}{currentLife}";
+    }
+
+    private static string GetRuntimeTypeMarker(LevelCellType type)
+    {
+        switch (type)
+        {
+            case LevelCellType.HorizontalBlast:
+                return "H";
+            case LevelCellType.VerticalBlast:
+                return "V";
+            case LevelCellType.SplitThreeWay:
+                return "3";
+            default:
+                return string.Empty;
+        }
     }
 
     private Color GetLifeTextColor(LevelCellType type, int currentLife)
     {
-        if (type == LevelCellType.Empty || currentLife <= 0)
+        if (type == LevelCellType.Empty)
         {
             return Color.clear;
         }

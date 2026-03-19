@@ -333,7 +333,7 @@ public class LevelConfig : MonoBehaviour
         for (int i = 0; i < cells.Count; i++)
         {
             var cell = cells[i];
-            if (cell == null || cell.Life <= 0)
+            if (cell == null || cell.Type == LevelCellType.Empty)
             {
                 continue;
             }
@@ -735,23 +735,24 @@ public class LevelConfigEditor : Editor
     private void DrawCellOverlay(Rect rect, LevelCellType type, int life)
     {
         var lifeLabel = LevelCell.GetPreviewLifeLabel(type, life);
-        if (string.IsNullOrEmpty(lifeLabel))
+        var typeMarker = LevelCell.GetPreviewTypeMarker(type, life);
+        if (string.IsNullOrEmpty(lifeLabel) && string.IsNullOrEmpty(typeMarker))
         {
             return;
         }
 
         var textColor = LevelCell.GetPreviewTextColor(type, life);
-        var lifeStyle = GetCellLifeStyle(textColor);
-        GUI.Label(rect, lifeLabel, lifeStyle);
-
-        var typeMarker = LevelCell.GetPreviewTypeMarker(type, life);
-        if (string.IsNullOrEmpty(typeMarker))
+        if (!string.IsNullOrEmpty(lifeLabel))
         {
-            return;
+            var lifeStyle = GetCellLifeStyle(textColor);
+            GUI.Label(rect, lifeLabel, lifeStyle);
         }
 
-        var markerRect = new Rect(rect.x + 2f, rect.y + 2f, rect.width - 4f, 12f);
-        GUI.Label(markerRect, typeMarker, GetCellTypeStyle(textColor));
+        if (!string.IsNullOrEmpty(typeMarker))
+        {
+            var markerRect = new Rect(rect.x + 2f, rect.y + 2f, rect.width - 4f, 12f);
+            GUI.Label(markerRect, typeMarker, GetCellTypeStyle(textColor));
+        }
     }
 
     private void PaintCell(LevelConfig config, LevelCell cell, LevelCellType type, int life)
@@ -761,7 +762,11 @@ public class LevelConfigEditor : Editor
             return;
         }
 
-        if (type != LevelCellType.Empty)
+        if (LevelCellTypeUtility.IsSpecial(type))
+        {
+            life = 0;
+        }
+        else if (type != LevelCellType.Empty)
         {
             life = Mathf.Max(1, life);
         }

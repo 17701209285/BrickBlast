@@ -4,6 +4,18 @@ using UnityEngine.UI;
 [ExecuteAlways]
 public class LevelCell : MonoBehaviour
 {
+    private static readonly Color PreviewEmptyColor = new Color(0.635f, 0.635f, 0.635f, 1f);
+    private static readonly Color PreviewSquareLowLifeColor = new Color(0.95f, 0.78f, 0.32f, 1f);
+    private static readonly Color PreviewSquareHighLifeColor = new Color(0.88f, 0.29f, 0.23f, 1f);
+    private static readonly Color PreviewTriangleLowLifeColor = new Color(0.44f, 0.78f, 0.97f, 1f);
+    private static readonly Color PreviewTriangleHighLifeColor = new Color(0.08f, 0.45f, 0.89f, 1f);
+    private static readonly Color PreviewHorizontalBlastLowLifeColor = new Color(0.47f, 0.89f, 0.46f, 1f);
+    private static readonly Color PreviewHorizontalBlastHighLifeColor = new Color(0.16f, 0.67f, 0.31f, 1f);
+    private static readonly Color PreviewVerticalBlastLowLifeColor = new Color(0.39f, 0.86f, 0.93f, 1f);
+    private static readonly Color PreviewVerticalBlastHighLifeColor = new Color(0.10f, 0.56f, 0.89f, 1f);
+    private static readonly Color PreviewSplitThreeWayLowLifeColor = new Color(1.00f, 0.63f, 0.37f, 1f);
+    private static readonly Color PreviewSplitThreeWayHighLifeColor = new Color(0.93f, 0.32f, 0.60f, 1f);
+
     [SerializeField]
     private int x;
 
@@ -23,8 +35,8 @@ public class LevelCell : MonoBehaviour
 
     public int X => x;
     public int Y => y;
-    public LevelCellType Type => life <= 0 ? LevelCellType.Empty : cellType;
-    public int Life => life;
+    public LevelCellType Type => LevelCellTypeUtility.NormalizeType(cellType, life);
+    public int Life => LevelCellTypeUtility.NormalizeLife(cellType, life);
 
     private void Reset()
     {
@@ -36,10 +48,8 @@ public class LevelCell : MonoBehaviour
     private void OnValidate()
     {
         life = Mathf.Max(0, life);
-        if (life <= 0)
-        {
-            cellType = LevelCellType.Empty;
-        }
+        cellType = LevelCellTypeUtility.NormalizeType(cellType, life);
+        life = LevelCellTypeUtility.NormalizeLife(cellType, life);
         CacheComponents();
         RefreshPreview();
     }
@@ -54,8 +64,8 @@ public class LevelCell : MonoBehaviour
 
     public void SetData(LevelCellType inType, int inLife)
     {
-        life = Mathf.Max(0, inLife);
-        cellType = life <= 0 ? LevelCellType.Empty : inType;
+        cellType = LevelCellTypeUtility.NormalizeType(inType, inLife);
+        life = LevelCellTypeUtility.NormalizeLife(cellType, inLife);
         RefreshPreview();
     }
 
@@ -66,25 +76,31 @@ public class LevelCell : MonoBehaviour
         {
             life = 0;
         }
+        else if (LevelCellTypeUtility.IsSpecial(cellType))
+        {
+            life = 0;
+        }
         else if (life <= 0)
         {
             life = 1;
         }
+
+        cellType = LevelCellTypeUtility.NormalizeType(cellType, life);
+        life = LevelCellTypeUtility.NormalizeLife(cellType, life);
 
         RefreshPreview();
     }
 
     public void SetLife(int inLife)
     {
-        life = Mathf.Max(0, inLife);
-        if (life <= 0)
+        var nextType = cellType;
+        if (nextType == LevelCellType.Empty && inLife > 0)
         {
-            cellType = LevelCellType.Empty;
+            nextType = LevelCellType.Square;
         }
-        else if (cellType == LevelCellType.Empty)
-        {
-            cellType = LevelCellType.Square;
-        }
+
+        cellType = LevelCellTypeUtility.NormalizeType(nextType, inLife);
+        life = LevelCellTypeUtility.NormalizeLife(cellType, inLife);
 
         RefreshPreview();
     }
@@ -102,44 +118,64 @@ public class LevelCell : MonoBehaviour
 
     public static Color GetPreviewColor(LevelCellType type, int currentLife)
     {
-        if (type == LevelCellType.Empty || currentLife <= 0)
+        if (type == LevelCellType.Empty)
         {
-            return new Color(0.635f, 0.635f, 0.635f, 1f);
+            return PreviewEmptyColor;
         }
 
-        var t = Mathf.Clamp01((currentLife - 1) / 8f);
-        if (type == LevelCellType.Triangle)
+        var t = LevelCellTypeUtility.UsesLife(type)
+            ? Mathf.Clamp01((currentLife - 1) / 8f)
+            : LevelCellTypeConstants.SpecialVisualBlendFactor;
+        switch (type)
         {
-            return Color.Lerp(
-                new Color(0.44f, 0.78f, 0.97f, 1f),
-                new Color(0.08f, 0.45f, 0.89f, 1f),
-                t);
+            case LevelCellType.Triangle:
+                return Color.Lerp(PreviewTriangleLowLifeColor, PreviewTriangleHighLifeColor, t);
+            case LevelCellType.HorizontalBlast:
+                return Color.Lerp(PreviewHorizontalBlastLowLifeColor, PreviewHorizontalBlastHighLifeColor, t);
+            case LevelCellType.VerticalBlast:
+                return Color.Lerp(PreviewVerticalBlastLowLifeColor, PreviewVerticalBlastHighLifeColor, t);
+            case LevelCellType.SplitThreeWay:
+                return Color.Lerp(PreviewSplitThreeWayLowLifeColor, PreviewSplitThreeWayHighLifeColor, t);
+            default:
+                return Color.Lerp(PreviewSquareLowLifeColor, PreviewSquareHighLifeColor, t);
         }
-
-        return Color.Lerp(
-            new Color(0.95f, 0.78f, 0.32f, 1f),
-            new Color(0.88f, 0.29f, 0.23f, 1f),
-            t);
     }
 
     public static string GetPreviewLifeLabel(LevelCellType type, int currentLife)
     {
-        return type == LevelCellType.Empty || currentLife <= 0 ? string.Empty : currentLife.ToString();
-    }
-
-    public static string GetPreviewTypeMarker(LevelCellType type, int currentLife)
-    {
-        if (type == LevelCellType.Empty || currentLife <= 0)
+        if (type == LevelCellType.Empty || LevelCellTypeUtility.IsSpecial(type))
         {
             return string.Empty;
         }
 
-        return type == LevelCellType.Triangle ? "T" : string.Empty;
+        return currentLife <= 0 ? string.Empty : currentLife.ToString();
+    }
+
+    public static string GetPreviewTypeMarker(LevelCellType type, int currentLife)
+    {
+        if (type == LevelCellType.Empty)
+        {
+            return string.Empty;
+        }
+
+        switch (type)
+        {
+            case LevelCellType.Triangle:
+                return "T";
+            case LevelCellType.HorizontalBlast:
+                return "H";
+            case LevelCellType.VerticalBlast:
+                return "V";
+            case LevelCellType.SplitThreeWay:
+                return "3";
+            default:
+                return string.Empty;
+        }
     }
 
     public static Color GetPreviewTextColor(LevelCellType type, int currentLife)
     {
-        if (type == LevelCellType.Empty || currentLife <= 0)
+        if (type == LevelCellType.Empty)
         {
             return new Color(0f, 0f, 0f, 0f);
         }
@@ -151,7 +187,7 @@ public class LevelCell : MonoBehaviour
 
     public static Color GetPreviewOutlineColor(LevelCellType type, int currentLife)
     {
-        if (type == LevelCellType.Empty || currentLife <= 0)
+        if (type == LevelCellType.Empty)
         {
             return new Color(0f, 0f, 0f, 0f);
         }
