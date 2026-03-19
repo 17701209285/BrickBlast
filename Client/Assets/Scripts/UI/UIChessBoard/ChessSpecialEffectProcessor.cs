@@ -23,7 +23,7 @@ internal readonly struct ChessSpecialEffectResult
 
 internal static class ChessSpecialEffectProcessor
 {
-    public static ChessSpecialEffectResult TryTrigger(UIChessBoard board, ChessElement target, ChessDamageSource source)
+    public static ChessSpecialEffectResult TryTrigger(UIChessBoard board, ChessElement target, ChessDamageSource source, ChessBoardImpactAccumulator impactAccumulator)
     {
         if (board == null || target == null || !target.IsSpecialItem || source != ChessDamageSource.Projectile)
         {
@@ -33,12 +33,15 @@ internal static class ChessSpecialEffectProcessor
         switch (target.Type)
         {
             case LevelCellType.HorizontalBlast:
-                ChessLineBlastProcessor.TriggerHorizontal(board, target);
+                impactAccumulator?.RegisterSpecialTrigger(target.Type);
+                ChessLineBlastProcessor.TriggerHorizontal(board, target, impactAccumulator);
                 return new ChessSpecialEffectResult(true, true, false, Vector2.zero);
             case LevelCellType.VerticalBlast:
-                ChessLineBlastProcessor.TriggerVertical(board, target);
+                impactAccumulator?.RegisterSpecialTrigger(target.Type);
+                ChessLineBlastProcessor.TriggerVertical(board, target, impactAccumulator);
                 return new ChessSpecialEffectResult(true, true, false, Vector2.zero);
             case LevelCellType.SplitThreeWay:
+                impactAccumulator?.RegisterSpecialTrigger(target.Type);
                 if (!target.TryConsumeSpecialTriggerBudget(LevelCellTypeConstants.SplitSpecialMaxTriggerCountPerVolley))
                 {
                     return new ChessSpecialEffectResult(true, true, false, Vector2.zero);

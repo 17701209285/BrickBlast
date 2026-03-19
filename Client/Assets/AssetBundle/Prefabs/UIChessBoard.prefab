@@ -363,6 +363,7 @@ GameObject:
   - component: {fileID: 6301200011732254101}
   - component: {fileID: 6548271640948263211}
   - component: {fileID: 2355076698915962381}
+  - component: {fileID: 8723459828401736421}
   m_Layer: 5
   m_Name: UIChessBoard
   m_TagString: Untagged
@@ -488,6 +489,22 @@ MonoBehaviour:
   Target: {fileID: 0}
   ReferenceResolution: {x: 1080, y: 1920}
   ConstrainToSafeArea: 1
+--- !u!114 &8723459828401736421
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3748741464985914959}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35a22432758249f0bbb29db79e6d6007, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ScreenShakeController
+  ChessBoard: {fileID: 4285825462255419185}
+  Target: {fileID: 5462893073785062948}
+  ShakeOnMultiDestroy: 1
+  MinimumDestroyedBricksForShake: 2
 --- !u!1 &6161040314981084047
 GameObject:
   m_ObjectHideFlags: 0

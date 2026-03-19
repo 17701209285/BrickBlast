@@ -27,6 +27,7 @@ public enum ChessDamageSource
 public class UIChessBoard : MonoBehaviour
 {
     public event Action<bool> GameOverStateChanged;
+    public event Action<ChessBoardImpactSummary> ImpactResolved;
 
     public readonly struct CollisionCandidate
     {
@@ -89,6 +90,9 @@ public class UIChessBoard : MonoBehaviour
     public int BottomRowIndex => Mathf.Max(0, boardHeight - 1);
     public IReadOnlyList<CollisionCandidate> CollisionCandidates => collisionCandidates;
     public bool IsGameOver => isGameOver;
+    public RectTransform PrimaryShakeTarget => ParentTransform as RectTransform != null
+        ? ParentTransform as RectTransform
+        : transform as RectTransform;
 
     private void Start()
     {
@@ -262,8 +266,15 @@ public class UIChessBoard : MonoBehaviour
     public ProjectileHitEffectResult ResolveProjectileBlockHit(ChessElement target, Vector2 hitPointInBoardSpace)
     {
         var result = default(ProjectileHitEffectResult);
-        ApplyDamageWithEffects(target, 1, hitPointInBoardSpace, ChessDamageSource.Projectile, ref result);
+        var impactAccumulator = new ChessBoardImpactAccumulator(ChessDamageSource.Projectile, hitPointInBoardSpace);
+        ApplyDamageWithEffects(target, 1, hitPointInBoardSpace, ChessDamageSource.Projectile, ref result, impactAccumulator);
         RebuildCollisionCandidates();
+
+        if (impactAccumulator.HasAnyImpact)
+        {
+            ImpactResolved?.Invoke(impactAccumulator.BuildSummary());
+        }
+
         return result;
     }
 
@@ -555,7 +566,8 @@ public class UIChessBoard : MonoBehaviour
         int damage,
         Vector2 hitPointInBoardSpace,
         ChessDamageSource source,
-        ref ProjectileHitEffectResult projectileHitEffect)
+        ref ProjectileHitEffectResult projectileHitEffect,
+        ChessBoardImpactAccumulator impactAccumulator)
     {
         if (target == null || damage <= 0 || !target.HasContent)
         {
@@ -563,24 +575,26 @@ public class UIChessBoard : MonoBehaviour
         }
 
         var isSpecialItem = target.IsSpecialItem;
-        if (!target.TryApplyDamage(damage, hitPointInBoardSpace, source, out _))
+        if (!target.TryApplyDamage(damage, hitPointInBoardSpace, source, out var hitContext))
         {
             return;
         }
+
+        impactAccumulator?.RegisterDamage(hitContext);
 
         if (!isSpecialItem)
         {
             return;
         }
 
-        var specialEffectResult = ChessSpecialEffectProcessor.TryTrigger(this, target, source);
+        var specialEffectResult = ChessSpecialEffectProcessor.TryTrigger(this, target, source, impactAccumulator);
         if (specialEffectResult.IsTriggered)
         {
             projectileHitEffect = specialEffectResult.ToProjectileHitEffectResult();
         }
     }
 
-    internal bool ApplyBlastDamageToTarget(ChessElement target, ChessDamageSource source)
+    internal bool ApplyBlastDamageToTarget(ChessElement target, ChessDamageSource source, ChessBoardImpactAccumulator impactAccumulator)
     {
         if (target == null || !target.CountsAsBrick)
         {
@@ -595,7 +609,8 @@ public class UIChessBoard : MonoBehaviour
             LevelCellTypeConstants.SpecialBlastDamage,
             GetElementCenterInBoardSpace(target),
             source,
-            ref ignoredProjectileHit);
+            ref ignoredProjectileHit,
+            impactAccumulator);
         return previousType != target.Type || previousLife != target.Life;
     }
 

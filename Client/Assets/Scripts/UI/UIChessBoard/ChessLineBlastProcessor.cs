@@ -1,6 +1,6 @@
 internal static class ChessLineBlastProcessor
 {
-    public static void TriggerHorizontal(UIChessBoard board, ChessElement origin)
+    public static void TriggerHorizontal(UIChessBoard board, ChessElement origin, ChessBoardImpactAccumulator impactAccumulator)
     {
         if (board == null || origin == null)
         {
@@ -15,11 +15,11 @@ internal static class ChessLineBlastProcessor
                 continue;
             }
 
-            board.ApplyBlastDamageToTarget(board.GetChessElement(x, rowIndex), ChessDamageSource.HorizontalBlast);
+            board.ApplyBlastDamageToTarget(board.GetChessElement(x, rowIndex), ChessDamageSource.HorizontalBlast, impactAccumulator);
         }
     }
 
-    public static void TriggerVertical(UIChessBoard board, ChessElement origin)
+    public static void TriggerVertical(UIChessBoard board, ChessElement origin, ChessBoardImpactAccumulator impactAccumulator)
     {
         if (board == null || origin == null)
         {
@@ -34,7 +34,7 @@ internal static class ChessLineBlastProcessor
                 continue;
             }
 
-            board.ApplyBlastDamageToTarget(board.GetChessElement(columnIndex, y), ChessDamageSource.VerticalBlast);
+            board.ApplyBlastDamageToTarget(board.GetChessElement(columnIndex, y), ChessDamageSource.VerticalBlast, impactAccumulator);
         }
     }
 }
