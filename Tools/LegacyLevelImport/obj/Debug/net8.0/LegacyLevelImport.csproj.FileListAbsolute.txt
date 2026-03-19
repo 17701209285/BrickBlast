@@ -1,0 +1,15 @@
+E:\workspace\Projects\BrickBlast\Tools\LegacyLevelImport\obj\Debug\net8.0\LegacyLevelImport.GeneratedMSBuildEditorConfig.editorconfig
+E:\workspace\Projects\BrickBlast\Tools\LegacyLevelImport\obj\Debug\net8.0\LegacyLevelImport.AssemblyInfoInputs.cache
+E:\workspace\Projects\BrickBlast\Tools\LegacyLevelImport\obj\Debug\net8.0\LegacyLevelImport.AssemblyInfo.cs
+E:\workspace\Projects\BrickBlast\Tools\LegacyLevelImport\obj\Debug\net8.0\LegacyLevelImport.csproj.CoreCompileInputs.cache
+E:\workspace\Projects\BrickBlast\Tools\LegacyLevelImport\obj\Debug\net8.0\LegacyLevelImport.sourcelink.json
+E:\workspace\Projects\BrickBlast\Tools\LegacyLevelImport\obj\Debug\net8.0\LegacyLevelImport.dll
+E:\workspace\Projects\BrickBlast\Tools\LegacyLevelImport\obj\Debug\net8.0\refint\LegacyLevelImport.dll
+E:\workspace\Projects\BrickBlast\Tools\LegacyLevelImport\obj\Debug\net8.0\LegacyLevelImport.pdb
+E:\workspace\Projects\BrickBlast\Tools\LegacyLevelImport\bin\Debug\net8.0\LegacyLevelImport.exe
+E:\workspace\Projects\BrickBlast\Tools\LegacyLevelImport\bin\Debug\net8.0\LegacyLevelImport.deps.json
+E:\workspace\Projects\BrickBlast\Tools\LegacyLevelImport\bin\Debug\net8.0\LegacyLevelImport.runtimeconfig.json
+E:\workspace\Projects\BrickBlast\Tools\LegacyLevelImport\bin\Debug\net8.0\LegacyLevelImport.dll
+E:\workspace\Projects\BrickBlast\Tools\LegacyLevelImport\bin\Debug\net8.0\LegacyLevelImport.pdb
+E:\workspace\Projects\BrickBlast\Tools\LegacyLevelImport\obj\Debug\net8.0\LegacyLevelImport.genruntimeconfig.cache
+E:\workspace\Projects\BrickBlast\Tools\LegacyLevelImport\obj\Debug\net8.0\ref\LegacyLevelImport.dll

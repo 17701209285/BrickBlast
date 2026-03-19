@@ -15,6 +15,12 @@ public class LevelCell : MonoBehaviour
     private static readonly Color PreviewVerticalBlastHighLifeColor = new Color(0.10f, 0.56f, 0.89f, 1f);
     private static readonly Color PreviewSplitThreeWayLowLifeColor = new Color(1.00f, 0.63f, 0.37f, 1f);
     private static readonly Color PreviewSplitThreeWayHighLifeColor = new Color(0.93f, 0.32f, 0.60f, 1f);
+    private static readonly Color PreviewRedirectLowLifeColor = new Color(0.99f, 0.78f, 0.42f, 1f);
+    private static readonly Color PreviewRedirectHighLifeColor = new Color(0.91f, 0.46f, 0.20f, 1f);
+    private static readonly Color PreviewCrossBlastLowLifeColor = new Color(0.55f, 0.92f, 0.70f, 1f);
+    private static readonly Color PreviewCrossBlastHighLifeColor = new Color(0.14f, 0.68f, 0.49f, 1f);
+    private static readonly Color PreviewExtraBallsLowLifeColor = new Color(0.76f, 0.96f, 0.49f, 1f);
+    private static readonly Color PreviewExtraBallsHighLifeColor = new Color(0.35f, 0.73f, 0.17f, 1f);
 
     [SerializeField]
     private int x;
@@ -136,6 +142,12 @@ public class LevelCell : MonoBehaviour
                 return Color.Lerp(PreviewVerticalBlastLowLifeColor, PreviewVerticalBlastHighLifeColor, t);
             case LevelCellType.SplitThreeWay:
                 return Color.Lerp(PreviewSplitThreeWayLowLifeColor, PreviewSplitThreeWayHighLifeColor, t);
+            case LevelCellType.Redirect:
+                return Color.Lerp(PreviewRedirectLowLifeColor, PreviewRedirectHighLifeColor, t);
+            case LevelCellType.CrossBlast:
+                return Color.Lerp(PreviewCrossBlastLowLifeColor, PreviewCrossBlastHighLifeColor, t);
+            case LevelCellType.ExtraBalls:
+                return Color.Lerp(PreviewExtraBallsLowLifeColor, PreviewExtraBallsHighLifeColor, t);
             default:
                 return Color.Lerp(PreviewSquareLowLifeColor, PreviewSquareHighLifeColor, t);
         }
@@ -168,6 +180,12 @@ public class LevelCell : MonoBehaviour
                 return "V";
             case LevelCellType.SplitThreeWay:
                 return "3";
+            case LevelCellType.Redirect:
+                return "R";
+            case LevelCellType.CrossBlast:
+                return "X";
+            case LevelCellType.ExtraBalls:
+                return "E";
             default:
                 return string.Empty;
         }

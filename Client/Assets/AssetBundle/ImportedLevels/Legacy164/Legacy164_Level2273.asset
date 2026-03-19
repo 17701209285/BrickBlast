@@ -1,0 +1,1955 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1006f56108cecc46b1800745f2abf0a, type: 3}
+  m_Name: Legacy164_Level2273
+  m_EditorClassIdentifier: Assembly-CSharp::LevelConfigScritable
+  Width: 11
+  VisibleHeight: 13
+  TotalRows: 14
+  DropRowCount: 1
+  Cells:
+  - X: 0
+    Y: 5
+    Type: 0
+    Life: 140
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 140, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 1
+    Y: 5
+    Type: 0
+    Life: 140
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 140, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 2
+    Y: 5
+    Type: 0
+    Life: 140
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 140, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 3
+    Y: 5
+    Type: 0
+    Life: 80
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 80, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 4
+    Y: 5
+    Type: 0
+    Life: 140
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 140, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 5
+    Y: 5
+    Type: 0
+    Life: 140
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 140, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 6
+    Y: 5
+    Type: 0
+    Life: 140
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 140, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 7
+    Y: 5
+    Type: 0
+    Life: 140
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 140, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 8
+    Y: 5
+    Type: 0
+    Life: 220
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 220, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 9
+    Y: 5
+    Type: 0
+    Life: 220
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 220, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 10
+    Y: 5
+    Type: 0
+    Life: 120
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 120, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 0
+    Y: 6
+    Type: 0
+    Life: 80
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 80, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 1
+    Y: 6
+    Type: 0
+    Life: 95
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 95, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 2
+    Y: 6
+    Type: 0
+    Life: 80
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 80, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 3
+    Y: 6
+    Type: 0
+    Life: 80
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 80, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 4
+    Y: 6
+    Type: 0
+    Life: 81
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 81, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 5
+    Y: 6
+    Type: 0
+    Life: 80
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 80, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 6
+    Y: 6
+    Type: 0
+    Life: 139
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 139, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 7
+    Y: 6
+    Type: 0
+    Life: 95
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 95, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 8
+    Y: 6
+    Type: 0
+    Life: 220
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 220, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 9
+    Y: 6
+    Type: 0
+    Life: 220
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 220, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 10
+    Y: 6
+    Type: 0
+    Life: 120
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 120, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 0
+    Y: 7
+    Type: 0
+    Life: 81
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 81, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 1
+    Y: 7
+    Type: 0
+    Life: 122
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 122, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 2
+    Y: 7
+    Type: 0
+    Life: 80
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 80, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 3
+    Y: 7
+    Type: 0
+    Life: 81
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 81, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 4
+    Y: 7
+    Type: 0
+    Life: 81
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 81, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 5
+    Y: 7
+    Type: 0
+    Life: 80
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 80, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 6
+    Y: 7
+    Type: 0
+    Life: 139
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 139, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 7
+    Y: 7
+    Type: 0
+    Life: 122
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 122, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 8
+    Y: 7
+    Type: 0
+    Life: 122
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 122, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 9
+    Y: 7
+    Type: 0
+    Life: 220
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 220, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 10
+    Y: 7
+    Type: 0
+    Life: 120
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 120, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 0
+    Y: 8
+    Type: 0
+    Life: 80
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 80, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 1
+    Y: 8
+    Type: 0
+    Life: 81
+    LegacyBrickId: 1
+    LegacyBrickType: 3
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: "1"
+    LegacyBreakTime: {x: 81, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 2
+    Y: 8
+    Type: 0
+    Life: 80
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 80, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 3
+    Y: 8
+    Type: 0
+    Life: 80
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 80, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 4
+    Y: 8
+    Type: 0
+    Life: 81
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 81, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 5
+    Y: 8
+    Type: 0
+    Life: 80
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 80, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 6
+    Y: 8
+    Type: 0
+    Life: 139
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 139, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 7
+    Y: 8
+    Type: 0
+    Life: 80
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 80, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 8
+    Y: 8
+    Type: 0
+    Life: 81
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 81, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 9
+    Y: 8
+    Type: 0
+    Life: 120
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 120, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 10
+    Y: 8
+    Type: 0
+    Life: 122
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 122, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 0
+    Y: 9
+    Type: 0
+    Life: 116
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 116, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 1
+    Y: 9
+    Type: 0
+    Life: 116
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 116, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 2
+    Y: 9
+    Type: 0
+    Life: 116
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 116, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 3
+    Y: 9
+    Type: 0
+    Life: 80
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 80, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 4
+    Y: 9
+    Type: 0
+    Life: 116
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 116, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 5
+    Y: 9
+    Type: 0
+    Life: 80
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 80, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 6
+    Y: 9
+    Type: 0
+    Life: 139
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 139, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 7
+    Y: 9
+    Type: 0
+    Life: 80
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 80, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 8
+    Y: 9
+    Type: 0
+    Life: 116
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 116, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 9
+    Y: 9
+    Type: 0
+    Life: 116
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 116, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 10
+    Y: 9
+    Type: 0
+    Life: 116
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 116, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 0
+    Y: 10
+    Type: 0
+    Life: 80
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 80, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 1
+    Y: 10
+    Type: 0
+    Life: 80
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 80, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 2
+    Y: 10
+    Type: 0
+    Life: 80
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 80, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 3
+    Y: 10
+    Type: 0
+    Life: 80
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 80, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 4
+    Y: 10
+    Type: 0
+    Life: 80
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 80, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 5
+    Y: 10
+    Type: 0
+    Life: 80
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 80, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 6
+    Y: 10
+    Type: 0
+    Life: 139
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 139, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 7
+    Y: 10
+    Type: 0
+    Life: 80
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 80, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 8
+    Y: 10
+    Type: 0
+    Life: 80
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 80, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 9
+    Y: 10
+    Type: 0
+    Life: 80
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 80, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 10
+    Y: 10
+    Type: 0
+    Life: 80
+    LegacyBrickId: 1
+    LegacyBrickType: 11
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 80, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 0
+    Y: 11
+    Type: 0
+    Life: 141
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 141, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 1
+    Y: 11
+    Type: 0
+    Life: 139
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 139, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 2
+    Y: 11
+    Type: 0
+    Life: 139
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 139, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 3
+    Y: 11
+    Type: 0
+    Life: 139
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 139, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 4
+    Y: 11
+    Type: 0
+    Life: 139
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 139, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 5
+    Y: 11
+    Type: 5
+    Life: 0
+    LegacyBrickId: 1
+    LegacyBrickType: 13
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: "30"
+    LegacyBreakTime: {x: 100, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 6
+    Y: 11
+    Type: 0
+    Life: 139
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 139, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 7
+    Y: 11
+    Type: 0
+    Life: 139
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 139, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 8
+    Y: 11
+    Type: 0
+    Life: 139
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 139, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 9
+    Y: 11
+    Type: 0
+    Life: 139
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 139, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 10
+    Y: 11
+    Type: 0
+    Life: 139
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 139, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 2
+    Y: 12
+    Type: 0
+    Life: 94
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 94, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 6
+    Y: 12
+    Type: 0
+    Life: 94
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 94, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 0
+    Y: 13
+    Type: 0
+    Life: 142
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 142, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 1
+    Y: 13
+    Type: 0
+    Life: 142
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 142, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 2
+    Y: 13
+    Type: 0
+    Life: 141
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 141, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 4
+    Y: 13
+    Type: 0
+    Life: 141
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 141, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 6
+    Y: 13
+    Type: 0
+    Life: 141
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 141, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 7
+    Y: 13
+    Type: 0
+    Life: 141
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 141, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 8
+    Y: 13
+    Type: 0
+    Life: 141
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 141, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 10
+    Y: 13
+    Type: 0
+    Life: 141
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 141, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 0
+    Y: 14
+    Type: 0
+    Life: 84
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 84, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 2
+    Y: 14
+    Type: 0
+    Life: 142
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 142, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 4
+    Y: 14
+    Type: 0
+    Life: 142
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 142, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 6
+    Y: 14
+    Type: 0
+    Life: 84
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 84, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 10
+    Y: 14
+    Type: 0
+    Life: 105
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 105, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 0
+    Y: 15
+    Type: 0
+    Life: 105
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 105, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 2
+    Y: 15
+    Type: 0
+    Life: 105
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 105, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 3
+    Y: 15
+    Type: 0
+    Life: 105
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 105, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 4
+    Y: 15
+    Type: 0
+    Life: 105
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 105, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 5
+    Y: 15
+    Type: 0
+    Life: 105
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 105, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 6
+    Y: 15
+    Type: 0
+    Life: 105
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 105, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 7
+    Y: 15
+    Type: 0
+    Life: 105
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 105, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 9
+    Y: 15
+    Type: 0
+    Life: 105
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 105, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 10
+    Y: 15
+    Type: 0
+    Life: 105
+    LegacyBrickId: 1
+    LegacyBrickType: 1
+    LegacyShapeType: 1
+    LegacyAttributeType: 0
+    LegacyToolType: 1
+    LegacyExtraAttributes: ""
+    LegacyBreakTime: {x: 105, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  LegacyMetadata:
+    ImportedFromLegacy164: 1
+    SourceLevel: 2273
+    SourceMapId: 632
+    SourceAuthorName: "ZAY"
+    SourceDifficulty: 0
+    SourceBrickRandomRange: {x: 0, y: 0}
+    SourceAddCoinBrickRange: {x: 0, y: 0}
+    SourceDoNotPush: 0
+    SourceScoreHex: "a00f00004123000070300000"
+    StartPosition: 50
+    ColorRange: {x: 1, y: 9}
+    ColorTopLimit: {x: 1, y: 200}
+    ChargeMax: 0
+    BallCount: 65
+    Barriers: []
+    Rivers: []

@@ -8,12 +8,30 @@ public readonly struct ProjectileHitEffectResult
     public bool SplitIntoThreeWay { get; }
     public bool PassThrough { get; }
     public Vector2 SplitOrigin { get; }
+    public Vector2 SplitDirection { get; }
+    public bool RedirectCurrentProjectile { get; }
+    public Vector2 RedirectOrigin { get; }
+    public Vector2 RedirectDirection { get; }
+    public int AddedBallCount { get; }
 
-    public ProjectileHitEffectResult(bool splitIntoThreeWay, bool passThrough, Vector2 splitOrigin)
+    public ProjectileHitEffectResult(
+        bool splitIntoThreeWay,
+        bool passThrough,
+        Vector2 splitOrigin,
+        Vector2 splitDirection,
+        bool redirectCurrentProjectile,
+        Vector2 redirectOrigin,
+        Vector2 redirectDirection,
+        int addedBallCount)
     {
         SplitIntoThreeWay = splitIntoThreeWay;
         PassThrough = passThrough;
         SplitOrigin = splitOrigin;
+        SplitDirection = splitDirection;
+        RedirectCurrentProjectile = redirectCurrentProjectile;
+        RedirectOrigin = redirectOrigin;
+        RedirectDirection = redirectDirection;
+        AddedBallCount = Mathf.Max(0, addedBallCount);
     }
 }
 
@@ -21,7 +39,8 @@ public enum ChessDamageSource
 {
     Projectile = 0,
     HorizontalBlast = 1,
-    VerticalBlast = 2
+    VerticalBlast = 2,
+    CrossBlast = 3
 }
 
 public class UIChessBoard : MonoBehaviour
@@ -75,6 +94,9 @@ public class UIChessBoard : MonoBehaviour
     [Min(0f)]
     private float CollisionRectInset = 0f;
 
+    [SerializeField]
+    private UIChessBoardLayoutController LayoutController;
+
     private ArrayList<ChessElement> chessElements;
     private readonly List<CollisionCandidate> collisionCandidates = new List<CollisionCandidate>(64);
     private readonly Vector3[] playAreaWorldCornersBuffer = new Vector3[4];
@@ -96,6 +118,7 @@ public class UIChessBoard : MonoBehaviour
 
     private void Start()
     {
+        EnsureLayoutController();
         if (LoadConfigOnStart)
         {
             ReloadLevel();
@@ -263,11 +286,22 @@ public class UIChessBoard : MonoBehaviour
         return LevelConfig == null ? 0 : LevelConfig.GetNextDropCount(visibleStartRow);
     }
 
-    public ProjectileHitEffectResult ResolveProjectileBlockHit(ChessElement target, Vector2 hitPointInBoardSpace)
+    public ProjectileHitEffectResult ResolveProjectileBlockHit(in BallCollisionHit hit)
     {
+        if (hit.Type != BallCollisionType.Block)
+        {
+            return default;
+        }
+
         var result = default(ProjectileHitEffectResult);
-        var impactAccumulator = new ChessBoardImpactAccumulator(ChessDamageSource.Projectile, hitPointInBoardSpace);
-        ApplyDamageWithEffects(target, 1, hitPointInBoardSpace, ChessDamageSource.Projectile, ref result, impactAccumulator);
+        var impactAccumulator = new ChessBoardImpactAccumulator(ChessDamageSource.Projectile, hit.ImpactPoint);
+        ApplyDamageWithEffects(hit.Block, 1, hit.ImpactPoint, hit.ImpactDirection, ChessDamageSource.Projectile, ref result, impactAccumulator);
+
+        if (hit.AdditionalBlock != null && hit.AdditionalBlock != hit.Block)
+        {
+            ApplyDamageWithEffects(hit.AdditionalBlock, 1, hit.AdditionalImpactPoint, hit.ImpactDirection, ChessDamageSource.Projectile, ref result, impactAccumulator);
+        }
+
         RebuildCollisionCandidates();
 
         if (impactAccumulator.HasAnyImpact)
@@ -276,6 +310,18 @@ public class UIChessBoard : MonoBehaviour
         }
 
         return result;
+    }
+
+    public ProjectileHitEffectResult ResolveProjectileBlockHit(ChessElement target, Vector2 hitPointInBoardSpace)
+    {
+        return ResolveProjectileBlockHit(new BallCollisionHit(
+            BallCollisionType.Block,
+            0f,
+            hitPointInBoardSpace,
+            Vector2.zero,
+            hitPointInBoardSpace,
+            Vector2.up,
+            target));
     }
 
     public void ClearTouchedSpecialItemsAtTurnEnd()
@@ -360,6 +406,7 @@ public class UIChessBoard : MonoBehaviour
     {
         LevelConfig = levelConfig;
         visibleStartRow = LevelConfig == null ? 0 : LevelConfig.GetInitialVisibleStartRow();
+        ApplyBoardLayout();
         SetGameOverState(false);
     }
 
@@ -367,6 +414,7 @@ public class UIChessBoard : MonoBehaviour
     {
         width = Mathf.Max(1, width);
         height = Mathf.Max(1, height);
+        ApplyBoardLayout(width, height);
 
         if (chessElements != null && boardWidth == width && boardHeight == height)
         {
@@ -431,6 +479,7 @@ public class UIChessBoard : MonoBehaviour
 
         var sourceTypes = new LevelCellType[boardWidth * boardHeight];
         var sourceLives = new int[boardWidth * boardHeight];
+        var sourceSpecialValues = new int[boardWidth * boardHeight];
         for (int y = 0; y < boardHeight; y++)
         {
             for (int x = 0; x < boardWidth; x++)
@@ -439,6 +488,7 @@ public class UIChessBoard : MonoBehaviour
                 var index = y * boardWidth + x;
                 sourceTypes[index] = source == null ? LevelCellType.Empty : source.Type;
                 sourceLives[index] = source == null ? 0 : source.Life;
+                sourceSpecialValues[index] = source == null ? 0 : source.SpecialValue;
             }
         }
 
@@ -458,7 +508,8 @@ public class UIChessBoard : MonoBehaviour
                     var sourceIndex = sourceY * boardWidth + x;
                     var sourceType = sourceTypes[sourceIndex];
                     var sourceLife = sourceLives[sourceIndex];
-                    target.SetCellContent(sourceType, sourceLife);
+                    var sourceSpecialValue = sourceSpecialValues[sourceIndex];
+                    target.SetCellContent(sourceType, sourceLife, sourceSpecialValue);
 
                     var shouldAnimateDrop = LevelCellTypeUtility.HasSerializedContent(sourceType, sourceLife);
                     PlayDropAnimation(target, shouldAnimateDrop ? rowCount : 0);
@@ -493,7 +544,7 @@ public class UIChessBoard : MonoBehaviour
             var chessElement = chessElements.Get(cell.X, cell.Y);
             if (chessElement != null)
             {
-                chessElement.SetCellContent(cell.Type, cell.Life);
+                chessElement.SetCellContent(cell.Type, cell.Life, cell.SpecialValue);
                 PlayDropAnimation(chessElement, animateFromRows);
             }
         }
@@ -561,10 +612,36 @@ public class UIChessBoard : MonoBehaviour
         return LevelConfig != null ? Mathf.Max(1, LevelConfig.VisibleHeight) : Mathf.Max(1, GlobleValue.ChessHeight);
     }
 
+    private void ApplyBoardLayout()
+    {
+        ApplyBoardLayout(GetBoardWidth(), GetBoardHeight());
+    }
+
+    private void ApplyBoardLayout(int width, int height)
+    {
+        EnsureLayoutController();
+        LayoutController?.ApplyLayout(width, height, OriginPrefab, ParentTransform);
+    }
+
+    private void EnsureLayoutController()
+    {
+        if (LayoutController != null)
+        {
+            return;
+        }
+
+        LayoutController = GetComponent<UIChessBoardLayoutController>();
+        if (LayoutController == null)
+        {
+            LayoutController = gameObject.AddComponent<UIChessBoardLayoutController>();
+        }
+    }
+
     private void ApplyDamageWithEffects(
         ChessElement target,
         int damage,
         Vector2 hitPointInBoardSpace,
+        Vector2 impactDirection,
         ChessDamageSource source,
         ref ProjectileHitEffectResult projectileHitEffect,
         ChessBoardImpactAccumulator impactAccumulator)
@@ -587,7 +664,7 @@ public class UIChessBoard : MonoBehaviour
             return;
         }
 
-        var specialEffectResult = ChessSpecialEffectProcessor.TryTrigger(this, target, source, impactAccumulator);
+        var specialEffectResult = ChessSpecialEffectProcessor.TryTrigger(this, target, impactDirection, source, impactAccumulator);
         if (specialEffectResult.IsTriggered)
         {
             projectileHitEffect = specialEffectResult.ToProjectileHitEffectResult();
@@ -608,6 +685,7 @@ public class UIChessBoard : MonoBehaviour
             target,
             LevelCellTypeConstants.SpecialBlastDamage,
             GetElementCenterInBoardSpace(target),
+            Vector2.zero,
             source,
             ref ignoredProjectileHit,
             impactAccumulator);

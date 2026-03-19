@@ -69,7 +69,10 @@ public class DefaultChessHitEffect : MonoBehaviour, IChessHitEffectPlayer
         // 后面你可以直接删掉这个组件，换成粒子、Shader 或 Spine。
         var totalDuration = context.IsDestroyed ? DestroyedDuration : HitDuration;
         var targetScale = context.IsDestroyed ? DestroyedScale : HitScale;
-        var isBlastDamage = context.DamageSource == ChessDamageSource.HorizontalBlast || context.DamageSource == ChessDamageSource.VerticalBlast;
+        var isBlastDamage =
+            context.DamageSource == ChessDamageSource.HorizontalBlast
+            || context.DamageSource == ChessDamageSource.VerticalBlast
+            || context.DamageSource == ChessDamageSource.CrossBlast;
 
         if (EnableScaleEffect && selfRectTransform != null && !Mathf.Approximately(targetScale, 1f))
         {

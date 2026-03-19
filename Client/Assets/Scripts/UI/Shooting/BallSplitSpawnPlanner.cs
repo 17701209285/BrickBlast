@@ -2,11 +2,12 @@ using UnityEngine;
 
 public static class BallSplitSpawnPlanner
 {
-    public static BallSplitSpawnPlan CreatePlan(int activeProjectileCount, int maxRuntimeProjectileCount, float splitFanHalfAngle)
+    public static BallSplitSpawnPlan CreatePlan(int activeProjectileCount, int maxRuntimeProjectileCount, float splitFanHalfAngle, Vector2 baseDirection)
     {
-        var leftDirection = Rotate(Vector2.up, -splitFanHalfAngle);
-        var centerDirection = Vector2.up;
-        var rightDirection = Rotate(Vector2.up, splitFanHalfAngle);
+        var normalizedBaseDirection = BallDirectionUtility.NormalizeOrFallback(baseDirection);
+        var leftDirection = BallDirectionUtility.Rotate(normalizedBaseDirection, -splitFanHalfAngle);
+        var centerDirection = normalizedBaseDirection;
+        var rightDirection = BallDirectionUtility.Rotate(normalizedBaseDirection, splitFanHalfAngle);
 
         var projectedProjectileCount = activeProjectileCount + BallShootingConstants.SplitProjectileAdditionalCount;
         if (projectedProjectileCount > Mathf.Max(1, maxRuntimeProjectileCount))
@@ -37,13 +38,4 @@ public static class BallSplitSpawnPlanner
         }
     }
 
-    private static Vector2 Rotate(Vector2 vector, float angleDegrees)
-    {
-        var radians = angleDegrees * Mathf.Deg2Rad;
-        var sin = Mathf.Sin(radians);
-        var cos = Mathf.Cos(radians);
-        return new Vector2(
-            (vector.x * cos) - (vector.y * sin),
-            (vector.x * sin) + (vector.y * cos));
-    }
 }

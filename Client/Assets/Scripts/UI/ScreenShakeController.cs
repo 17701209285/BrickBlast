@@ -17,6 +17,7 @@ public sealed class ScreenShakeController : MonoBehaviour
     [Min(1)]
     private int MinimumDestroyedBricksForShake = ScreenShakeConstants.MinimumDestroyedBricksForShake;
 
+    private HapticController hapticController;
     private Tween shakeTween;
     private bool isSubscribed;
     private Vector2 baseAnchoredPosition;
@@ -70,6 +71,11 @@ public sealed class ScreenShakeController : MonoBehaviour
 
     public void PlayShakeForDestroyedBricks(int destroyedBrickCount)
     {
+        if (!FeedbackSettings.IsScreenShakeEnabled)
+        {
+            return;
+        }
+
         if (destroyedBrickCount < MinimumDestroyedBricksForShake)
         {
             return;
@@ -97,12 +103,61 @@ public sealed class ScreenShakeController : MonoBehaviour
 
     private void HandleBoardImpactResolved(ChessBoardImpactSummary impactSummary)
     {
-        if (!ShakeOnMultiDestroy)
+        if (ShakeOnMultiDestroy)
+        {
+            PlayShakeForDestroyedBricks(impactSummary.DestroyedBrickCount);
+        }
+
+        PlayHapticForImpact(impactSummary);
+    }
+
+    private void PlayHapticForImpact(ChessBoardImpactSummary impactSummary)
+    {
+        EnsureReferences();
+        if (hapticController == null)
         {
             return;
         }
 
-        PlayShakeForDestroyedBricks(impactSummary.DestroyedBrickCount);
+        switch (impactSummary.TriggeredSpecialType)
+        {
+            case LevelCellType.HorizontalBlast:
+            case LevelCellType.VerticalBlast:
+            case LevelCellType.CrossBlast:
+                hapticController.PlayMultiRow();
+                return;
+            case LevelCellType.SplitThreeWay:
+            case LevelCellType.ExtraBalls:
+                hapticController.PlayExtraBalls();
+                return;
+            case LevelCellType.Redirect:
+                hapticController.Play(0.55f, 0.8f);
+                return;
+        }
+
+        if (impactSummary.DestroyedBrickCount < MinimumDestroyedBricksForShake)
+        {
+            return;
+        }
+
+        var clampedDestroyedCount = Mathf.Clamp(
+            impactSummary.DestroyedBrickCount,
+            MinimumDestroyedBricksForShake,
+            ScreenShakeConstants.DestroyedBricksForMaxShake);
+        var normalizedStrength = Mathf.InverseLerp(
+            MinimumDestroyedBricksForShake,
+            ScreenShakeConstants.DestroyedBricksForMaxShake,
+            clampedDestroyedCount);
+        var intensity = Mathf.Lerp(
+            ScreenShakeConstants.BaseHapticIntensity,
+            ScreenShakeConstants.MaxHapticIntensity,
+            normalizedStrength);
+        var sharpness = Mathf.Lerp(
+            ScreenShakeConstants.BaseHapticSharpness,
+            ScreenShakeConstants.MaxHapticSharpness,
+            normalizedStrength);
+
+        hapticController.Play(intensity, sharpness);
     }
 
     private void PlayShake(float strength, float duration)
@@ -179,6 +234,15 @@ public sealed class ScreenShakeController : MonoBehaviour
         if (Target == null)
         {
             Target = ChessBoard != null ? ChessBoard.PrimaryShakeTarget : transform as RectTransform;
+        }
+
+        if (hapticController == null)
+        {
+            hapticController = GetComponent<HapticController>();
+            if (hapticController == null && Application.isPlaying)
+            {
+                hapticController = gameObject.AddComponent<HapticController>();
+            }
         }
     }
 

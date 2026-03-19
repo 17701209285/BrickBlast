@@ -1424,6 +1424,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 266607273}
     m_Modifications:
+    - target: {fileID: 1139933078662549389, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
+      propertyPath: m_RaycastPadding.w
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1139933078662549389, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
+      propertyPath: m_RaycastPadding.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1139933078662549389, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
+      propertyPath: m_RaycastPadding.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1139933078662549389, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
+      propertyPath: m_RaycastPadding.z
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1860902773978886331, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5

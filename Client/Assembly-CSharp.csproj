@@ -61,27 +61,47 @@
     <Analyzer Include="C:\Program Files\Unity 6000.3.9f1\Editor\Data\Tools\BuildPipeline\Unity.SourceGenerators\Unity.UIToolkit.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\UI\Shooting\BallSplitSpawnPlanner.cs" />
     <Compile Include="Assets\Scripts\UI\Aiming\AimLinePresenter.cs" />
+    <Compile Include="Assets\Scripts\UI\Shooting\BallShootingConstants.cs" />
+    <Compile Include="Assets\Scripts\UI\ScreenShakeConstants.cs" />
+    <Compile Include="Assets\Scripts\UI\UIChessBoard\ChessBoardImpactSummary.cs" />
     <Compile Include="Assets\Scripts\UI\Shooting\BallPhysicsUtility.cs" />
     <Compile Include="Assets\Scripts\UI\UIChessBoard\ChessHitEffectContext.cs" />
+    <Compile Include="Assets\Scripts\UI\Shooting\BallProjectileLaunchData.cs" />
     <Compile Include="Assets\Scripts\Scriptables\LevelConfigScritable.cs" />
+    <Compile Include="Assets\Scripts\UI\UIChessBoard\ChessBoardImpactAccumulator.cs" />
+    <Compile Include="Assets\Scripts\Scriptables\LevelCellTypeUtility.cs" />
+    <Compile Include="Assets\Scripts\UI\Shooting\BallProjectilePool.cs" />
     <Compile Include="Assets\Scripts\Scriptables\LevelCell.cs" />
     <Compile Include="Assets\Scripts\UI\Aiming\AimPreviewPathCalculator.cs" />
+    <Compile Include="Assets\Scripts\UI\UIChessBoard\ChessSpecialEffectProcessor.cs" />
+    <Compile Include="Assets\Scripts\UI\HapticController.cs" />
     <Compile Include="Assets\Scripts\UI\UIChessBoard\DefaultChessHitEffect.cs" />
     <Compile Include="Assets\Scripts\UI\Aiming\AimPreviewPathData.cs" />
     <Compile Include="Assets\Scripts\UI\Aiming\AimLineView.cs" />
     <Compile Include="Assets\Scripts\UI\Aiming\PointerDragInputSource.cs" />
     <Compile Include="Assets\Scripts\LevelConfig\LevelConfig.cs" />
     <Compile Include="Assets\Scripts\UI\UIChessBoard\ChessElement.cs" />
+    <Compile Include="Assets\Scripts\UI\Shooting\BallSplitSpawnPlan.cs" />
+    <Compile Include="Assets\Scripts\UI\ScreenShakeController.cs" />
     <Compile Include="Assets\TutorialInfo\Scripts\Readme.cs" />
+    <Compile Include="Assets\Scripts\UI\UIChessBoard\UIChessBoardLayoutController.cs" />
     <Compile Include="Assets\Scripts\UI\Aiming\AimPreviewBlockScanner.cs" />
     <Compile Include="Assets\Scripts\UI\UIChessBoard\ArrayList.cs" />
     <Compile Include="Assets\Scripts\UI\UIChessBoard\UIChessBoard.cs" />
+    <Compile Include="Assets\Scripts\Scriptables\LevelCellTypeConstants.cs" />
     <Compile Include="Assets\Scripts\UI\Shooting\BallProjectile.cs" />
+    <Compile Include="Assets\Scripts\UI\UISafeAreaReferenceFitter.cs" />
     <Compile Include="Assets\Scripts\UI\UIChessBoard\ChessData.cs" />
+    <Compile Include="Assets\Scripts\UI\Shooting\BallDirectionUtility.cs" />
     <Compile Include="Assets\Scripts\GlobleValue.cs" />
+    <Compile Include="Assets\Scripts\ImportedLevels\Data\LegacyLevelData.cs" />
     <Compile Include="Assets\Scripts\UI\Aiming\AimImpactEffectView.cs" />
+    <Compile Include="Assets\Scripts\UI\UIChessBoard\ChessLineBlastProcessor.cs" />
+    <Compile Include="Assets\Scripts\UI\UIChessBoard\ChessRedirectDirectionResolver.cs" />
     <Compile Include="Assets\Scripts\UI\Shooting\BallVolleyController.cs" />
+    <Compile Include="Assets\Scripts\UI\FeedbackSettings.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

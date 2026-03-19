@@ -9,6 +9,9 @@ public static class LevelCellTypeUtility
             case LevelCellType.HorizontalBlast:
             case LevelCellType.VerticalBlast:
             case LevelCellType.SplitThreeWay:
+            case LevelCellType.Redirect:
+            case LevelCellType.CrossBlast:
+            case LevelCellType.ExtraBalls:
                 return true;
             default:
                 return false;
@@ -46,5 +49,16 @@ public static class LevelCellTypeUtility
     public static bool HasSerializedContent(LevelCellType type, int life)
     {
         return NormalizeType(type, life) != LevelCellType.Empty;
+    }
+
+    public static int ResolveSpecialValue(LevelCellType type, int specialValue)
+    {
+        switch (type)
+        {
+            case LevelCellType.ExtraBalls:
+                return Mathf.Max(1, specialValue <= 0 ? LevelCellTypeConstants.DefaultExtraBallsAward : specialValue);
+            default:
+                return Mathf.Max(0, specialValue);
+        }
     }
 }

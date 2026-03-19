@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using ImportedLevels;
 using UnityEngine;
 using UnityEngine.Serialization;
 #if UNITY_EDITOR
@@ -14,7 +15,10 @@ public enum LevelCellType
     Empty = 2,
     HorizontalBlast = 3,
     VerticalBlast = 4,
-    SplitThreeWay = 5
+    SplitThreeWay = 5,
+    Redirect = 6,
+    CrossBlast = 7,
+    ExtraBalls = 8
 }
 
 [Serializable]
@@ -24,6 +28,22 @@ public class FCell
     public int Y;
     public LevelCellType Type;
     public int Life;
+    public int SpecialValue;
+    public int LegacyBrickId;
+    public LegacyBrickType LegacyBrickType;
+    public LegacyBrickShapeType LegacyShapeType;
+    public LegacyAttributeType LegacyAttributeType;
+    public LegacyBrickToolType LegacyToolType;
+    public string LegacyExtraAttributes = string.Empty;
+    public Vector2Int LegacyBreakTime;
+    public bool LegacyIsMovable;
+    public float LegacyMovePosition;
+    public bool LegacyIsCustomColor;
+    public int LegacyCustomColorIndex;
+    public Vector2Int LegacySize;
+    public bool LegacyIsSplit;
+    public Vector2Int LegacyHitPosition;
+    public LegacyRotateDirection LegacyHitChangeType;
 
     public FCell()
     {
@@ -35,6 +55,51 @@ public class FCell
         Y = y;
         Type = type;
         Life = life;
+        SpecialValue = 0;
+    }
+
+    public FCell(FCell other)
+    {
+        if (other == null)
+        {
+            return;
+        }
+
+        X = other.X;
+        Y = other.Y;
+        Type = other.Type;
+        Life = other.Life;
+        SpecialValue = other.SpecialValue;
+        LegacyBrickId = other.LegacyBrickId;
+        LegacyBrickType = other.LegacyBrickType;
+        LegacyShapeType = other.LegacyShapeType;
+        LegacyAttributeType = other.LegacyAttributeType;
+        LegacyToolType = other.LegacyToolType;
+        LegacyExtraAttributes = other.LegacyExtraAttributes;
+        LegacyBreakTime = other.LegacyBreakTime;
+        LegacyIsMovable = other.LegacyIsMovable;
+        LegacyMovePosition = other.LegacyMovePosition;
+        LegacyIsCustomColor = other.LegacyIsCustomColor;
+        LegacyCustomColorIndex = other.LegacyCustomColorIndex;
+        LegacySize = other.LegacySize;
+        LegacyIsSplit = other.LegacyIsSplit;
+        LegacyHitPosition = other.LegacyHitPosition;
+        LegacyHitChangeType = other.LegacyHitChangeType;
+    }
+
+    public FCell CreateShiftedCopy(int yOffset)
+    {
+        var copy = new FCell(this);
+        copy.Y += yOffset;
+        return copy;
+    }
+
+    public FCell CreateNormalizedCopy(LevelCellType normalizedType, int normalizedLife)
+    {
+        var copy = new FCell(this);
+        copy.Type = normalizedType;
+        copy.Life = normalizedLife;
+        return copy;
     }
 }
 
@@ -42,26 +107,28 @@ public class FCell
 public class LevelConfigScritable : ScriptableObject
 {
     [Min(1)]
-    public int Width = 8;
+    public int Width = 11;
 
     [FormerlySerializedAs("Height")]
     [Min(1)]
-    public int VisibleHeight = 10;
+    public int VisibleHeight = 14;
 
     [Min(1)]
-    public int TotalRows = 10;
+    public int TotalRows = 14;
 
-    [Min(1)]
+    [Min(0)]
     public int DropRowCount = 3;
 
     public FCell[] Cells = Array.Empty<FCell>();
+
+    public LegacyLevelMetadata LegacyMetadata;
 
     public void SetBoardInfo(int width, int visibleHeight, int totalRows, int dropRowCount)
     {
         Width = Mathf.Max(1, width);
         VisibleHeight = Mathf.Max(1, visibleHeight);
         TotalRows = Mathf.Max(VisibleHeight, totalRows);
-        DropRowCount = Mathf.Max(1, dropRowCount);
+        DropRowCount = Mathf.Max(0, dropRowCount);
     }
 
     public void SetCells(IReadOnlyList<FCell> cells)
@@ -98,7 +165,7 @@ public class LevelConfigScritable : ScriptableObject
 
     public bool HasPendingDropRows(int visibleStartRow)
     {
-        return GetRemainingDropRowCount(visibleStartRow) > 0;
+        return DropRowCount > 0 && GetRemainingDropRowCount(visibleStartRow) > 0;
     }
 
     public int GetNextDropSourceRow(int visibleStartRow)
@@ -109,6 +176,11 @@ public class LevelConfigScritable : ScriptableObject
 
     public int GetNextDropCount(int visibleStartRow)
     {
+        if (DropRowCount <= 0)
+        {
+            return 0;
+        }
+
         return Mathf.Min(DropRowCount, GetRemainingDropRowCount(visibleStartRow));
     }
 
@@ -147,7 +219,7 @@ public class LevelConfigScritable : ScriptableObject
                 continue;
             }
 
-            visibleCells.Add(new FCell(cell.X, cell.Y - normalizedStartRow, cell.Type, cell.Life));
+            visibleCells.Add(cell.CreateShiftedCopy(-normalizedStartRow));
         }
 
         visibleCells.Sort(CompareCell);
@@ -160,7 +232,7 @@ public class LevelConfigScritable : ScriptableObject
         Width = Mathf.Max(1, Width);
         VisibleHeight = Mathf.Max(1, VisibleHeight);
         TotalRows = Mathf.Max(VisibleHeight, TotalRows);
-        DropRowCount = Mathf.Max(1, DropRowCount);
+        DropRowCount = Mathf.Max(0, DropRowCount);
         NormalizeCells();
     }
 #endif
@@ -195,9 +267,7 @@ public class LevelConfigScritable : ScriptableObject
                 continue;
             }
 
-            uniqueCells[new Vector2Int(cell.X, cell.Y)] = new FCell(
-                cell.X,
-                cell.Y,
+            uniqueCells[new Vector2Int(cell.X, cell.Y)] = new FCell(cell).CreateNormalizedCopy(
                 normalizedType,
                 LevelCellTypeUtility.NormalizeLife(normalizedType, cell.Life));
         }

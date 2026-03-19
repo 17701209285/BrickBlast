@@ -2,6 +2,6 @@ using UnityEngine;
 
 public static class GlobleValue 
 {
-    public static int ChessWidth = 8;
-    public static int ChessHeight = 10;
+    public static int ChessWidth = 11;
+    public static int ChessHeight = 14;
 }

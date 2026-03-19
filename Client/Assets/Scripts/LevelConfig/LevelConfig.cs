@@ -14,19 +14,19 @@ public class LevelConfig : MonoBehaviour
 {
     [SerializeField]
     [Min(1)]
-    private int width = 8;
+    private int width = 11;
 
     [FormerlySerializedAs("height")]
     [SerializeField]
     [Min(1)]
-    private int visibleHeight = 10;
+    private int visibleHeight = 14;
 
     [SerializeField]
     [Min(1)]
-    private int totalRows = 10;
+    private int totalRows = 14;
 
     [SerializeField]
-    [Min(1)]
+    [Min(0)]
     private int dropRowCount = 3;
 
     [SerializeField]
@@ -51,7 +51,7 @@ public class LevelConfig : MonoBehaviour
     public int Width => Mathf.Max(1, width);
     public int VisibleHeight => Mathf.Max(1, visibleHeight);
     public int TotalRows => Mathf.Max(VisibleHeight, totalRows);
-    public int DropRowCount => Mathf.Max(1, dropRowCount);
+    public int DropRowCount => Mathf.Max(0, dropRowCount);
     public int EditRowOffset => ClampEditRowOffset(editRowOffset);
     public RectTransform CellRoot => cellRoot;
     public LevelConfigScritable ExportAsset => exportAsset;
@@ -61,7 +61,7 @@ public class LevelConfig : MonoBehaviour
         width = Mathf.Max(1, GlobleValue.ChessWidth);
         visibleHeight = Mathf.Max(1, GlobleValue.ChessHeight);
         totalRows = visibleHeight;
-        dropRowCount = Mathf.Max(1, Mathf.Min(3, visibleHeight));
+        dropRowCount = Mathf.Max(0, Mathf.Min(3, visibleHeight));
         editRowOffset = Mathf.Max(0, totalRows - visibleHeight);
         exportFileName = gameObject.name;
         authoredCells = Array.Empty<FCell>();
@@ -238,7 +238,7 @@ public class LevelConfig : MonoBehaviour
         width = Mathf.Max(1, source.Width);
         visibleHeight = Mathf.Max(1, source.VisibleHeight);
         totalRows = Mathf.Max(visibleHeight, source.TotalRows);
-        dropRowCount = Mathf.Max(1, source.DropRowCount);
+        dropRowCount = Mathf.Max(0, source.DropRowCount);
         editRowOffset = Mathf.Max(0, totalRows - visibleHeight);
         authoredCells = CloneCells(source.Cells);
 
@@ -284,7 +284,7 @@ public class LevelConfig : MonoBehaviour
         width = Mathf.Max(1, width);
         visibleHeight = Mathf.Max(1, visibleHeight);
         totalRows = Mathf.Max(visibleHeight, totalRows);
-        dropRowCount = Mathf.Max(1, dropRowCount);
+        dropRowCount = Mathf.Max(0, dropRowCount);
         editRowOffset = ClampEditRowOffset(editRowOffset);
 
         if (string.IsNullOrWhiteSpace(exportDirectory))

@@ -38,12 +38,12 @@ public static class AimPreviewPathCalculator
             firstBoundaryType);
 
         var remainingLength = Mathf.Max(0f, previewLength - firstHitDistance);
-        if (remainingLength <= HitEpsilon || !IsVerticalBoundary(firstBoundaryType))
+        if (remainingLength <= HitEpsilon || !SupportsReflectionBoundary(firstBoundaryType))
         {
             return true;
         }
 
-        var reflectionDirection = new Vector2(-normalizedDirection.x, normalizedDirection.y).normalized;
+        var reflectionDirection = ReflectAcrossBoundary(normalizedDirection, firstBoundaryType);
         var reflectionStart = firstHit + (reflectionDirection * HitEpsilon);
         if (TryGetBoundaryHit(bounds, reflectionStart, reflectionDirection, out var reflectionHit, out _, out var reflectionBoundaryType))
         {
@@ -149,8 +149,24 @@ public static class AimPreviewPathCalculator
         return true;
     }
 
-    private static bool IsVerticalBoundary(AimBoundaryType boundaryType)
+    private static bool SupportsReflectionBoundary(AimBoundaryType boundaryType)
     {
-        return boundaryType == AimBoundaryType.Left || boundaryType == AimBoundaryType.Right;
+        return boundaryType == AimBoundaryType.Left
+            || boundaryType == AimBoundaryType.Right
+            || boundaryType == AimBoundaryType.Top;
+    }
+
+    private static Vector2 ReflectAcrossBoundary(Vector2 direction, AimBoundaryType boundaryType)
+    {
+        switch (boundaryType)
+        {
+            case AimBoundaryType.Left:
+            case AimBoundaryType.Right:
+                return new Vector2(-direction.x, direction.y).normalized;
+            case AimBoundaryType.Top:
+                return new Vector2(direction.x, -direction.y).normalized;
+            default:
+                return direction.normalized;
+        }
     }
 }

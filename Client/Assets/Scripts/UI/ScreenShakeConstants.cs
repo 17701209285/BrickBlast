@@ -6,6 +6,10 @@ public static class ScreenShakeConstants
     public const float MaxShakeDuration = 0.32f;
     public const float BaseShakeStrength = 24f;
     public const float MaxShakeStrength = 52f;
+    public const float BaseHapticIntensity = 0.3f;
+    public const float MaxHapticIntensity = 1f;
+    public const float BaseHapticSharpness = 0.55f;
+    public const float MaxHapticSharpness = 1f;
     public const float VerticalStrengthRatio = 0.8f;
     public const int ShakeVibrato = 18;
     public const float ShakeRandomness = 60f;

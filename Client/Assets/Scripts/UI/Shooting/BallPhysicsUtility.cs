@@ -15,16 +15,31 @@ public readonly struct BallCollisionHit
     public Vector2 Point { get; }
     public Vector2 Normal { get; }
     public Vector2 ImpactPoint { get; }
+    public Vector2 ImpactDirection { get; }
     public ChessElement Block { get; }
+    public Vector2 AdditionalImpactPoint { get; }
+    public ChessElement AdditionalBlock { get; }
 
-    public BallCollisionHit(BallCollisionType type, float distance, Vector2 point, Vector2 normal, Vector2 impactPoint, ChessElement block)
+    public BallCollisionHit(
+        BallCollisionType type,
+        float distance,
+        Vector2 point,
+        Vector2 normal,
+        Vector2 impactPoint,
+        Vector2 impactDirection,
+        ChessElement block,
+        Vector2 additionalImpactPoint = default,
+        ChessElement additionalBlock = null)
     {
         Type = type;
         Distance = distance;
         Point = point;
         Normal = normal;
         ImpactPoint = impactPoint;
+        ImpactDirection = impactDirection;
         Block = block;
+        AdditionalImpactPoint = additionalImpactPoint;
+        AdditionalBlock = additionalBlock;
     }
 }
 
@@ -42,7 +57,7 @@ public static class BallPhysicsUtility
         float epsilon,
         out BallCollisionHit hit)
     {
-        hit = new BallCollisionHit(BallCollisionType.None, float.MaxValue, origin, Vector2.zero, origin, null);
+        hit = new BallCollisionHit(BallCollisionType.None, float.MaxValue, origin, Vector2.zero, origin, direction, null);
         var foundHit = false;
 
         if (TryGetCollectorHit(bounds, origin, direction, collectorY, radius, maxDistance, epsilon, out var collectorHit))
@@ -99,7 +114,7 @@ public static class BallPhysicsUtility
         out BallCollisionHit hit,
         out Vector2 resolvedPosition)
     {
-        hit = new BallCollisionHit(BallCollisionType.None, 0f, ballCenter, Vector2.zero, ballCenter, null);
+        hit = new BallCollisionHit(BallCollisionType.None, 0f, ballCenter, Vector2.zero, ballCenter, Vector2.zero, null);
         resolvedPosition = ballCenter;
         if (board == null || simulationSpace == null)
         {
@@ -136,15 +151,22 @@ public static class BallPhysicsUtility
             }
 
             var pushDistance = (candidateResolvedPosition - ballCenter).sqrMagnitude;
-            if (pushDistance >= bestPushDistance)
+            if (foundHit && pushDistance > bestPushDistance + epsilon)
             {
                 continue;
             }
 
-            bestPushDistance = pushDistance;
-            resolvedPosition = candidateResolvedPosition;
-            hit = new BallCollisionHit(BallCollisionType.Block, 0f, ballCenter, normal, impactPoint, block);
-            foundHit = true;
+            var candidateHit = new BallCollisionHit(BallCollisionType.Block, 0f, ballCenter, normal, impactPoint, Vector2.zero, block);
+            if (!foundHit || pushDistance < bestPushDistance - epsilon)
+            {
+                bestPushDistance = pushDistance;
+                resolvedPosition = candidateResolvedPosition;
+                hit = candidateHit;
+                foundHit = true;
+                continue;
+            }
+
+            hit = MergeSimultaneousBlockHit(hit, candidateHit);
         }
 
         return foundHit;
@@ -197,7 +219,7 @@ public static class BallPhysicsUtility
         }
 
         point.x = Mathf.Clamp(point.x, minX, maxX);
-        hit = new BallCollisionHit(BallCollisionType.Collector, distance, point, Vector2.up, point, null);
+        hit = new BallCollisionHit(BallCollisionType.Collector, distance, point, Vector2.up, point, direction, null);
         return true;
     }
 
@@ -212,7 +234,7 @@ public static class BallPhysicsUtility
         out BallCollisionHit hit)
     {
         hit = default;
-        var closestHit = new BallCollisionHit(BallCollisionType.None, float.MaxValue, origin, Vector2.zero, origin, null);
+        var closestHit = new BallCollisionHit(BallCollisionType.None, float.MaxValue, origin, Vector2.zero, origin, direction, null);
         var foundHit = false;
 
         var left = bounds.xMin + radius;
@@ -283,7 +305,7 @@ public static class BallPhysicsUtility
             point.x = Mathf.Clamp(point.x, segmentMin, segmentMax);
         }
 
-        var candidate = new BallCollisionHit(BallCollisionType.Wall, distance, point, normal, point, null);
+        var candidate = new BallCollisionHit(BallCollisionType.Wall, distance, point, normal, point, direction, null);
         return TrySelectCloserHit(candidate, ref currentHit, epsilon);
     }
 
@@ -309,7 +331,7 @@ public static class BallPhysicsUtility
             return false;
         }
 
-        var closestHit = new BallCollisionHit(BallCollisionType.None, float.MaxValue, origin, Vector2.zero, origin, null);
+        var closestHit = new BallCollisionHit(BallCollisionType.None, float.MaxValue, origin, Vector2.zero, origin, direction, null);
         var foundHit = false;
         for (int i = 0; i < candidates.Count; i++)
         {
@@ -340,6 +362,7 @@ public static class BallPhysicsUtility
                 centerPoint,
                 normal,
                 centerPoint - GetImpactOffset(normal, radius),
+                direction,
                 block);
             if (TrySelectCloserHit(hitCandidate, ref closestHit, epsilon))
             {
@@ -516,7 +539,14 @@ public static class BallPhysicsUtility
                 currentHit.Point,
                 NormalizeNormal(currentHit.Normal + candidate.Normal),
                 currentHit.ImpactPoint,
+                currentHit.ImpactDirection,
                 null);
+            return true;
+        }
+
+        if (currentHit.Type == BallCollisionType.Block && candidate.Type == BallCollisionType.Block)
+        {
+            currentHit = MergeSimultaneousBlockHit(currentHit, candidate);
             return true;
         }
 
@@ -532,6 +562,55 @@ public static class BallPhysicsUtility
     private static Vector2 NormalizeNormal(Vector2 normal)
     {
         return new Vector2(Mathf.RoundToInt(Mathf.Sign(normal.x) * Mathf.Clamp01(Mathf.Abs(normal.x))), Mathf.RoundToInt(Mathf.Sign(normal.y) * Mathf.Clamp01(Mathf.Abs(normal.y))));
+    }
+
+    private static BallCollisionHit MergeSimultaneousBlockHit(BallCollisionHit currentHit, BallCollisionHit candidate)
+    {
+        if (currentHit.Type != BallCollisionType.Block)
+        {
+            return candidate;
+        }
+
+        if (candidate.Type != BallCollisionType.Block)
+        {
+            return currentHit;
+        }
+
+        var mergedNormal = NormalizeNormal(currentHit.Normal + candidate.Normal);
+        if (mergedNormal == Vector2.zero)
+        {
+            mergedNormal = BuildAxisFallbackNormal(currentHit.Normal, candidate.Normal);
+        }
+
+        var additionalImpactPoint = currentHit.AdditionalImpactPoint;
+        var additionalBlock = currentHit.AdditionalBlock;
+        if (candidate.Block != null && candidate.Block != currentHit.Block && candidate.Block != currentHit.AdditionalBlock)
+        {
+            additionalImpactPoint = candidate.ImpactPoint;
+            additionalBlock = candidate.Block;
+        }
+
+        return new BallCollisionHit(
+            BallCollisionType.Block,
+            currentHit.Distance,
+            currentHit.Point,
+            mergedNormal,
+            currentHit.ImpactPoint,
+            currentHit.ImpactDirection,
+            currentHit.Block,
+            additionalImpactPoint,
+            additionalBlock);
+    }
+
+    private static Vector2 BuildAxisFallbackNormal(Vector2 a, Vector2 b)
+    {
+        var x = Mathf.Abs(a.x) > 0.5f
+            ? Mathf.Sign(a.x)
+            : (Mathf.Abs(b.x) > 0.5f ? Mathf.Sign(b.x) : 0f);
+        var y = Mathf.Abs(a.y) > 0.5f
+            ? Mathf.Sign(a.y)
+            : (Mathf.Abs(b.y) > 0.5f ? Mathf.Sign(b.y) : 0f);
+        return new Vector2(x, y);
     }
 
     private static Vector2 GetImpactOffset(Vector2 normal, float radius)

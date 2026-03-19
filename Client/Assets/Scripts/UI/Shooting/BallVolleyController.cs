@@ -182,7 +182,7 @@ public class BallVolleyController : MonoBehaviour
         }
     }
 
-    public void HandleSplitTrigger(BallProjectile sourceProjectile, Vector2 splitOriginLocalPosition)
+    public void HandleSplitTrigger(BallProjectile sourceProjectile, Vector2 splitOriginLocalPosition, Vector2 baseDirection)
     {
         if (sourceProjectile == null)
         {
@@ -195,7 +195,7 @@ public class BallVolleyController : MonoBehaviour
             return;
         }
 
-        var splitPlan = BallSplitSpawnPlanner.CreatePlan(activeProjectileCount, MaxRuntimeProjectileCount, SplitFanHalfAngle);
+        var splitPlan = BallSplitSpawnPlanner.CreatePlan(activeProjectileCount, MaxRuntimeProjectileCount, SplitFanHalfAngle, baseDirection);
         if (splitPlan.ReuseSourceProjectile)
         {
             sourceProjectile.Launch(CreateLaunchData(splitOriginLocalPosition, splitPlan.GetDirection(0)));
@@ -207,6 +207,34 @@ public class BallVolleyController : MonoBehaviour
         {
             LaunchSplitProjectile(splitOriginLocalPosition, splitPlan.GetDirection(i));
         }
+    }
+
+    public void HandleRedirectTrigger(BallProjectile sourceProjectile, Vector2 redirectOriginLocalPosition, Vector2 redirectDirection)
+    {
+        if (sourceProjectile == null)
+        {
+            return;
+        }
+
+        if (!volleyActive)
+        {
+            ReleaseActiveProjectile(sourceProjectile);
+            return;
+        }
+
+        sourceProjectile.Launch(CreateLaunchData(redirectOriginLocalPosition, redirectDirection));
+    }
+
+    public void AddBallCount(int ballCountDelta)
+    {
+        if (ballCountDelta <= 0)
+        {
+            return;
+        }
+
+        currentBallCount += ballCountDelta;
+        WarmupProjectilePool();
+        RefreshLaunchBallCountLabel();
     }
 
     private void HandleAimReleased(Vector2 originLocalPosition, Vector2 aimDirection)

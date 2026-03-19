@@ -126,7 +126,7 @@ public class BallProjectile : MonoBehaviour
             if (hit.Type == BallCollisionType.Block && hit.Block != null)
             {
                 var effectResult = chessBoard != null
-                    ? chessBoard.ResolveProjectileBlockHit(hit.Block, hit.ImpactPoint)
+                    ? chessBoard.ResolveProjectileBlockHit(hit)
                     : default;
                 if (TryHandleProjectileHitEffect(effectResult))
                 {
@@ -217,7 +217,7 @@ public class BallProjectile : MonoBehaviour
                 if (overlapHit.Block != null)
                 {
                     var effectResult = chessBoard != null
-                        ? chessBoard.ResolveProjectileBlockHit(overlapHit.Block, overlapHit.ImpactPoint)
+                        ? chessBoard.ResolveProjectileBlockHit(overlapHit)
                         : default;
                     if (TryHandleProjectileHitEffect(effectResult))
                     {
@@ -243,11 +243,30 @@ public class BallProjectile : MonoBehaviour
 
     private bool TryHandleProjectileHitEffect(ProjectileHitEffectResult effectResult)
     {
+        if (effectResult.AddedBallCount > 0)
+        {
+            owner?.AddBallCount(effectResult.AddedBallCount);
+        }
+
+        if (effectResult.RedirectCurrentProjectile)
+        {
+            if (owner != null)
+            {
+                owner.HandleRedirectTrigger(this, effectResult.RedirectOrigin, effectResult.RedirectDirection);
+            }
+            else
+            {
+                ReturnToPool();
+            }
+
+            return true;
+        }
+
         if (effectResult.SplitIntoThreeWay)
         {
             if (owner != null)
             {
-                owner.HandleSplitTrigger(this, effectResult.SplitOrigin);
+                owner.HandleSplitTrigger(this, effectResult.SplitOrigin, effectResult.SplitDirection);
             }
             else
             {

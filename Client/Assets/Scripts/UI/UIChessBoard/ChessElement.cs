@@ -12,6 +12,12 @@ public class ChessElement : MonoBehaviour
     private static readonly Color VerticalBlastHighLifeColor = new Color(0.10f, 0.56f, 0.89f, 1f);
     private static readonly Color SplitThreeWayLowLifeColor = new Color(1.00f, 0.63f, 0.37f, 1f);
     private static readonly Color SplitThreeWayHighLifeColor = new Color(0.93f, 0.32f, 0.60f, 1f);
+    private static readonly Color RedirectLowLifeColor = new Color(0.99f, 0.78f, 0.42f, 1f);
+    private static readonly Color RedirectHighLifeColor = new Color(0.91f, 0.46f, 0.20f, 1f);
+    private static readonly Color CrossBlastLowLifeColor = new Color(0.55f, 0.92f, 0.70f, 1f);
+    private static readonly Color CrossBlastHighLifeColor = new Color(0.14f, 0.68f, 0.49f, 1f);
+    private static readonly Color ExtraBallsLowLifeColor = new Color(0.76f, 0.96f, 0.49f, 1f);
+    private static readonly Color ExtraBallsHighLifeColor = new Color(0.35f, 0.73f, 0.17f, 1f);
     [SerializeField]
     private Vector2 m_Space;
     [SerializeField]
@@ -48,6 +54,7 @@ public class ChessElement : MonoBehaviour
     private Vector2 baseAnchoredPosition;
     private LevelCellType cellType = LevelCellType.Empty;
     private int life;
+    private int specialValue;
     private Tween moveTween;
     private Tween aimPreviewTween;
     private bool aimPreviewActive;
@@ -60,6 +67,7 @@ public class ChessElement : MonoBehaviour
     public int Y => ChessData?.Y ?? -1;
     public LevelCellType Type => LevelCellTypeUtility.NormalizeType(cellType, life);
     public int Life => LevelCellTypeUtility.NormalizeLife(cellType, life);
+    public int SpecialValue => LevelCellTypeUtility.ResolveSpecialValue(cellType, specialValue);
     public bool HasContent => Type != LevelCellType.Empty;
     public bool CountsAsBrick => LevelCellTypeUtility.UsesLife(Type);
     public bool IsSpecialItem => LevelCellTypeUtility.IsSpecial(Type);
@@ -81,6 +89,21 @@ public class ChessElement : MonoBehaviour
         RefreshView();
     }
 
+    public void ApplyRuntimeLayout(Vector2 inCellSize, Vector2 inSpacing, Vector2 inOffset)
+    {
+        CacheComponents();
+        m_Space = inSpacing;
+        m_Offset = inOffset;
+
+        if (selfRectTransform != null)
+        {
+            selfRectTransform.sizeDelta = inCellSize;
+        }
+
+        cellSize = inCellSize;
+        RefreshPosition();
+    }
+
     public void MoveTo(int inX,int inY)
     {
         if (ChessData == null)
@@ -98,10 +121,11 @@ public class ChessElement : MonoBehaviour
         return cellSize.y + m_Space.y;
     }
 
-    public void SetCellContent(LevelCellType inType, int inLife)
+    public void SetCellContent(LevelCellType inType, int inLife, int inSpecialValue = 0)
     {
         cellType = LevelCellTypeUtility.NormalizeType(inType, inLife);
         life = LevelCellTypeUtility.NormalizeLife(cellType, inLife);
+        specialValue = LevelCellTypeUtility.ResolveSpecialValue(cellType, inSpecialValue);
         specialTouchedThisVolley = false;
         specialTriggerCountThisVolley = 0;
         RefreshView();
@@ -144,7 +168,7 @@ public class ChessElement : MonoBehaviour
 
     public void ClearContent()
     {
-        SetCellContent(LevelCellType.Empty, 0);
+        SetCellContent(LevelCellType.Empty, 0, 0);
     }
 
     public bool ClearTouchedSpecialAtTurnEnd()
@@ -212,7 +236,7 @@ public class ChessElement : MonoBehaviour
             return;
         }
 
-        SetCellContent(other.Type, other.Life);
+        SetCellContent(other.Type, other.Life, other.SpecialValue);
     }
 
     public void ResetVisualPosition()
@@ -305,6 +329,12 @@ public class ChessElement : MonoBehaviour
                 return Color.Lerp(VerticalBlastLowLifeColor, VerticalBlastHighLifeColor, t);
             case LevelCellType.SplitThreeWay:
                 return Color.Lerp(SplitThreeWayLowLifeColor, SplitThreeWayHighLifeColor, t);
+            case LevelCellType.Redirect:
+                return Color.Lerp(RedirectLowLifeColor, RedirectHighLifeColor, t);
+            case LevelCellType.CrossBlast:
+                return Color.Lerp(CrossBlastLowLifeColor, CrossBlastHighLifeColor, t);
+            case LevelCellType.ExtraBalls:
+                return Color.Lerp(ExtraBallsLowLifeColor, ExtraBallsHighLifeColor, t);
             default:
                 return Color.Lerp(m_SquareLowLifeColor, m_SquareHighLifeColor, t);
         }
@@ -318,7 +348,7 @@ public class ChessElement : MonoBehaviour
             return;
         }
 
-        name = $"Element[X:{X} Y:{Y} Type:{Type} Life:{Life}]";
+        name = $"Element[X:{X} Y:{Y} Type:{Type} Life:{Life} Special:{SpecialValue}]";
     }
 
     private void CacheComponents()
@@ -368,15 +398,20 @@ public class ChessElement : MonoBehaviour
             return;
         }
 
-        m_BrickLife.text = GetRuntimeLifeLabel(Type, life);
+        m_BrickLife.text = GetRuntimeLifeLabel(Type, life, specialValue);
         m_BrickLife.color = GetLifeTextColor(Type, Life);
     }
 
-    private static string GetRuntimeLifeLabel(LevelCellType type, int currentLife)
+    private static string GetRuntimeLifeLabel(LevelCellType type, int currentLife, int currentSpecialValue)
     {
         if (type == LevelCellType.Empty)
         {
             return string.Empty;
+        }
+
+        if (type == LevelCellType.ExtraBalls)
+        {
+            return $"+{LevelCellTypeUtility.ResolveSpecialValue(type, currentSpecialValue)}";
         }
 
         var marker = GetRuntimeTypeMarker(type);
@@ -398,6 +433,12 @@ public class ChessElement : MonoBehaviour
                 return "V";
             case LevelCellType.SplitThreeWay:
                 return "3";
+            case LevelCellType.Redirect:
+                return "R";
+            case LevelCellType.CrossBlast:
+                return "X";
+            case LevelCellType.ExtraBalls:
+                return "E";
             default:
                 return string.Empty;
         }

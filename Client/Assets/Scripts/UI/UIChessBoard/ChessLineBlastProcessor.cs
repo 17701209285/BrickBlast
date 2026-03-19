@@ -37,4 +37,29 @@ internal static class ChessLineBlastProcessor
             board.ApplyBlastDamageToTarget(board.GetChessElement(columnIndex, y), ChessDamageSource.VerticalBlast, impactAccumulator);
         }
     }
+
+    public static void TriggerCross(UIChessBoard board, ChessElement origin, ChessBoardImpactAccumulator impactAccumulator)
+    {
+        if (board == null || origin == null)
+        {
+            return;
+        }
+
+        var rowIndex = origin.Y;
+        var columnIndex = origin.X;
+        for (int x = 0; x < board.BoardWidth; x++)
+        {
+            board.ApplyBlastDamageToTarget(board.GetChessElement(x, rowIndex), ChessDamageSource.CrossBlast, impactAccumulator);
+        }
+
+        for (int y = 0; y < board.BoardHeight; y++)
+        {
+            if (y == rowIndex)
+            {
+                continue;
+            }
+
+            board.ApplyBlastDamageToTarget(board.GetChessElement(columnIndex, y), ChessDamageSource.CrossBlast, impactAccumulator);
+        }
+    }
 }
