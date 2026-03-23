@@ -82,6 +82,7 @@ public class BallVolleyController : MonoBehaviour
     private Vector2 launchDirection;
     private Vector2 firstLandingPoint;
     private bool hasRecordedFirstLanding;
+    private bool projectilePoolWarmupPending;
 
     public int CurrentBallCount => currentBallCount;
     public bool IsVolleyActive => volleyActive;
@@ -127,6 +128,7 @@ public class BallVolleyController : MonoBehaviour
 
         if (!volleyActive)
         {
+            FlushProjectilePoolWarmupIfIdle();
             return;
         }
 
@@ -159,7 +161,7 @@ public class BallVolleyController : MonoBehaviour
     public void SetBallCount(int ballCount)
     {
         currentBallCount = Mathf.Max(1, ballCount);
-        WarmupProjectilePool();
+        ScheduleProjectilePoolWarmup();
         RefreshLaunchBallCountLabel();
     }
 
@@ -233,7 +235,7 @@ public class BallVolleyController : MonoBehaviour
         }
 
         currentBallCount += ballCountDelta;
-        WarmupProjectilePool();
+        ScheduleProjectilePoolWarmup();
         RefreshLaunchBallCountLabel();
     }
 
@@ -251,6 +253,7 @@ public class BallVolleyController : MonoBehaviour
     {
         EnsureDependencies();
         WarmupProjectilePool();
+        projectilePoolWarmupPending = false;
         if (LaunchBall == null || (ChessBoard != null && ChessBoard.IsGameOver))
         {
             return;
@@ -583,6 +586,29 @@ public class BallVolleyController : MonoBehaviour
     private void WarmupProjectilePool()
     {
         projectilePool?.Warmup(GetProjectileWarmupCount());
+    }
+
+    private void ScheduleProjectilePoolWarmup()
+    {
+        if (volleyActive)
+        {
+            projectilePoolWarmupPending = true;
+            return;
+        }
+
+        WarmupProjectilePool();
+        projectilePoolWarmupPending = false;
+    }
+
+    private void FlushProjectilePoolWarmupIfIdle()
+    {
+        if (!projectilePoolWarmupPending)
+        {
+            return;
+        }
+
+        WarmupProjectilePool();
+        projectilePoolWarmupPending = false;
     }
 
     private int GetProjectileWarmupCount()

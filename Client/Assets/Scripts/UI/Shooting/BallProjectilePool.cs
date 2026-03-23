@@ -15,6 +15,7 @@ public sealed class BallProjectilePool
     {
         this.template = template;
         this.container = container;
+        EnsureTemplateHasProjectileComponent();
     }
 
     public void Warmup(int targetCount)
@@ -87,19 +88,15 @@ public sealed class BallProjectilePool
         }
 
         var projectileObject = Object.Instantiate(template, container, false);
-        projectileObject.name = $"Projectile {allProjectiles.Count + 1}";
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        //projectileObject.name = $"Projectile {allProjectiles.Count + 1}";
+#endif
         projectileObject.SetActive(false);
 
         var projectileCountLabel = projectileObject.transform.Find("Number");
         if (projectileCountLabel != null)
         {
             projectileCountLabel.gameObject.SetActive(false);
-        }
-
-        var textLabel = projectileObject.GetComponentInChildren<TextMeshProUGUI>(true);
-        if (textLabel != null)
-        {
-            textLabel.gameObject.SetActive(false);
         }
 
         var projectileGraphic = projectileObject.GetComponent<Graphic>();
@@ -112,10 +109,20 @@ public sealed class BallProjectilePool
         var projectile = projectileObject.GetComponent<BallProjectile>();
         if (projectile == null)
         {
-            projectile = projectileObject.AddComponent<BallProjectile>();
+            return null;
         }
 
         allProjectiles.Add(projectile);
         return projectile;
+    }
+
+    private void EnsureTemplateHasProjectileComponent()
+    {
+        if (template == null || template.GetComponent<BallProjectile>() != null)
+        {
+            return;
+        }
+
+        template.AddComponent<BallProjectile>();
     }
 }

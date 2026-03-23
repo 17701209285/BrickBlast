@@ -387,6 +387,7 @@ RectTransform:
   - {fileID: 3338320917632593634}
   - {fileID: 5462893073785062948}
   - {fileID: 1971229797070825727}
+  - {fileID: 5200410885382117529}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -416,7 +417,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UIChessBoard
   OriginPrefab: {fileID: 1333875958311173310}
   ParentTransform: {fileID: 5462893073785062948}
-  LevelConfig: {fileID: 11400000, guid: 91aa3a81d495d7343b9a5cae915f7d28, type: 2}
+  LevelConfig: {fileID: 11400000, guid: b938cfb62a5cc2b752e3858c980314c0, type: 2}
   LoadConfigOnStart: 1
   AnimateDrop: 1
   DropDuration: 0.22
@@ -424,6 +425,7 @@ MonoBehaviour:
   MaxDropDuration: 0.3
   DropEase: 9
   CollisionRectInset: 0
+  LayoutController: {fileID: 0}
 --- !u!114 &6301200011732254101
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -460,19 +462,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c118f03afe874ea5a2389ca5f4c2ebf7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BallVolleyController
-  AimLinePresenter: {fileID: 0}
+  AimLinePresenter: {fileID: 6301200011732254101}
   ChessBoard: {fileID: 4285825462255419185}
   LaunchBall: {fileID: 1971229797070825727}
-  ProjectileContainer: {fileID: 0}
+  ProjectileContainer: {fileID: 5200410885382117529}
   LaunchBallCountLabel: {fileID: 5191878036652039999}
   InitialBallCount: 60
   BallSpeed: 2600
   LaunchInterval: 0.02
+  SplitFanHalfAngle: 32
   BallCollisionRadiusScale: 1
   CollisionSkin: 1
   SimulationStep: 0.008333334
   MaxCollisionsPerStep: 6
   FallbackSubstepDistance: 6
+  MaxRuntimeProjectileCount: 180
   MoveBoardDownAfterVolley: 1
 --- !u!114 &2355076698915962381
 MonoBehaviour:
@@ -486,7 +490,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6de1f225c0a94da6a8a6b65e21df9f0d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UISafeAreaReferenceFitter
-  Target: {fileID: 0}
+  Target: {fileID: 1860902773978886331}
   ReferenceResolution: {x: 1080, y: 1920}
   ConstrainToSafeArea: 1
 --- !u!114 &8723459828401736421
@@ -771,3 +775,47 @@ MonoBehaviour:
   m_AimPreviewScale: 1.06
   m_AimPreviewPulseDuration: 0.2
   m_BrickLife: {fileID: 7205670628702046801}
+--- !u!1 &7261255723767712174
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5200410885382117529}
+  - component: {fileID: 8647745105413406668}
+  m_Layer: 5
+  m_Name: Ball Runtime
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &5200410885382117529
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7261255723767712174}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1860902773978886331}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &8647745105413406668
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7261255723767712174}
+  m_CullTransparentMesh: 1
