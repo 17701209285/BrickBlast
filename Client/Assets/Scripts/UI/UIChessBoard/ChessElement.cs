@@ -182,6 +182,17 @@ public class ChessElement : MonoBehaviour
         return true;
     }
 
+    public bool ConsumeSpecialItem()
+    {
+        if (!IsSpecialItem)
+        {
+            return false;
+        }
+
+        ClearContent();
+        return true;
+    }
+
     public bool TryConsumeSpecialTriggerBudget(int maxTriggerCount)
     {
         if (!IsSpecialItem || maxTriggerCount <= 0 || specialTriggerCountThisVolley >= maxTriggerCount)

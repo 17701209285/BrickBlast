@@ -5,11 +5,11 @@ public class AimLineView : MonoBehaviour
 {
     [SerializeField]
     [Min(0.001f)]
-    private float PrimaryLineWidth = 10f;
+    private float PrimaryLineWidth = 8f;
 
     [SerializeField]
     [Min(0.001f)]
-    private float ReflectionLineWidth = 10f;
+    private float ReflectionLineWidth = 8f;
 
     [SerializeField]
     private Color PrimaryLineColor = new Color(1f, 1f, 1f, 0.95f);
@@ -19,6 +19,9 @@ public class AimLineView : MonoBehaviour
 
     [SerializeField]
     private int SortingOrder = 500;
+
+    [SerializeField]
+    private Material LineMaterial;
 
     private RectTransform coordinateSpaceRectTransform;
     private LineRenderer primaryLineRenderer;
@@ -91,6 +94,17 @@ public class AimLineView : MonoBehaviour
         reflectionLineRenderer.positionCount = 0;
     }
 
+    public void SetLineMaterial(Material material)
+    {
+        if (LineMaterial == material)
+        {
+            return;
+        }
+
+        LineMaterial = material;
+        ApplyStyle();
+    }
+
     private void EnsureVisuals()
     {
         if (coordinateSpaceRectTransform == null)
@@ -135,7 +149,6 @@ public class AimLineView : MonoBehaviour
         lineRenderer.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
         lineRenderer.reflectionProbeUsage = UnityEngine.Rendering.ReflectionProbeUsage.Off;
         lineRenderer.sortingOrder = SortingOrder;
-        lineRenderer.sharedMaterial = GetOrCreateMaterial();
         lineRenderer.loop = false;
         return lineRenderer;
     }
@@ -161,9 +174,17 @@ public class AimLineView : MonoBehaviour
 
         primaryLineRenderer.sortingOrder = SortingOrder;
         reflectionLineRenderer.sortingOrder = SortingOrder;
+        var sharedMaterial = GetSharedMaterial();
+        primaryLineRenderer.sharedMaterial = sharedMaterial;
+        reflectionLineRenderer.sharedMaterial = sharedMaterial;
     }
 
-    private Material GetOrCreateMaterial()
+    private Material GetSharedMaterial()
+    {
+        return LineMaterial != null ? LineMaterial : GetOrCreateRuntimeMaterial();
+    }
+
+    private Material GetOrCreateRuntimeMaterial()
     {
         if (runtimeMaterial != null)
         {

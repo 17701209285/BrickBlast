@@ -305,7 +305,6 @@ public class BallVolleyController : MonoBehaviour
         RefreshLaunchBallCountLabel();
 
         var aimLockDuration = 0f;
-        ChessBoard?.ClearTouchedSpecialItemsAtTurnEnd();
 
         if (MoveBoardDownAfterVolley && ChessBoard != null)
         {

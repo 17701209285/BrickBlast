@@ -665,10 +665,40 @@ public class UIChessBoard : MonoBehaviour
         }
 
         var specialEffectResult = ChessSpecialEffectProcessor.TryTrigger(this, target, impactDirection, source, impactAccumulator);
+        target.ConsumeSpecialItem();
         if (specialEffectResult.IsTriggered)
         {
-            projectileHitEffect = specialEffectResult.ToProjectileHitEffectResult();
+            projectileHitEffect = MergeProjectileHitEffects(projectileHitEffect, specialEffectResult.ToProjectileHitEffectResult());
         }
+    }
+
+    private static ProjectileHitEffectResult MergeProjectileHitEffects(in ProjectileHitEffectResult current, in ProjectileHitEffectResult next)
+    {
+        if (!current.SplitIntoThreeWay &&
+            !current.PassThrough &&
+            !current.RedirectCurrentProjectile &&
+            current.AddedBallCount <= 0)
+        {
+            return next;
+        }
+
+        if (!next.SplitIntoThreeWay &&
+            !next.PassThrough &&
+            !next.RedirectCurrentProjectile &&
+            next.AddedBallCount <= 0)
+        {
+            return current;
+        }
+
+        return new ProjectileHitEffectResult(
+            current.SplitIntoThreeWay || next.SplitIntoThreeWay,
+            current.PassThrough || next.PassThrough,
+            next.SplitIntoThreeWay ? next.SplitOrigin : current.SplitOrigin,
+            next.SplitIntoThreeWay ? next.SplitDirection : current.SplitDirection,
+            current.RedirectCurrentProjectile || next.RedirectCurrentProjectile,
+            next.RedirectCurrentProjectile ? next.RedirectOrigin : current.RedirectOrigin,
+            next.RedirectCurrentProjectile ? next.RedirectDirection : current.RedirectDirection,
+            current.AddedBallCount + next.AddedBallCount);
     }
 
     internal bool ApplyBlastDamageToTarget(ChessElement target, ChessDamageSource source, ChessBoardImpactAccumulator impactAccumulator)

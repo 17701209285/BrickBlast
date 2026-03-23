@@ -25,6 +25,9 @@ public class AimLinePresenter : MonoBehaviour
     private UIChessBoard ChessBoard;
 
     [SerializeField]
+    private Material AimLineMaterial;
+
+    [SerializeField]
     private Vector2 LaunchOriginOffset = new Vector2(0f, 180f);
 
     [SerializeField]
@@ -90,6 +93,11 @@ public class AimLinePresenter : MonoBehaviour
         if (AimArea == null)
         {
             AimArea = transform as RectTransform;
+        }
+
+        if (AimLineView != null)
+        {
+            AimLineView.SetLineMaterial(AimLineMaterial);
         }
     }
 #endif
@@ -327,6 +335,8 @@ public class AimLinePresenter : MonoBehaviour
         {
             AimLineView = CreateAimLineView();
         }
+
+        AimLineView?.SetLineMaterial(AimLineMaterial);
 
         if (AimImpactEffectView == null)
         {

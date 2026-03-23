@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -45,7 +44,7 @@ public sealed class BallProjectilePool
             }
         }
 
-        return CreateProjectile();
+        return null;
     }
 
     public void Release(BallProjectile projectile)
@@ -88,9 +87,6 @@ public sealed class BallProjectilePool
         }
 
         var projectileObject = Object.Instantiate(template, container, false);
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-        //projectileObject.name = $"Projectile {allProjectiles.Count + 1}";
-#endif
         projectileObject.SetActive(false);
 
         var projectileCountLabel = projectileObject.transform.Find("Number");
