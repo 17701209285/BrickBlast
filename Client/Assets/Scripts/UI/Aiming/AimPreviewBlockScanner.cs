@@ -4,9 +4,9 @@ public static class AimPreviewBlockScanner
 {
     private const float PreviewHitEpsilon = 0.01f;
 
-    public static void ApplyPreview(UIChessBoard board, RectTransform previewSpace, in AimPreviewPath previewPath)
+    public static void ApplyPreview(UIChessBoard board, in AimPreviewImpactData impactData)
     {
-        if (board == null || previewSpace == null)
+        if (board == null)
         {
             return;
         }
@@ -21,7 +21,7 @@ public static class AimPreviewBlockScanner
                     continue;
                 }
 
-                var isHit = chessElement.HasContent && IsHitByPreview(previewSpace, chessElement, previewPath);
+                var isHit = chessElement.HasContent && impactData.HighlightBlock == chessElement;
                 chessElement.SetAimPreviewActive(isHit);
             }
         }
@@ -38,12 +38,12 @@ public static class AimPreviewBlockScanner
 
         if (TryGetSegmentBlockHit(board, previewSpace, previewPath.PrimarySegment, ballRadius, out var primaryHit))
         {
-            return new AimPreviewImpactData(true, false, primaryHit.Point);
+            return new AimPreviewImpactData(true, false, primaryHit.Point, primaryHit.Block);
         }
 
         if (previewPath.HasReflectionSegment && TryGetSegmentBlockHit(board, previewSpace, previewPath.ReflectionSegment, ballRadius, out var reflectionHit))
         {
-            return new AimPreviewImpactData(true, true, reflectionHit.Point);
+            return new AimPreviewImpactData(true, true, reflectionHit.Point, reflectionHit.Block);
         }
 
         return default;
@@ -67,22 +67,6 @@ public static class AimPreviewBlockScanner
                 }
             }
         }
-    }
-
-    private static bool IsHitByPreview(RectTransform previewSpace, ChessElement chessElement, in AimPreviewPath previewPath)
-    {
-        var rect = chessElement.GetRectInSpace(previewSpace);
-        if (Intersects(previewPath.PrimarySegment, rect))
-        {
-            return true;
-        }
-
-        return previewPath.HasReflectionSegment && Intersects(previewPath.ReflectionSegment, rect);
-    }
-
-    private static bool Intersects(AimPreviewSegment segment, Rect rect)
-    {
-        return SegmentIntersectsRect(segment.StartPoint, segment.EndPoint, rect);
     }
 
     private static bool TryGetSegmentBlockHit(
@@ -110,76 +94,5 @@ public static class AimPreviewBlockScanner
             segmentLength,
             PreviewHitEpsilon,
             out hit);
-    }
-
-    private static bool SegmentIntersectsRect(Vector2 start, Vector2 end, Rect rect)
-    {
-        if (rect.Contains(start) || rect.Contains(end))
-        {
-            return true;
-        }
-
-        var direction = end - start;
-        var tMin = 0f;
-        var tMax = 1f;
-
-        if (!Clip(-direction.x, start.x - rect.xMin, ref tMin, ref tMax))
-        {
-            return false;
-        }
-
-        if (!Clip(direction.x, rect.xMax - start.x, ref tMin, ref tMax))
-        {
-            return false;
-        }
-
-        if (!Clip(-direction.y, start.y - rect.yMin, ref tMin, ref tMax))
-        {
-            return false;
-        }
-
-        if (!Clip(direction.y, rect.yMax - start.y, ref tMin, ref tMax))
-        {
-            return false;
-        }
-
-        return tMax >= tMin && tMax >= 0f && tMin <= 1f;
-    }
-
-    private static bool Clip(float denominator, float numerator, ref float tMin, ref float tMax)
-    {
-        const float epsilon = 0.0001f;
-        if (Mathf.Abs(denominator) < epsilon)
-        {
-            return numerator >= 0f;
-        }
-
-        var t = numerator / denominator;
-        if (denominator < 0f)
-        {
-            if (t > tMax)
-            {
-                return false;
-            }
-
-            if (t > tMin)
-            {
-                tMin = t;
-            }
-
-            return true;
-        }
-
-        if (t < tMin)
-        {
-            return false;
-        }
-
-        if (t < tMax)
-        {
-            tMax = t;
-        }
-
-        return true;
     }
 }

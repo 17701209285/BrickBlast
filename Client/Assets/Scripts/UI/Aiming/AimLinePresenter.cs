@@ -188,7 +188,7 @@ public class AimLinePresenter : MonoBehaviour
         {
             AimImpactEffectView.Show(previewPath, impactData);
         }
-        AimPreviewBlockScanner.ApplyPreview(ChessBoard, AimArea, previewPath);
+        AimPreviewBlockScanner.ApplyPreview(ChessBoard, impactData);
     }
 
     private bool TryGetAimDirection(Vector2 screenPosition, out Vector2 originLocalPosition, out Vector2 aimDirection)

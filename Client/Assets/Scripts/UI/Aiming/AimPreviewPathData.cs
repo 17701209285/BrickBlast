@@ -44,11 +44,13 @@ public struct AimPreviewImpactData
     public bool HasBlockImpact;
     public bool IsReflectionImpact;
     public Vector2 BlockImpactCenterPoint;
+    public ChessElement HighlightBlock;
 
-    public AimPreviewImpactData(bool hasBlockImpact, bool isReflectionImpact, Vector2 blockImpactCenterPoint)
+    public AimPreviewImpactData(bool hasBlockImpact, bool isReflectionImpact, Vector2 blockImpactCenterPoint, ChessElement highlightBlock)
     {
         HasBlockImpact = hasBlockImpact;
         IsReflectionImpact = isReflectionImpact;
         BlockImpactCenterPoint = blockImpactCenterPoint;
+        HighlightBlock = highlightBlock;
     }
 }
