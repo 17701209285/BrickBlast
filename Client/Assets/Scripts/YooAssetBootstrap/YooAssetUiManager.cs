@@ -8,11 +8,10 @@ using YooAsset;
 
 public sealed class YooAssetUiManager : MonoBehaviour
 {
-    private const string SettingsResourcePath = "YooAsset/YooAssetUiSettings";
-
     private readonly List<LoadedScreen> loadedScreens = new List<LoadedScreen>();
 
     private YooAssetUiSettings settings;
+    private AssetHandle settingsHandle;
     private ResourcePackage activePackage;
     private YooAssetUiSceneBinding activeBinding;
     private AssetHandle rootHandle;
@@ -20,6 +19,7 @@ public sealed class YooAssetUiManager : MonoBehaviour
     private Camera rootUiCamera;
     private RectTransform screenLayer;
     private string activeSceneName = string.Empty;
+    private string activeSettingsAddress = string.Empty;
 
     public Transform UiRootTransform
     {
@@ -74,7 +74,7 @@ public sealed class YooAssetUiManager : MonoBehaviour
         ReleaseLoadedUi();
     }
 
-    public IEnumerator LoadSceneUiRoutine(ResourcePackage package, Scene scene)
+    public IEnumerator LoadSceneUiRoutine(ResourcePackage package, string uiSettingsAddress, Scene scene)
     {
         if (package == null)
         {
@@ -82,7 +82,7 @@ public sealed class YooAssetUiManager : MonoBehaviour
             yield break;
         }
 
-        EnsureSettings();
+        yield return EnsureSettingsRoutine(package, uiSettingsAddress);
         if (settings == null)
         {
             ReleaseLoadedUi();
@@ -92,7 +92,7 @@ public sealed class YooAssetUiManager : MonoBehaviour
         YooAssetUiSceneBinding binding;
         if (settings.TryGetSceneBinding(scene, out binding) == false || binding == null)
         {
-            ReleaseLoadedUi();
+            ReleaseLoadedUi(false);
             yield break;
         }
 
@@ -109,7 +109,7 @@ public sealed class YooAssetUiManager : MonoBehaviour
             yield break;
         }
 
-        ReleaseLoadedUi();
+        ReleaseLoadedUi(false);
         activePackage = package;
         activeBinding = binding;
         activeSceneName = scene.name;
@@ -166,6 +166,7 @@ public sealed class YooAssetUiManager : MonoBehaviour
 
         rootHandle = handle;
         rootInstance = Instantiate(prefab);
+        UiInputModuleCompatibilityUtility.EnsureInputSystemModules(rootInstance);
         NormalizeRootTransform(rootInstance.transform);
 
         if (scene.IsValid() && scene.isLoaded && rootInstance.scene != scene)
@@ -244,6 +245,7 @@ public sealed class YooAssetUiManager : MonoBehaviour
 
         RectTransform parent = EnsureScreenLayer(activeBinding);
         GameObject instance = Instantiate(prefab, parent, false);
+        UiInputModuleCompatibilityUtility.EnsureInputSystemModules(instance);
         NormalizeRootTransform(instance.transform);
         UiCameraStackUtility.AssignWorldCamera(instance, rootUiCamera);
         loadedScreens.Add(new LoadedScreen(loadId, address, handle, instance));
@@ -255,12 +257,46 @@ public sealed class YooAssetUiManager : MonoBehaviour
         Debug.LogFormat("[YooAsset][UI] Loaded UI '{0}' from '{1}'.", loadId, address);
     }
 
-    private void EnsureSettings()
+    private IEnumerator EnsureSettingsRoutine(ResourcePackage package, string uiSettingsAddress)
     {
-        if (settings == null)
+        if (string.IsNullOrWhiteSpace(uiSettingsAddress))
         {
-            settings = Resources.Load<YooAssetUiSettings>(SettingsResourcePath);
+            Debug.LogError("[YooAsset][UI] UI settings address is empty in bootstrap settings.");
+            yield break;
         }
+
+        if (settings != null
+            && settingsHandle != null
+            && settingsHandle.IsValid
+            && ReferenceEquals(activePackage, package)
+            && string.Equals(activeSettingsAddress, uiSettingsAddress, StringComparison.OrdinalIgnoreCase))
+        {
+            yield break;
+        }
+
+        ReleaseSettings();
+
+        AssetHandle handle = package.LoadAssetAsync<YooAssetUiSettings>(uiSettingsAddress);
+        yield return handle;
+
+        if (handle.Status != EOperationStatus.Succeed)
+        {
+            handle.Release();
+            Debug.LogError("[YooAsset][UI] Load UI settings failed: " + handle.LastError);
+            yield break;
+        }
+
+        YooAssetUiSettings loadedSettings = handle.GetAssetObject<YooAssetUiSettings>();
+        if (loadedSettings == null)
+        {
+            handle.Release();
+            Debug.LogError("[YooAsset][UI] Loaded UI settings asset is invalid: " + uiSettingsAddress);
+            yield break;
+        }
+
+        settingsHandle = handle;
+        settings = loadedSettings;
+        activeSettingsAddress = uiSettingsAddress;
     }
 
     private RectTransform EnsureScreenLayer(YooAssetUiSceneBinding binding)
@@ -307,7 +343,7 @@ public sealed class YooAssetUiManager : MonoBehaviour
         target.localPosition = Vector3.zero;
     }
 
-    private void ReleaseLoadedUi()
+    private void ReleaseLoadedUi(bool releaseSettings = true)
     {
         for (int i = loadedScreens.Count - 1; i >= 0; i--)
         {
@@ -343,6 +379,10 @@ public sealed class YooAssetUiManager : MonoBehaviour
         activeBinding = null;
         activePackage = null;
         activeSceneName = string.Empty;
+        if (releaseSettings)
+        {
+            ReleaseSettings();
+        }
     }
 
     private bool ReleaseLoadedScreen(string screenId)
@@ -379,6 +419,18 @@ public sealed class YooAssetUiManager : MonoBehaviour
         }
 
         return -1;
+    }
+
+    private void ReleaseSettings()
+    {
+        if (settingsHandle != null && settingsHandle.IsValid)
+        {
+            settingsHandle.Release();
+        }
+
+        settingsHandle = null;
+        settings = null;
+        activeSettingsAddress = string.Empty;
     }
 
     private readonly struct LoadedScreen

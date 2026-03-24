@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   bootstrapSceneName: Launch
   startupEntryId: brick-blast
+  uiSettingsAddress: Assets/AssetBundle/YooAssetBootstrap/YooAssetUiSettings.asset
   packageName: DefaultPackage
   editorPlayMode: 0
   playerPlayMode: 1

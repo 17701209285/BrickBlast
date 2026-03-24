@@ -10,6 +10,8 @@ public sealed class YooAssetBootstrapSettings : ScriptableObject
     [Header("Bootstrap")]
     [SerializeField] private string bootstrapSceneName = "Launch";
     [SerializeField] private string startupEntryId = "brick-blast";
+    [Tooltip("Address of the hot-update UI config asset loaded through YooAsset.")]
+    [SerializeField] private string uiSettingsAddress = "Assets/AssetBundle/YooAssetBootstrap/YooAssetUiSettings.asset";
 
     [Header("Package")]
     [SerializeField] private string packageName = "DefaultPackage";
@@ -39,6 +41,11 @@ public sealed class YooAssetBootstrapSettings : ScriptableObject
     public string StartupEntryId
     {
         get { return startupEntryId; }
+    }
+
+    public string UiSettingsAddress
+    {
+        get { return uiSettingsAddress; }
     }
 
     public string PackageName

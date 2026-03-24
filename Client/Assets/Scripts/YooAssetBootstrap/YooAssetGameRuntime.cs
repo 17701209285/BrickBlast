@@ -1,5 +1,7 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
 using UnityEngine.SceneManagement;
 using UniFramework.Event;
 using YooAsset;
@@ -263,7 +265,6 @@ public sealed class YooAssetGameRuntime : MonoBehaviour
         YooAssets.SetDefaultPackage(package);
         packageInitialized = true;
         packageInitializing = false;
-        DestroyPatchWindow();
         Debug.LogFormat("[YooAsset] Package '{0}' is ready.", settings.PackageName);
     }
 
@@ -296,6 +297,7 @@ public sealed class YooAssetGameRuntime : MonoBehaviour
 
         entryLoading = true;
         Debug.LogFormat("[YooAsset] Load entry '{0}' ({1}).", entry.DisplayName, entry.Address);
+        PreparePatchWindowForEntryTransition();
 
         if (entry.LoadMode == YooAssetMiniGameEntryLoadMode.Scene)
         {
@@ -323,8 +325,10 @@ public sealed class YooAssetGameRuntime : MonoBehaviour
             Scene activeScene = SceneManager.GetActiveScene();
             if (uiManager != null)
             {
-                yield return uiManager.LoadSceneUiRoutine(package, activeScene);
+                yield return uiManager.LoadSceneUiRoutine(package, settings.UiSettingsAddress, activeScene);
             }
+
+            DestroyPatchWindow();
 
             if (previousSceneHandle != null && previousSceneHandle.IsValid && previousSceneHandle != sceneHandle && entry.SceneMode == LoadSceneMode.Single)
             {
@@ -369,6 +373,7 @@ public sealed class YooAssetGameRuntime : MonoBehaviour
             activePrefabHandle = assetHandle;
             activePrefabInstance = Instantiate(prefab);
             activeEntryId = entry.EntryId;
+            DestroyPatchWindow();
         }
 
         entryLoading = false;
@@ -403,6 +408,8 @@ public sealed class YooAssetGameRuntime : MonoBehaviour
         }
 
         patchWindowInstance = Instantiate(patchWindowPrefab);
+        DontDestroyOnLoad(patchWindowInstance);
+        UiInputModuleCompatibilityUtility.EnsureInputSystemModules(patchWindowInstance);
     }
 
     private void DestroyPatchWindow()
@@ -411,6 +418,24 @@ public sealed class YooAssetGameRuntime : MonoBehaviour
         {
             Destroy(patchWindowInstance);
             patchWindowInstance = null;
+        }
+    }
+
+    private void PreparePatchWindowForEntryTransition()
+    {
+        if (patchWindowInstance == null)
+        {
+            return;
+        }
+
+        EventSystem[] eventSystems = patchWindowInstance.GetComponentsInChildren<EventSystem>(true);
+        for (int i = 0; i < eventSystems.Length; i++)
+        {
+            EventSystem eventSystem = eventSystems[i];
+            if (eventSystem != null)
+            {
+                eventSystem.gameObject.SetActive(false);
+            }
         }
     }
 
@@ -449,6 +474,51 @@ public sealed class YooAssetGameRuntime : MonoBehaviour
         string IRemoteServices.GetRemoteFallbackURL(string fileName)
         {
             return fallbackUrl.TrimEnd('/') + "/" + fileName;
+        }
+    }
+}
+
+internal static class UiInputModuleCompatibilityUtility
+{
+    public static void EnsureInputSystemModules(GameObject root)
+    {
+        if (root == null)
+        {
+            return;
+        }
+
+        EventSystem[] eventSystems = root.GetComponentsInChildren<EventSystem>(true);
+        for (int i = 0; i < eventSystems.Length; i++)
+        {
+            EnsureInputSystemModule(eventSystems[i]);
+        }
+    }
+
+    public static void EnsureInputSystemModule(EventSystem eventSystem)
+    {
+        if (eventSystem == null)
+        {
+            return;
+        }
+
+        StandaloneInputModule[] legacyModules = eventSystem.GetComponents<StandaloneInputModule>();
+        for (int i = 0; i < legacyModules.Length; i++)
+        {
+            StandaloneInputModule legacyModule = legacyModules[i];
+            if (legacyModule == null)
+            {
+                continue;
+            }
+
+            legacyModule.enabled = false;
+            Object.Destroy(legacyModule);
+        }
+
+        InputSystemUIInputModule inputSystemModule = eventSystem.GetComponent<InputSystemUIInputModule>();
+        if (inputSystemModule == null)
+        {
+            inputSystemModule = eventSystem.gameObject.AddComponent<InputSystemUIInputModule>();
+            inputSystemModule.AssignDefaultActions();
         }
     }
 }
