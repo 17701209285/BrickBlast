@@ -1,0 +1,180 @@
+{
+    "FileVersion": "2025.9.30",
+    "EnableAddressable": false,
+    "SupportExtensionless": true,
+    "LocationToLower": false,
+    "IncludeAssetGUID": false,
+    "ReplaceAssetPathWithAddress": false,
+    "OutputNameStyle": 0,
+    "BuildBundleType": 1,
+    "BuildPipeline": "EditorSimulateBuildPipeline",
+    "PackageName": "DefaultPackage",
+    "PackageVersion": "Simulate",
+    "PackageNote": "3/24/2026 1:10:42 PM",
+    "AssetList": [
+        {
+            "Address": "",
+            "AssetPath": "Assets/AssetBundle/Prefabs/LevelConfig.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 0,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/AssetBundle/Prefabs/sprite/img_2.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 1,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/AssetBundle/Prefabs/sprite/img_3.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 1,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/AssetBundle/Prefabs/sprite/img_5.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 1,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/AssetBundle/Prefabs/sprite/img_6.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 1,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/AssetBundle/Prefabs/sprite/img_7.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 1,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/AssetBundle/Prefabs/sprite/img_8.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 1,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/AssetBundle/Prefabs/sprite/img_bg1.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 1,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/AssetBundle/Prefabs/sprite/img_bg4.png",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 1,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/AssetBundle/Prefabs/UI/Chessboard/AimLine/AimLineFlowYellow.mat",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 2,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/AssetBundle/Prefabs/UI/Chessboard/AimLine/AimLineFlowYellow.shader",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 4,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/AssetBundle/Prefabs/UIChessBoard.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 0,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/AssetBundle/Prefabs/UIRoot.prefab",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 0,
+            "DependBundleIDs": []
+        },
+        {
+            "Address": "",
+            "AssetPath": "Assets/AssetBundle/Scenes/Main.unity",
+            "AssetGUID": "",
+            "AssetTags": [],
+            "BundleID": 3,
+            "DependBundleIDs": []
+        }
+    ],
+    "BundleList": [
+        {
+            "BundleName": "assets_assetbundle_prefabs.bundle",
+            "UnityCRC": 0,
+            "FileHash": "d579718f1247c7f4d46d4c16df2d80a3",
+            "FileCRC": 0,
+            "FileSize": 366623,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundleIDs": []
+        },
+        {
+            "BundleName": "assets_assetbundle_prefabs_sprite.bundle",
+            "UnityCRC": 0,
+            "FileHash": "88635fdeb1083ecda700621a435835d0",
+            "FileCRC": 0,
+            "FileSize": 4335927,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundleIDs": []
+        },
+        {
+            "BundleName": "assets_assetbundle_prefabs_ui_chessboard_aimline.bundle",
+            "UnityCRC": 0,
+            "FileHash": "82ee0e3189b9f02ca52a5a014ee9fdf1",
+            "FileCRC": 0,
+            "FileSize": 1150,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundleIDs": []
+        },
+        {
+            "BundleName": "assets_assetbundle_scenes.bundle",
+            "UnityCRC": 0,
+            "FileHash": "c2152a1c641371ed67c3f9add5e50f51",
+            "FileCRC": 0,
+            "FileSize": 13616,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundleIDs": []
+        },
+        {
+            "BundleName": "unityshaders.bundle",
+            "UnityCRC": 0,
+            "FileHash": "981df582ba51c3c3415891642bce04f4",
+            "FileCRC": 0,
+            "FileSize": 3937,
+            "Encrypted": false,
+            "Tags": [],
+            "DependBundleIDs": []
+        }
+    ]
+}

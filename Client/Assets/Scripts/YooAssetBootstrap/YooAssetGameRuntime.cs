@@ -1,0 +1,454 @@
+using System.Collections;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UniFramework.Event;
+using YooAsset;
+using YooSceneHandle = YooAsset.SceneHandle;
+
+public sealed class YooAssetGameRuntime : MonoBehaviour
+{
+    private const string SettingsResourcePath = "YooAsset/YooAssetBootstrapSettings";
+
+    private static bool bootstrapCreated;
+    private static YooAssetGameRuntime instance;
+
+    private YooAssetBootstrapSettings settings;
+    private YooAssetUiManager uiManager;
+    private ResourcePackage package;
+    private YooSceneHandle activeSceneHandle;
+    private AssetHandle activePrefabHandle;
+    private GameObject activePrefabInstance;
+    private GameObject patchWindowInstance;
+    private string activeEntryId = string.Empty;
+    private bool packageInitializing;
+    private bool packageInitialized;
+    private bool entryLoading;
+
+    public static YooAssetGameRuntime Instance
+    {
+        get { return instance; }
+    }
+
+    public static bool IsReady
+    {
+        get { return instance != null && instance.packageInitialized; }
+    }
+
+    public static string ActiveEntryId
+    {
+        get { return instance == null ? string.Empty : instance.activeEntryId; }
+    }
+
+    public YooAssetBootstrapSettings Settings
+    {
+        get { return settings; }
+    }
+
+    public YooAssetUiManager UiManager
+    {
+        get { return uiManager; }
+    }
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStatics()
+    {
+        bootstrapCreated = false;
+        instance = null;
+    }
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void TryCreateBootstrap()
+    {
+        if (bootstrapCreated)
+        {
+            return;
+        }
+
+        YooAssetBootstrapSettings runtimeSettings = Resources.Load<YooAssetBootstrapSettings>(SettingsResourcePath);
+        if (runtimeSettings == null)
+        {
+            return;
+        }
+
+        Scene activeScene = SceneManager.GetActiveScene();
+        if (runtimeSettings.ShouldBootstrap(activeScene) == false)
+        {
+            return;
+        }
+
+        GameObject go = new GameObject(nameof(YooAssetGameRuntime));
+        DontDestroyOnLoad(go);
+        go.AddComponent<YooAssetUiManager>();
+        go.AddComponent<YooAssetGameRuntime>();
+        bootstrapCreated = true;
+    }
+
+    public static Coroutine LoadEntry(string entryId)
+    {
+        if (instance == null)
+        {
+            Debug.LogError("[YooAsset] Runtime bootstrap is not available.");
+            return null;
+        }
+
+        return instance.StartCoroutine(instance.LoadEntryRoutine(entryId));
+    }
+
+    public static Coroutine LoadUiScreen(string screenId)
+    {
+        if (instance == null || instance.uiManager == null)
+        {
+            Debug.LogError("[YooAsset][UI] Runtime UI manager is not available.");
+            return null;
+        }
+
+        return instance.uiManager.OpenScreen(screenId);
+    }
+
+    public static Coroutine LoadUiPrefab(string instanceId, string address, System.Action<GameObject> onLoaded = null)
+    {
+        if (instance == null || instance.uiManager == null)
+        {
+            Debug.LogError("[YooAsset][UI] Runtime UI manager is not available.");
+            return null;
+        }
+
+        return instance.uiManager.LoadPrefab(instanceId, address, onLoaded);
+    }
+
+    public static bool CloseUiScreen(string screenId)
+    {
+        if (instance == null || instance.uiManager == null)
+        {
+            return false;
+        }
+
+        return instance.uiManager.CloseScreen(screenId);
+    }
+
+    public static bool RefreshUiCameraStack(Camera baseCamera = null)
+    {
+        if (instance == null || instance.uiManager == null)
+        {
+            return false;
+        }
+
+        return instance.uiManager.RefreshCameraStack(baseCamera);
+    }
+
+    private void Awake()
+    {
+        if (instance != null && instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        uiManager = GetComponent<YooAssetUiManager>();
+        if (uiManager == null)
+        {
+            uiManager = gameObject.AddComponent<YooAssetUiManager>();
+        }
+
+        instance = this;
+    }
+
+    private IEnumerator Start()
+    {
+        settings = Resources.Load<YooAssetBootstrapSettings>(SettingsResourcePath);
+        if (settings == null)
+        {
+            Debug.LogError("[YooAsset] Missing bootstrap settings at Resources/YooAsset/YooAssetBootstrapSettings.");
+            yield break;
+        }
+
+        yield return EnsurePackageReadyRoutine();
+        if (packageInitialized == false)
+        {
+            yield break;
+        }
+
+        yield return LoadEntryRoutine(settings.StartupEntryId);
+    }
+
+    public Coroutine RunHostedCoroutine(IEnumerator routine)
+    {
+        return StartCoroutine(routine);
+    }
+
+    public InitializeParameters CreateInitializeParameters(EPlayMode playMode)
+    {
+        if (playMode == EPlayMode.EditorSimulateMode)
+        {
+            PackageInvokeBuildResult buildResult = EditorSimulateModeHelper.SimulateBuild(settings.PackageName);
+            EditorSimulateModeParameters editorParameters = new EditorSimulateModeParameters();
+            editorParameters.EditorFileSystemParameters = FileSystemParameters.CreateDefaultEditorFileSystemParameters(buildResult.PackageRootDirectory);
+            return editorParameters;
+        }
+
+        if (playMode == EPlayMode.OfflinePlayMode)
+        {
+            OfflinePlayModeParameters offlineParameters = new OfflinePlayModeParameters();
+            offlineParameters.BuildinFileSystemParameters = FileSystemParameters.CreateDefaultBuildinFileSystemParameters();
+            return offlineParameters;
+        }
+
+        if (playMode == EPlayMode.HostPlayMode)
+        {
+            string primaryUrl = settings.GetPrimaryHostServerUrl();
+            string fallbackUrl = settings.GetFallbackHostServerUrl();
+            BootstrapRemoteServices remoteServices = new BootstrapRemoteServices(primaryUrl, fallbackUrl);
+
+            HostPlayModeParameters hostParameters = new HostPlayModeParameters();
+            hostParameters.BuildinFileSystemParameters = FileSystemParameters.CreateDefaultBuildinFileSystemParameters();
+            hostParameters.CacheFileSystemParameters = FileSystemParameters.CreateDefaultCacheFileSystemParameters(remoteServices);
+            return hostParameters;
+        }
+
+        if (playMode == EPlayMode.WebPlayMode)
+        {
+            string primaryUrl = settings.GetPrimaryHostServerUrl();
+            string fallbackUrl = settings.GetFallbackHostServerUrl();
+            BootstrapRemoteServices remoteServices = new BootstrapRemoteServices(primaryUrl, fallbackUrl);
+
+            WebPlayModeParameters webParameters = new WebPlayModeParameters();
+            webParameters.WebServerFileSystemParameters = FileSystemParameters.CreateDefaultWebServerFileSystemParameters();
+            webParameters.WebRemoteFileSystemParameters = FileSystemParameters.CreateDefaultWebRemoteFileSystemParameters(remoteServices);
+            return webParameters;
+        }
+
+        throw new System.NotSupportedException("Unsupported YooAsset play mode: " + playMode);
+    }
+
+    private IEnumerator EnsurePackageReadyRoutine()
+    {
+        if (packageInitialized)
+        {
+            yield break;
+        }
+
+        while (packageInitializing)
+        {
+            yield return null;
+        }
+
+        if (packageInitialized)
+        {
+            yield break;
+        }
+
+        packageInitializing = true;
+        EnsureCoreSystems();
+        EnsurePatchWindow();
+
+        PatchOperation operation = new PatchOperation(settings.PackageName, settings.ResolvePlayMode(), this);
+        YooAssets.StartOperation(operation);
+        yield return operation;
+
+        if (operation.Status != EOperationStatus.Succeed)
+        {
+            packageInitializing = false;
+            Debug.LogError("[YooAsset] Patch operation failed: " + operation.Error);
+            yield break;
+        }
+
+        package = YooAssets.GetPackage(settings.PackageName);
+        if (package == null)
+        {
+            packageInitializing = false;
+            Debug.LogError("[YooAsset] Patched package was not found: " + settings.PackageName);
+            yield break;
+        }
+
+        YooAssets.SetDefaultPackage(package);
+        packageInitialized = true;
+        packageInitializing = false;
+        DestroyPatchWindow();
+        Debug.LogFormat("[YooAsset] Package '{0}' is ready.", settings.PackageName);
+    }
+
+    private IEnumerator LoadEntryRoutine(string entryId)
+    {
+        if (entryLoading)
+        {
+            Debug.LogWarning("[YooAsset] Entry loading is already in progress.");
+            yield break;
+        }
+
+        yield return EnsurePackageReadyRoutine();
+        if (packageInitialized == false)
+        {
+            yield break;
+        }
+
+        YooAssetMiniGameEntry entry;
+        if (settings.TryGetEntry(entryId, out entry) == false || entry == null)
+        {
+            Debug.LogError("[YooAsset] Can not find mini-game entry: " + entryId);
+            yield break;
+        }
+
+        if (string.IsNullOrWhiteSpace(entry.Address))
+        {
+            Debug.LogError("[YooAsset] Entry address is empty: " + entry.DisplayName);
+            yield break;
+        }
+
+        entryLoading = true;
+        Debug.LogFormat("[YooAsset] Load entry '{0}' ({1}).", entry.DisplayName, entry.Address);
+
+        if (entry.LoadMode == YooAssetMiniGameEntryLoadMode.Scene)
+        {
+            ReleaseActivePrefab();
+
+            YooSceneHandle previousSceneHandle = activeSceneHandle;
+            YooSceneHandle sceneHandle = package.LoadSceneAsync(entry.Address, entry.SceneMode);
+            yield return sceneHandle;
+
+            if (sceneHandle.Status != EOperationStatus.Succeed)
+            {
+                entryLoading = false;
+                Debug.LogError("[YooAsset] Load scene failed: " + sceneHandle.LastError);
+                yield break;
+            }
+
+            if (entry.SceneMode == LoadSceneMode.Additive)
+            {
+                sceneHandle.ActivateScene();
+            }
+
+            activeSceneHandle = sceneHandle;
+            activeEntryId = entry.EntryId;
+
+            Scene activeScene = SceneManager.GetActiveScene();
+            if (uiManager != null)
+            {
+                yield return uiManager.LoadSceneUiRoutine(package, activeScene);
+            }
+
+            if (previousSceneHandle != null && previousSceneHandle.IsValid && previousSceneHandle != sceneHandle && entry.SceneMode == LoadSceneMode.Single)
+            {
+                previousSceneHandle.Release();
+            }
+        }
+        else
+        {
+            if (uiManager != null)
+            {
+                uiManager.UnloadManagedUi();
+            }
+
+            if (activeSceneHandle != null && activeSceneHandle.IsValid)
+            {
+                UnloadSceneOperation unloadSceneOperation = activeSceneHandle.UnloadAsync();
+                yield return unloadSceneOperation;
+                activeSceneHandle = null;
+            }
+
+            ReleaseActivePrefab();
+
+            AssetHandle assetHandle = package.LoadAssetAsync<GameObject>(entry.Address);
+            yield return assetHandle;
+
+            if (assetHandle.Status != EOperationStatus.Succeed)
+            {
+                entryLoading = false;
+                Debug.LogError("[YooAsset] Load prefab failed: " + assetHandle.LastError);
+                yield break;
+            }
+
+            GameObject prefab = assetHandle.GetAssetObject<GameObject>();
+            if (prefab == null)
+            {
+                assetHandle.Release();
+                entryLoading = false;
+                Debug.LogError("[YooAsset] Loaded asset is not a GameObject: " + entry.Address);
+                yield break;
+            }
+
+            activePrefabHandle = assetHandle;
+            activePrefabInstance = Instantiate(prefab);
+            activeEntryId = entry.EntryId;
+        }
+
+        entryLoading = false;
+    }
+
+    private void EnsureCoreSystems()
+    {
+        if (YooAssets.Initialized == false)
+        {
+            Debug.Log("[YooAsset] Initialize runtime.");
+            YooAssets.Initialize();
+        }
+
+        if (UniEvent.Initialized == false)
+        {
+            UniEvent.Initalize();
+        }
+    }
+
+    private void EnsurePatchWindow()
+    {
+        if (patchWindowInstance != null)
+        {
+            return;
+        }
+
+        GameObject patchWindowPrefab = Resources.Load<GameObject>("PatchWindow");
+        if (patchWindowPrefab == null)
+        {
+            Debug.LogWarning("[YooAsset] PatchWindow prefab was not found in Resources.");
+            return;
+        }
+
+        patchWindowInstance = Instantiate(patchWindowPrefab);
+    }
+
+    private void DestroyPatchWindow()
+    {
+        if (patchWindowInstance != null)
+        {
+            Destroy(patchWindowInstance);
+            patchWindowInstance = null;
+        }
+    }
+
+    private void ReleaseActivePrefab()
+    {
+        if (activePrefabInstance != null)
+        {
+            Destroy(activePrefabInstance);
+            activePrefabInstance = null;
+        }
+
+        if (activePrefabHandle != null && activePrefabHandle.IsValid)
+        {
+            activePrefabHandle.Release();
+        }
+
+        activePrefabHandle = null;
+    }
+
+    private sealed class BootstrapRemoteServices : IRemoteServices
+    {
+        private readonly string primaryUrl;
+        private readonly string fallbackUrl;
+
+        public BootstrapRemoteServices(string primaryUrl, string fallbackUrl)
+        {
+            this.primaryUrl = primaryUrl;
+            this.fallbackUrl = string.IsNullOrWhiteSpace(fallbackUrl) ? primaryUrl : fallbackUrl;
+        }
+
+        string IRemoteServices.GetRemoteMainURL(string fileName)
+        {
+            return primaryUrl.TrimEnd('/') + "/" + fileName;
+        }
+
+        string IRemoteServices.GetRemoteFallbackURL(string fileName)
+        {
+            return fallbackUrl.TrimEnd('/') + "/" + fileName;
+        }
+    }
+}
