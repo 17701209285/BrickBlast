@@ -497,7 +497,7 @@ GameObject:
   - component: {fileID: 99134069902085222}
   - component: {fileID: 3807835870593489094}
   m_Layer: 5
-  m_Name: Image
+  m_Name: back
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -644,7 +644,7 @@ GameObject:
   - component: {fileID: 1853111174195725020}
   - component: {fileID: 293757623282638049}
   m_Layer: 5
-  m_Name: Image
+  m_Name: CurrentLevel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -720,7 +720,7 @@ GameObject:
   - component: {fileID: 525206533094674393}
   - component: {fileID: 2976624247217621811}
   m_Layer: 5
-  m_Name: Image
+  m_Name: LastLevel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -989,7 +989,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UIChessBoard
   OriginPrefab: {fileID: 1333875958311173310}
   ParentTransform: {fileID: 5462893073785062948}
-  LevelConfig: {fileID: 11400000, guid: e87ddc551af24425afebf3c6d46c7416, type: 2}
+  LevelConfig: {fileID: 11400000, guid: 34ab98c57d7f48c0b6ed40a5b12fd933, type: 2}
   LoadConfigOnStart: 1
   AnimateDrop: 1
   DropDuration: 0.22
@@ -998,6 +998,9 @@ MonoBehaviour:
   DropEase: 9
   CollisionRectInset: 0
   LayoutController: {fileID: 0}
+  CurrentLevel: {fileID: 4026532249268482522}
+  NexttLevel: {fileID: 8711231861604092273}
+  LastLevel: {fileID: 5429742030713440858}
 --- !u!114 &6301200011732254101
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1016,7 +1019,7 @@ MonoBehaviour:
   AimLineView: {fileID: 0}
   AimImpactEffectView: {fileID: 0}
   ChessBoard: {fileID: 4285825462255419185}
-  AimLineMaterial: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  AimLineMaterial: {fileID: 2100000, guid: f07abe3b1e35449fa2571fe469f9f2d8, type: 2}
   LaunchOriginOffset: {x: 0, y: 180}
   MinVerticalDragDistance: 24
   MinAimAngle: 15
@@ -1231,7 +1234,7 @@ GameObject:
   - component: {fileID: 8927624055981844145}
   - component: {fileID: 1773876009143869853}
   m_Layer: 5
-  m_Name: Image
+  m_Name: toplevell
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1381,7 +1384,7 @@ GameObject:
   - component: {fileID: 1293736198250499839}
   - component: {fileID: 3559391949003911740}
   m_Layer: 5
-  m_Name: Image (1)
+  m_Name: NextLevel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1765,7 +1768,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8583246773244777158}
   m_Layer: 5
-  m_Name: toplevell
+  m_Name: toplevell_level
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

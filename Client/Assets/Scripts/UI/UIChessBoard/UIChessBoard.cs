@@ -2,6 +2,7 @@ using System;
 using DG.Tweening;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public readonly struct ProjectileHitEffectResult
 {
@@ -97,6 +98,15 @@ public class UIChessBoard : MonoBehaviour
     [SerializeField]
     private UIChessBoardLayoutController LayoutController;
 
+    [SerializeField]
+    private TextMeshProUGUI CurrentLevel;
+
+    [SerializeField]
+    private TextMeshProUGUI NexttLevel;
+
+    [SerializeField]
+    private TextMeshProUGUI LastLevel;
+
     private ArrayList<ChessElement> chessElements;
     private readonly List<CollisionCandidate> collisionCandidates = new List<CollisionCandidate>(64);
     private readonly Vector3[] playAreaWorldCornersBuffer = new Vector3[4];
@@ -122,6 +132,7 @@ public class UIChessBoard : MonoBehaviour
     private void Start()
     {
         EnsureLayoutController();
+        RefreshLevelLabels();
         if (LoadConfigOnStart)
         {
             ReloadLevel();
@@ -137,6 +148,7 @@ public class UIChessBoard : MonoBehaviour
     public void ReloadLevel()
     {
         visibleStartRow = LevelConfig == null ? 0 : LevelConfig.GetInitialVisibleStartRow();
+        RefreshLevelLabels();
         InitChessBoard(GetBoardWidth(), GetBoardHeight());
         ClearVisibleBoard();
 
@@ -409,8 +421,81 @@ public class UIChessBoard : MonoBehaviour
     {
         LevelConfig = levelConfig;
         visibleStartRow = LevelConfig == null ? 0 : LevelConfig.GetInitialVisibleStartRow();
+        RefreshLevelLabels();
         ApplyBoardLayout();
         SetGameOverState(false);
+    }
+
+    private void RefreshLevelLabels()
+    {
+        if (!TryGetCurrentLevelNumber(out var currentLevelNumber))
+        {
+            SetLevelLabel(CurrentLevel, "?");
+            SetLevelLabel(NexttLevel, string.Empty);
+            SetLevelLabel(LastLevel, string.Empty);
+            return;
+        }
+
+        SetLevelLabel(CurrentLevel, currentLevelNumber.ToString());
+        SetLevelLabel(NexttLevel, (currentLevelNumber + 1).ToString());
+        SetLevelLabel(LastLevel, currentLevelNumber > 1 ? (currentLevelNumber - 1).ToString() : string.Empty);
+    }
+
+    private bool TryGetCurrentLevelNumber(out int levelNumber)
+    {
+        levelNumber = 0;
+        if (LevelConfig == null)
+        {
+            return false;
+        }
+
+        var levelName = LevelConfig.name;
+        if (string.IsNullOrWhiteSpace(levelName))
+        {
+            return false;
+        }
+
+        var endIndexExclusive = -1;
+        for (int i = levelName.Length - 1; i >= 0; i--)
+        {
+            if (!char.IsDigit(levelName[i]))
+            {
+                continue;
+            }
+
+            endIndexExclusive = i + 1;
+            break;
+        }
+
+        if (endIndexExclusive <= 0)
+        {
+            return false;
+        }
+
+        var startIndexInclusive = endIndexExclusive - 1;
+        while (startIndexInclusive >= 0 && char.IsDigit(levelName[startIndexInclusive]))
+        {
+            startIndexInclusive--;
+        }
+
+        var numberStart = startIndexInclusive + 1;
+        var numberLength = endIndexExclusive - numberStart;
+        if (numberLength <= 0)
+        {
+            return false;
+        }
+
+        return int.TryParse(levelName.Substring(numberStart, numberLength), out levelNumber) && levelNumber > 0;
+    }
+
+    private static void SetLevelLabel(TextMeshProUGUI label, string value)
+    {
+        if (label == null)
+        {
+            return;
+        }
+
+        label.text = value ?? string.Empty;
     }
 
     private void InitChessBoard(int width, int height)
