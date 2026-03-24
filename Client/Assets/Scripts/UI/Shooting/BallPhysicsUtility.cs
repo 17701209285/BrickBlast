@@ -45,6 +45,8 @@ public readonly struct BallCollisionHit
 
 public static class BallPhysicsUtility
 {
+    private const float DirectionThresholdEpsilon = 0.0001f;
+
     public static bool TryGetNextHit(
         UIChessBoard board,
         RectTransform simulationSpace,
@@ -196,7 +198,7 @@ public static class BallPhysicsUtility
         out BallCollisionHit hit)
     {
         hit = default;
-        if (direction.y >= -epsilon)
+        if (direction.y >= -DirectionThresholdEpsilon)
         {
             return false;
         }
@@ -241,7 +243,7 @@ public static class BallPhysicsUtility
         var right = bounds.xMax - radius;
         var top = bounds.yMax - radius;
 
-        if (direction.x < -epsilon)
+        if (direction.x < -DirectionThresholdEpsilon)
         {
             var distance = (left - origin.x) / direction.x;
             if (TryCreateWallHit(distance, maxDistance, epsilon, origin, direction, Vector2.right, collectorY, top, true, ref closestHit))
@@ -250,7 +252,7 @@ public static class BallPhysicsUtility
             }
         }
 
-        if (direction.x > epsilon)
+        if (direction.x > DirectionThresholdEpsilon)
         {
             var distance = (right - origin.x) / direction.x;
             if (TryCreateWallHit(distance, maxDistance, epsilon, origin, direction, Vector2.left, collectorY, top, true, ref closestHit))
@@ -259,7 +261,7 @@ public static class BallPhysicsUtility
             }
         }
 
-        if (direction.y > epsilon)
+        if (direction.y > DirectionThresholdEpsilon)
         {
             var distance = (top - origin.y) / direction.y;
             if (TryCreateWallHit(distance, maxDistance, epsilon, origin, direction, Vector2.down, left, right, false, ref closestHit))
@@ -395,12 +397,12 @@ public static class BallPhysicsUtility
         var farthestDistance = float.PositiveInfinity;
         var enterNormal = Vector2.zero;
 
-        if (!TryUpdateAxis(origin.x, direction.x, min.x, max.x, Vector2.left, Vector2.right, epsilon, ref nearestDistance, ref farthestDistance, ref enterNormal))
+        if (!TryUpdateAxis(origin.x, direction.x, min.x, max.x, Vector2.left, Vector2.right, epsilon, DirectionThresholdEpsilon, ref nearestDistance, ref farthestDistance, ref enterNormal))
         {
             return false;
         }
 
-        if (!TryUpdateAxis(origin.y, direction.y, min.y, max.y, Vector2.down, Vector2.up, epsilon, ref nearestDistance, ref farthestDistance, ref enterNormal))
+        if (!TryUpdateAxis(origin.y, direction.y, min.y, max.y, Vector2.down, Vector2.up, epsilon, DirectionThresholdEpsilon, ref nearestDistance, ref farthestDistance, ref enterNormal))
         {
             return false;
         }
@@ -479,11 +481,12 @@ public static class BallPhysicsUtility
         Vector2 minNormal,
         Vector2 maxNormal,
         float epsilon,
+        float directionThresholdEpsilon,
         ref float nearestDistance,
         ref float farthestDistance,
         ref Vector2 enterNormal)
     {
-        if (Mathf.Abs(direction) <= epsilon)
+        if (Mathf.Abs(direction) <= directionThresholdEpsilon)
         {
             return origin >= min && origin <= max;
         }

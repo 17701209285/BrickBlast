@@ -86,6 +86,7 @@ public class BallVolleyController : MonoBehaviour
 
     public int CurrentBallCount => currentBallCount;
     public bool IsVolleyActive => volleyActive;
+    public float PreviewCollisionTolerance => Mathf.Max(0.01f, CollisionSkin);
 
     private void Awake()
     {

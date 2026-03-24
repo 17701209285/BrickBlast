@@ -59,6 +59,7 @@ public class AimLinePresenter : MonoBehaviour
     public RectTransform AimSpace => AimArea;
     public RectTransform AimOriginTransform => AimOrigin;
 
+    private BallVolleyController ballVolleyController;
     private bool isSubscribed;
     private bool aimInputEnabled = true;
 
@@ -190,7 +191,12 @@ public class AimLinePresenter : MonoBehaviour
         PrimaryBoundaryHitPoint = previewPath.PrimarySegment.BoundaryHitPoint;
         ReflectionBoundaryType = previewPath.HasReflectionSegment ? previewPath.ReflectionSegment.BoundaryType : AimBoundaryType.None;
         ReflectionBoundaryHitPoint = previewPath.HasReflectionSegment ? previewPath.ReflectionSegment.BoundaryHitPoint : previewPath.PrimarySegment.EndPoint;
-        var impactData = AimPreviewBlockScanner.BuildImpactData(ChessBoard, AimArea, previewPath, GetPreviewBallRadius());
+        var impactData = AimPreviewBlockScanner.BuildImpactData(
+            ChessBoard,
+            AimArea,
+            previewPath,
+            GetPreviewBallRadius(),
+            GetPreviewCollisionTolerance());
         AimLineView.Show(previewPath);
         if (AimImpactEffectView != null)
         {
@@ -273,6 +279,13 @@ public class AimLinePresenter : MonoBehaviour
         return Mathf.Min(AimOrigin.rect.width, AimOrigin.rect.height) * 0.5f;
     }
 
+    private float GetPreviewCollisionTolerance()
+    {
+        return ballVolleyController != null
+            ? ballVolleyController.PreviewCollisionTolerance
+            : BallShootingConstants.DefaultCollisionSkin;
+    }
+
     private Camera GetEventCamera()
     {
         var canvas = AimArea == null ? null : AimArea.GetComponentInParent<Canvas>();
@@ -324,6 +337,11 @@ public class AimLinePresenter : MonoBehaviour
         if (ChessBoard == null)
         {
             ChessBoard = GetComponent<UIChessBoard>();
+        }
+
+        if (ballVolleyController == null)
+        {
+            ballVolleyController = GetComponent<BallVolleyController>();
         }
 
         if (AimLineView == null)

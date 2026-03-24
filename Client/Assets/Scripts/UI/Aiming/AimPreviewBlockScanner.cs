@@ -21,13 +21,18 @@ public static class AimPreviewBlockScanner
                     continue;
                 }
 
-                var isHit = chessElement.HasContent && impactData.HighlightBlock == chessElement;
+                var isHit = chessElement.HasContent && impactData.Highlights(chessElement);
                 chessElement.SetAimPreviewActive(isHit);
             }
         }
     }
 
-    public static AimPreviewImpactData BuildImpactData(UIChessBoard board, RectTransform previewSpace, in AimPreviewPath previewPath, float ballRadius)
+    public static AimPreviewImpactData BuildImpactData(
+        UIChessBoard board,
+        RectTransform previewSpace,
+        in AimPreviewPath previewPath,
+        float ballRadius,
+        float collisionTolerance)
     {
         if (board == null || previewSpace == null || ballRadius <= 0f)
         {
@@ -35,15 +40,16 @@ public static class AimPreviewBlockScanner
         }
 
         board.RefreshCollisionCandidates(previewSpace);
+        var previewHitTolerance = Mathf.Max(PreviewHitEpsilon, collisionTolerance);
 
-        if (TryGetSegmentBlockHit(board, previewSpace, previewPath.PrimarySegment, ballRadius, out var primaryHit))
+        if (TryGetSegmentBlockHit(board, previewSpace, previewPath.PrimarySegment, ballRadius, previewHitTolerance, out var primaryHit))
         {
-            return new AimPreviewImpactData(true, false, primaryHit.Point, primaryHit.Block);
+            return new AimPreviewImpactData(true, false, primaryHit.Point, primaryHit.Block, primaryHit.AdditionalBlock);
         }
 
-        if (previewPath.HasReflectionSegment && TryGetSegmentBlockHit(board, previewSpace, previewPath.ReflectionSegment, ballRadius, out var reflectionHit))
+        if (previewPath.HasReflectionSegment && TryGetSegmentBlockHit(board, previewSpace, previewPath.ReflectionSegment, ballRadius, previewHitTolerance, out var reflectionHit))
         {
-            return new AimPreviewImpactData(true, true, reflectionHit.Point, reflectionHit.Block);
+            return new AimPreviewImpactData(true, true, reflectionHit.Point, reflectionHit.Block, reflectionHit.AdditionalBlock);
         }
 
         return default;
@@ -74,6 +80,7 @@ public static class AimPreviewBlockScanner
         RectTransform previewSpace,
         AimPreviewSegment segment,
         float ballRadius,
+        float hitTolerance,
         out BallCollisionHit hit)
     {
         hit = default;
@@ -92,7 +99,7 @@ public static class AimPreviewBlockScanner
             direction,
             ballRadius,
             segmentLength,
-            PreviewHitEpsilon,
+            hitTolerance,
             out hit);
     }
 }

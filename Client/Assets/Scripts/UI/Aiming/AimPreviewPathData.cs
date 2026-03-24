@@ -45,12 +45,24 @@ public struct AimPreviewImpactData
     public bool IsReflectionImpact;
     public Vector2 BlockImpactCenterPoint;
     public ChessElement HighlightBlock;
+    public ChessElement AdditionalHighlightBlock;
 
-    public AimPreviewImpactData(bool hasBlockImpact, bool isReflectionImpact, Vector2 blockImpactCenterPoint, ChessElement highlightBlock)
+    public AimPreviewImpactData(
+        bool hasBlockImpact,
+        bool isReflectionImpact,
+        Vector2 blockImpactCenterPoint,
+        ChessElement highlightBlock,
+        ChessElement additionalHighlightBlock = null)
     {
         HasBlockImpact = hasBlockImpact;
         IsReflectionImpact = isReflectionImpact;
         BlockImpactCenterPoint = blockImpactCenterPoint;
         HighlightBlock = highlightBlock;
+        AdditionalHighlightBlock = additionalHighlightBlock;
+    }
+
+    public bool Highlights(ChessElement chessElement)
+    {
+        return chessElement != null && (HighlightBlock == chessElement || AdditionalHighlightBlock == chessElement);
     }
 }
