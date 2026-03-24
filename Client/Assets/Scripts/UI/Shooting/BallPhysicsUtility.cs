@@ -130,6 +130,7 @@ public static class BallPhysicsUtility
         }
 
         var foundHit = false;
+        var simultaneousTolerance = GetSimultaneousBlockDistanceTolerance(radius, epsilon);
         var bestPushDistance = float.MaxValue;
         for (int i = 0; i < candidates.Count; i++)
         {
@@ -152,14 +153,14 @@ public static class BallPhysicsUtility
                 continue;
             }
 
-            var pushDistance = (candidateResolvedPosition - ballCenter).sqrMagnitude;
-            if (foundHit && pushDistance > bestPushDistance + epsilon)
+            var pushDistance = Vector2.Distance(candidateResolvedPosition, ballCenter);
+            if (foundHit && pushDistance > bestPushDistance + simultaneousTolerance)
             {
                 continue;
             }
 
             var candidateHit = new BallCollisionHit(BallCollisionType.Block, 0f, ballCenter, normal, impactPoint, Vector2.zero, block);
-            if (!foundHit || pushDistance < bestPushDistance - epsilon)
+            if (!foundHit || pushDistance < bestPushDistance - simultaneousTolerance)
             {
                 bestPushDistance = pushDistance;
                 resolvedPosition = candidateResolvedPosition;
@@ -335,6 +336,7 @@ public static class BallPhysicsUtility
 
         var closestHit = new BallCollisionHit(BallCollisionType.None, float.MaxValue, origin, Vector2.zero, origin, direction, null);
         var foundHit = false;
+        var simultaneousTolerance = GetSimultaneousBlockDistanceTolerance(radius, epsilon);
         for (int i = 0; i < candidates.Count; i++)
         {
             var collisionCandidate = candidates[i];
@@ -366,8 +368,16 @@ public static class BallPhysicsUtility
                 centerPoint - GetImpactOffset(normal, radius),
                 direction,
                 block);
-            if (TrySelectCloserHit(hitCandidate, ref closestHit, epsilon))
+            if (!foundHit || hitCandidate.Distance < closestHit.Distance - simultaneousTolerance)
             {
+                closestHit = hitCandidate;
+                foundHit = true;
+                continue;
+            }
+
+            if (Mathf.Abs(hitCandidate.Distance - closestHit.Distance) <= simultaneousTolerance)
+            {
+                closestHit = MergeSimultaneousBlockHit(closestHit, hitCandidate);
                 foundHit = true;
             }
         }
@@ -565,6 +575,11 @@ public static class BallPhysicsUtility
     private static Vector2 NormalizeNormal(Vector2 normal)
     {
         return new Vector2(Mathf.RoundToInt(Mathf.Sign(normal.x) * Mathf.Clamp01(Mathf.Abs(normal.x))), Mathf.RoundToInt(Mathf.Sign(normal.y) * Mathf.Clamp01(Mathf.Abs(normal.y))));
+    }
+
+    private static float GetSimultaneousBlockDistanceTolerance(float radius, float epsilon)
+    {
+        return Mathf.Max(epsilon, Mathf.Min(3f, Mathf.Max(1.25f, radius * 0.2f)));
     }
 
     private static BallCollisionHit MergeSimultaneousBlockHit(BallCollisionHit currentHit, BallCollisionHit candidate)

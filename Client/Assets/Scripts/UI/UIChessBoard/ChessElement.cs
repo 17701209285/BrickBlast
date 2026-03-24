@@ -35,12 +35,6 @@ public class ChessElement : MonoBehaviour
     [SerializeField]
     [Range(0f, 1f)]
     private float m_AimPreviewHighlight = 0.35f;
-    [SerializeField]
-    [Min(1f)]
-    private float m_AimPreviewScale = 1.06f;
-    [SerializeField]
-    [Min(0f)]
-    private float m_AimPreviewPulseDuration = 0.2f;
 
     [SerializeField]
     TextMeshProUGUI m_BrickLife;
@@ -511,18 +505,6 @@ public class ChessElement : MonoBehaviour
         CacheComponents();
         StopAimPreviewAnimation();
         RefreshView();
-
-        if (!aimPreviewActive || selfRectTransform == null || !Application.isPlaying)
-        {
-            return;
-        }
-
-        selfRectTransform.localScale = Vector3.one;
-        aimPreviewTween = selfRectTransform
-            .DOScale(m_AimPreviewScale, Mathf.Max(0.01f, m_AimPreviewPulseDuration))
-            .SetEase(Ease.OutQuad)
-            .SetLoops(-1, LoopType.Yoyo)
-            .SetLink(gameObject);
     }
 
     private void PlayHitEffect(in ChessHitEffectContext hitContext)
