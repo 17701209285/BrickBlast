@@ -77,6 +77,7 @@
     <Compile Include="Assets\Scripts\UI\UIChessBoard\ChessBoardImpactAccumulator.cs" />
     <Compile Include="Assets\Scripts\YooAssetBootstrap\PatchFlow\FsmNode\FsmRequestPackageVersion.cs" />
     <Compile Include="Assets\Scripts\YooAssetBootstrap\PatchFlow\PatchOperation.cs" />
+    <Compile Include="Assets\Scripts\UI\UIResultWindow\UIResultWindow.cs" />
     <Compile Include="Assets\Scripts\Scriptables\LevelCellTypeUtility.cs" />
     <Compile Include="Assets\Scripts\UI\Shooting\BallProjectilePool.cs" />
     <Compile Include="Assets\Scripts\Scriptables\LevelCell.cs" />

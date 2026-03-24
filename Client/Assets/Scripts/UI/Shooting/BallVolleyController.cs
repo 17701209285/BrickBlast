@@ -1,7 +1,9 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using YooAsset;
 
 [DisallowMultipleComponent]
 public class BallVolleyController : MonoBehaviour
@@ -20,6 +22,18 @@ public class BallVolleyController : MonoBehaviour
 
     [SerializeField]
     private TextMeshProUGUI LaunchBallCountLabel;
+
+    [SerializeField]
+    private UIResultWindow ResultWindow;
+
+    [SerializeField]
+    private YooAssetLevelLoader LevelLoader;
+
+    [SerializeField]
+    private RectTransform ResultWindowParent;
+
+    [SerializeField]
+    private string ResultWindowAddress = "Assets/AssetBundle/Prefabs/UIResultWindow.prefab";
 
     [SerializeField]
     [Min(1)]
@@ -83,6 +97,9 @@ public class BallVolleyController : MonoBehaviour
     private Vector2 firstLandingPoint;
     private bool hasRecordedFirstLanding;
     private bool projectilePoolWarmupPending;
+    private AssetHandle resultWindowPrefabHandle;
+    private bool isResultWindowLoading;
+    private bool pendingResultIsVictory;
 
     public int CurrentBallCount => currentBallCount;
     public bool IsVolleyActive => volleyActive;
@@ -109,6 +126,11 @@ public class BallVolleyController : MonoBehaviour
     {
         Unsubscribe();
         StopVolleyImmediately();
+    }
+
+    private void OnDestroy()
+    {
+        ReleaseHandle(ref resultWindowPrefabHandle);
     }
 
     private void Update()
@@ -242,7 +264,7 @@ public class BallVolleyController : MonoBehaviour
 
     private void HandleAimReleased(Vector2 originLocalPosition, Vector2 aimDirection)
     {
-        if (volleyActive || AimLinePresenter == null || ChessBoard == null || ChessBoard.IsGameOver)
+        if (volleyActive || IsLevelTransitionLoading() || IsResultWindowVisible() || AimLinePresenter == null || ChessBoard == null || ChessBoard.IsGameOver)
         {
             return;
         }
@@ -306,11 +328,20 @@ public class BallVolleyController : MonoBehaviour
         RefreshLaunchBallCountLabel();
 
         var aimLockDuration = 0f;
+        if (TryHandleLevelCompleted())
+        {
+            return;
+        }
 
         if (MoveBoardDownAfterVolley && ChessBoard != null)
         {
             ChessBoard.MoveBoardDownOneRow();
             if (ChessBoard.IsGameOver)
+            {
+                return;
+            }
+
+            if (TryHandleLevelCompleted())
             {
                 return;
             }
@@ -390,6 +421,17 @@ public class BallVolleyController : MonoBehaviour
             {
                 LaunchBallCountLabel = LaunchBall.GetComponentInChildren<TextMeshProUGUI>(true);
             }
+        }
+
+        if (ResultWindowParent == null)
+        {
+            var parentCanvas = GetComponentInParent<Canvas>();
+            ResultWindowParent = parentCanvas == null ? transform as RectTransform : parentCanvas.transform as RectTransform;
+        }
+
+        if (LevelLoader == null)
+        {
+            LevelLoader = GetComponent<YooAssetLevelLoader>();
         }
 
         EnsureProjectileCanvas();
@@ -654,10 +696,11 @@ public class BallVolleyController : MonoBehaviour
 
             AimLinePresenter?.SetAimInputEnabled(false);
             OnBottomRowGameOver();
+            ShowResultWindow(false);
             return;
         }
 
-        if (!volleyActive && aimUnlockTimer <= 0f)
+        if (!volleyActive && aimUnlockTimer <= 0f && !IsResultWindowVisible() && !IsLevelTransitionLoading())
         {
             SetLaunchBallVisible(true);
             RefreshLaunchBallCountLabel();
@@ -707,5 +750,202 @@ public class BallVolleyController : MonoBehaviour
         {
             launchBallGraphic.enabled = visible;
         }
+    }
+
+    private bool TryHandleLevelCompleted()
+    {
+        if (ChessBoard == null || !ChessBoard.AreVisibleBricksCleared() || ChessBoard.HasPendingDropBatch())
+        {
+            return false;
+        }
+
+        ShowResultWindow(true);
+        return true;
+    }
+
+    private void ShowResultWindow(bool isVictory)
+    {
+        pendingResultIsVictory = isVictory;
+        aimUnlockTimer = 0f;
+        AimLinePresenter?.SetAimInputEnabled(false);
+
+        if (ResultWindow != null)
+        {
+            ConfigureAndShowResultWindow();
+            return;
+        }
+
+        if (!isResultWindowLoading)
+        {
+            StartCoroutine(LoadResultWindowRoutine());
+        }
+    }
+
+    private IEnumerator LoadResultWindowRoutine()
+    {
+        isResultWindowLoading = true;
+
+        var package = ResolveResourcePackage();
+        if (package == null)
+        {
+            Debug.LogError("[BallVolleyController] Can not load result window because YooAsset package is not ready.", this);
+            isResultWindowLoading = false;
+            yield break;
+        }
+
+        var handle = package.LoadAssetAsync<GameObject>(ResultWindowAddress);
+        yield return handle;
+
+        if (handle.Status != EOperationStatus.Succeed)
+        {
+            Debug.LogError("[BallVolleyController] Failed to load result window: " + handle.LastError, this);
+            if (handle.IsValid)
+            {
+                handle.Release();
+            }
+
+            isResultWindowLoading = false;
+            yield break;
+        }
+
+        var prefab = handle.GetAssetObject<GameObject>();
+        if (prefab == null)
+        {
+            Debug.LogError("[BallVolleyController] Result window prefab is invalid: " + ResultWindowAddress, this);
+            handle.Release();
+            isResultWindowLoading = false;
+            yield break;
+        }
+
+        ReleaseHandle(ref resultWindowPrefabHandle);
+        resultWindowPrefabHandle = handle;
+
+        var parent = ResolveResultWindowParent();
+        var instance = Instantiate(prefab, parent, false);
+        ResultWindow = instance.GetComponent<UIResultWindow>();
+        if (ResultWindow == null)
+        {
+            Debug.LogError("[BallVolleyController] Result window prefab does not contain UIResultWindow.", instance);
+            Destroy(instance);
+            isResultWindowLoading = false;
+            yield break;
+        }
+
+        ConfigureAndShowResultWindow();
+        isResultWindowLoading = false;
+    }
+
+    private void ConfigureAndShowResultWindow()
+    {
+        if (ResultWindow == null)
+        {
+            return;
+        }
+
+        ResultWindow.Show(pendingResultIsVictory, LevelLoader != null && LevelLoader.CanLoadNextLevel(), HandleResultPrimaryButtonClicked);
+    }
+
+    private void HandleResultPrimaryButtonClicked()
+    {
+        if (IsLevelTransitionLoading())
+        {
+            return;
+        }
+
+        if (LevelLoader == null)
+        {
+            Debug.LogError("[BallVolleyController] Level loader is missing.", this);
+            return;
+        }
+
+        ResultWindow?.SetPrimaryButtonInteractable(false);
+        StopVolleyImmediately();
+
+        if (pendingResultIsVictory && LevelLoader.CanLoadNextLevel())
+        {
+            LevelLoader.LoadNextLevel(HandleLevelTransitionCompleted);
+            return;
+        }
+
+        LevelLoader.ReloadCurrentLevel(HandleLevelTransitionCompleted);
+    }
+
+    private void HandleLevelTransitionCompleted(bool succeeded)
+    {
+        if (!succeeded)
+        {
+            ResultWindow?.SetPrimaryButtonInteractable(true);
+            return;
+        }
+
+        if (ResultWindow != null)
+        {
+            ResultWindow.Hide();
+        }
+
+        if (!volleyActive && aimUnlockTimer <= 0f && (ChessBoard == null || !ChessBoard.IsGameOver))
+        {
+            SetLaunchBallVisible(true);
+            RefreshLaunchBallCountLabel();
+            SetLaunchBallCountVisible(true);
+            AimLinePresenter?.SetAimInputEnabled(true);
+        }
+    }
+
+    private Transform ResolveResultWindowParent()
+    {
+        if (ResultWindowParent != null)
+        {
+            return ResultWindowParent;
+        }
+
+        var parentCanvas = GetComponentInParent<Canvas>();
+        if (parentCanvas != null)
+        {
+            ResultWindowParent = parentCanvas.transform as RectTransform;
+            return ResultWindowParent;
+        }
+
+        return transform;
+    }
+
+    private ResourcePackage ResolveResourcePackage()
+    {
+        var runtime = YooAssetGameRuntime.Instance;
+        if (runtime != null && runtime.Settings != null)
+        {
+            var configuredPackage = YooAssets.TryGetPackage(runtime.Settings.PackageName);
+            if (configuredPackage != null)
+            {
+                return configuredPackage;
+            }
+        }
+
+        return YooAssets.TryGetPackage("DefaultPackage");
+    }
+
+    private bool IsResultWindowVisible()
+    {
+        return ResultWindow != null && ResultWindow.IsVisible;
+    }
+
+    private bool IsLevelTransitionLoading()
+    {
+        return LevelLoader != null && LevelLoader.IsLoading;
+    }
+
+    private static void ReleaseHandle(ref AssetHandle handle)
+    {
+        if (handle == null)
+        {
+            return;
+        }
+
+        if (handle.IsValid)
+        {
+            handle.Release();
+        }
+
+        handle = null;
     }
 }

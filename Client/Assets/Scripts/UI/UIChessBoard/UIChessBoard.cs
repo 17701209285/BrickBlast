@@ -1,8 +1,10 @@
 using System;
+using System.Collections;
 using DG.Tweening;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using YooAsset;
 
 public readonly struct ProjectileHitEffectResult
 {
@@ -33,6 +35,201 @@ public readonly struct ProjectileHitEffectResult
         RedirectOrigin = redirectOrigin;
         RedirectDirection = redirectDirection;
         AddedBallCount = Mathf.Max(0, addedBallCount);
+    }
+}
+
+[DisallowMultipleComponent]
+public class YooAssetLevelLoader : MonoBehaviour
+{
+    [SerializeField]
+    private UIChessBoard ChessBoard;
+
+    [SerializeField]
+    private string LevelConfigAddressPattern = "Assets/AssetBundle/LevelConfig/LevelConfig1_{0}.asset";
+
+    private AssetHandle currentLevelHandle;
+
+    public bool IsLoading { get; private set; }
+
+    private void Awake()
+    {
+        if (ChessBoard == null)
+        {
+            ChessBoard = GetComponent<UIChessBoard>();
+        }
+    }
+
+    private void OnDestroy()
+    {
+        ReleaseHandle(ref currentLevelHandle);
+    }
+
+    public bool CanLoadNextLevel()
+    {
+        return TryGetNextLevelAddress(out _);
+    }
+
+    public void LoadNextLevel(Action<bool> onCompleted = null)
+    {
+        if (!TryGetNextLevelAddress(out var levelAddress))
+        {
+            onCompleted?.Invoke(false);
+            return;
+        }
+
+        LoadLevelByAddress(levelAddress, onCompleted);
+    }
+
+    public void ReloadCurrentLevel(Action<bool> onCompleted = null)
+    {
+        var currentLevelAddress = ResolveCurrentLevelAddress();
+        if (string.IsNullOrWhiteSpace(currentLevelAddress))
+        {
+            onCompleted?.Invoke(false);
+            return;
+        }
+
+        LoadLevelByAddress(currentLevelAddress, onCompleted);
+    }
+
+    public void LoadLevelByAddress(string levelAddress, Action<bool> onCompleted = null)
+    {
+        if (IsLoading)
+        {
+            onCompleted?.Invoke(false);
+            return;
+        }
+
+        StartCoroutine(LoadLevelRoutine(levelAddress, onCompleted));
+    }
+
+    private IEnumerator LoadLevelRoutine(string levelAddress, Action<bool> onCompleted)
+    {
+        if (string.IsNullOrWhiteSpace(levelAddress))
+        {
+            onCompleted?.Invoke(false);
+            yield break;
+        }
+
+        var package = ResolveResourcePackage();
+        if (package == null)
+        {
+            Debug.LogError("[YooAssetLevelLoader] YooAsset package is not ready.", this);
+            onCompleted?.Invoke(false);
+            yield break;
+        }
+
+        IsLoading = true;
+        var handle = package.LoadAssetAsync<LevelConfigScritable>(levelAddress);
+        yield return handle;
+
+        if (handle.Status != EOperationStatus.Succeed)
+        {
+            Debug.LogError("[YooAssetLevelLoader] Failed to load level config: " + handle.LastError, this);
+            if (handle.IsValid)
+            {
+                handle.Release();
+            }
+
+            IsLoading = false;
+            onCompleted?.Invoke(false);
+            yield break;
+        }
+
+        var levelConfig = handle.GetAssetObject<LevelConfigScritable>();
+        if (levelConfig == null)
+        {
+            Debug.LogError("[YooAssetLevelLoader] Loaded level asset is invalid: " + levelAddress, this);
+            handle.Release();
+            IsLoading = false;
+            onCompleted?.Invoke(false);
+            yield break;
+        }
+
+        ReleaseHandle(ref currentLevelHandle);
+        currentLevelHandle = handle;
+
+        if (ChessBoard != null)
+        {
+            ChessBoard.SetLevelConfig(levelConfig, levelAddress);
+            ChessBoard.ReloadLevel();
+        }
+
+        IsLoading = false;
+        onCompleted?.Invoke(true);
+    }
+
+    private bool TryGetNextLevelAddress(out string levelAddress)
+    {
+        levelAddress = string.Empty;
+        if (ChessBoard == null || !ChessBoard.TryGetCurrentLevelNumber(out var currentLevelNumber))
+        {
+            return false;
+        }
+
+        levelAddress = BuildLevelAddress(currentLevelNumber + 1);
+        if (string.IsNullOrWhiteSpace(levelAddress))
+        {
+            return false;
+        }
+
+        var package = ResolveResourcePackage();
+        return package != null && package.CheckLocationValid(levelAddress);
+    }
+
+    private string ResolveCurrentLevelAddress()
+    {
+        if (ChessBoard != null && string.IsNullOrWhiteSpace(ChessBoard.CurrentLevelAddress) == false)
+        {
+            return ChessBoard.CurrentLevelAddress;
+        }
+
+        if (ChessBoard != null && ChessBoard.TryGetCurrentLevelNumber(out var currentLevelNumber))
+        {
+            return BuildLevelAddress(currentLevelNumber);
+        }
+
+        return string.Empty;
+    }
+
+    private string BuildLevelAddress(int levelNumber)
+    {
+        if (levelNumber <= 0 || string.IsNullOrWhiteSpace(LevelConfigAddressPattern))
+        {
+            return string.Empty;
+        }
+
+        return string.Format(LevelConfigAddressPattern, levelNumber);
+    }
+
+    private ResourcePackage ResolveResourcePackage()
+    {
+        var runtime = YooAssetGameRuntime.Instance;
+        if (runtime != null && runtime.Settings != null)
+        {
+            var configuredPackage = YooAssets.TryGetPackage(runtime.Settings.PackageName);
+            if (configuredPackage != null)
+            {
+                return configuredPackage;
+            }
+        }
+
+        return YooAssets.TryGetPackage("DefaultPackage");
+    }
+
+    private static void ReleaseHandle(ref AssetHandle handle)
+    {
+        if (handle == null)
+        {
+            return;
+        }
+
+        if (handle.IsValid)
+        {
+            handle.Release();
+        }
+
+        handle = null;
     }
 }
 
@@ -119,12 +316,14 @@ public class UIChessBoard : MonoBehaviour
     private int boardHeight;
     private int visibleStartRow;
     private bool isGameOver;
+    private string currentLevelAddress = string.Empty;
 
     public int BoardWidth => boardWidth;
     public int BoardHeight => boardHeight;
     public int BottomRowIndex => Mathf.Max(0, boardHeight - 1);
     public IReadOnlyList<CollisionCandidate> CollisionCandidates => collisionCandidates;
     public bool IsGameOver => isGameOver;
+    public string CurrentLevelAddress => ResolveLevelAddress(LevelConfig, currentLevelAddress);
     public RectTransform PrimaryShakeTarget => ParentTransform as RectTransform != null
         ? ParentTransform as RectTransform
         : transform as RectTransform;
@@ -148,6 +347,7 @@ public class UIChessBoard : MonoBehaviour
     public void ReloadLevel()
     {
         visibleStartRow = LevelConfig == null ? 0 : LevelConfig.GetInitialVisibleStartRow();
+        currentLevelAddress = ResolveLevelAddress(LevelConfig, currentLevelAddress);
         RefreshLevelLabels();
         InitChessBoard(GetBoardWidth(), GetBoardHeight());
         ClearVisibleBoard();
@@ -417,9 +617,10 @@ public class UIChessBoard : MonoBehaviour
         return playAreaRect.width > 0f && playAreaRect.height > 0f;
     }
 
-    public void SetLevelConfig(LevelConfigScritable levelConfig)
+    public void SetLevelConfig(LevelConfigScritable levelConfig, string levelAddress = null)
     {
         LevelConfig = levelConfig;
+        currentLevelAddress = ResolveLevelAddress(levelConfig, levelAddress);
         visibleStartRow = LevelConfig == null ? 0 : LevelConfig.GetInitialVisibleStartRow();
         RefreshLevelLabels();
         ApplyBoardLayout();
@@ -441,7 +642,7 @@ public class UIChessBoard : MonoBehaviour
         SetLevelLabel(LastLevel, currentLevelNumber > 1 ? (currentLevelNumber - 1).ToString() : string.Empty);
     }
 
-    private bool TryGetCurrentLevelNumber(out int levelNumber)
+    public bool TryGetCurrentLevelNumber(out int levelNumber)
     {
         levelNumber = 0;
         if (LevelConfig == null)
@@ -496,6 +697,21 @@ public class UIChessBoard : MonoBehaviour
         }
 
         label.text = value ?? string.Empty;
+    }
+
+    private static string ResolveLevelAddress(LevelConfigScritable levelConfig, string explicitAddress)
+    {
+        if (string.IsNullOrWhiteSpace(explicitAddress) == false)
+        {
+            return explicitAddress;
+        }
+
+        if (levelConfig == null || string.IsNullOrWhiteSpace(levelConfig.name))
+        {
+            return string.Empty;
+        }
+
+        return $"Assets/AssetBundle/LevelConfig/{levelConfig.name}.asset";
     }
 
     private void InitChessBoard(int width, int height)
