@@ -1508,29 +1508,9 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1971229797070825727, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 30
-      objectReference: {fileID: 0}
-    - target: {fileID: 1971229797070825727, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 30
-      objectReference: {fileID: 0}
     - target: {fileID: 3748741464985914959, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
       propertyPath: m_Name
       value: UIChessBoard
-      objectReference: {fileID: 0}
-    - target: {fileID: 4285825462255419185, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
-      propertyPath: LevelConfig
-      value: 
-      objectReference: {fileID: 11400000, guid: e87ddc551af24425afebf3c6d46c7416, type: 2}
-    - target: {fileID: 6301200011732254101, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
-      propertyPath: AimLineMaterial
-      value: 
-      objectReference: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
-    - target: {fileID: 7174675317953323938, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
-      propertyPath: m_IsActive
-      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
