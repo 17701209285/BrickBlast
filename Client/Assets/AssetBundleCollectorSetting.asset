@@ -51,6 +51,19 @@ MonoBehaviour:
         FilterRuleName: CollectAll
         AssetTags: 
         UserData: 
+    - GroupName: Textures
+      GroupDesc: 
+      AssetTags: 
+      ActiveRuleName: EnableGroup
+      Collectors:
+      - CollectPath: Assets/AssetBundle/textures
+        CollectorGUID: d4c8f2e407feb4ff88167fbf302620a2
+        CollectorType: 0
+        AddressRuleName: AddressByFolderAndFileName
+        PackRuleName: PackDirectory
+        FilterRuleName: CollectAll
+        AssetTags: 
+        UserData: 
     - GroupName: Scenes
       GroupDesc: 
       AssetTags: 
@@ -70,7 +83,7 @@ MonoBehaviour:
       ActiveRuleName: EnableGroup
       Collectors:
       - CollectPath: Assets/AssetBundle/YooAssetBootstrap
-        CollectorGUID: 0ea686db34c24cd3a8f542538309407d
+        CollectorGUID: a3cfe1f208a24dd1b1b22106a30d25c6
         CollectorType: 0
         AddressRuleName: AddressByFileName
         PackRuleName: PackDirectory

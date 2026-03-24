@@ -36,7 +36,7 @@ public class FsmUpdatePackageManifest : IStateNode
 
         if (operation.Status != EOperationStatus.Succeed)
         {
-            Debug.LogWarning(operation.Error);
+            GameLog.Warning(operation.Error);
             PatchEventDefine.PackageManifestUpdateFailed.SendEventMessage();
             yield break;
         }

@@ -35,7 +35,7 @@ public class FsmCreateDownloader : IStateNode
 
         if (downloader.TotalDownloadCount == 0)
         {
-            Debug.Log("Not found any download files !");
+            GameLog.Info("Not found any download files !");
             _machine.ChangeState<FsmStartGame>();
         }
         else

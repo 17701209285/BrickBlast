@@ -71,7 +71,7 @@ public class PatchOperation : GameAsyncOperation
         _steps = ESteps.Done;
         _eventGroup.RemoveAllListener();
         Status = EOperationStatus.Succeed;
-        Debug.Log($"Package {_packageName} patch done !");
+        GameLog.InfoFormat("Package {0} patch done !", _packageName);
     }
 
     /// <summary>

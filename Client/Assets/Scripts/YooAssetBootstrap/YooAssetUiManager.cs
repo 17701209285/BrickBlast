@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Rendering.Universal;
@@ -178,7 +179,7 @@ public sealed class YooAssetUiManager : MonoBehaviour
         UiCameraStackUtility.AssignWorldCamera(rootInstance, rootUiCamera);
         UiCameraStackUtility.BindUiRootToSceneCamera(rootInstance, scene);
         screenLayer = EnsureScreenLayer(binding);
-        Debug.LogFormat("[YooAsset][UI] Loaded root '{0}' for scene '{1}'.", binding.RootPrefabAddress, scene.name);
+        GameLog.InfoFormat("[YooAsset][UI] Loaded root '{0}' for scene '{1}'.", binding.RootPrefabAddress, scene.name);
     }
 
     private IEnumerator LoadScreenRoutine(ResourcePackage package, string screenId)
@@ -254,7 +255,7 @@ public sealed class YooAssetUiManager : MonoBehaviour
             onLoaded(instance);
         }
 
-        Debug.LogFormat("[YooAsset][UI] Loaded UI '{0}' from '{1}'.", loadId, address);
+        GameLog.InfoFormat("[YooAsset][UI] Loaded UI '{0}' from '{1}'.", loadId, address);
     }
 
     private IEnumerator EnsureSettingsRoutine(ResourcePackage package, string uiSettingsAddress)
@@ -275,29 +276,128 @@ public sealed class YooAssetUiManager : MonoBehaviour
         }
 
         ReleaseSettings();
+        AssetHandle handle = null;
+        YooAssetUiSettings loadedSettings = null;
+        string resolvedAddress = string.Empty;
 
-        AssetHandle handle = package.LoadAssetAsync<YooAssetUiSettings>(uiSettingsAddress);
-        yield return handle;
-
-        if (handle.Status != EOperationStatus.Succeed)
+        yield return TryLoadSettingsFromPackage(package, uiSettingsAddress, result =>
         {
-            handle.Release();
-            Debug.LogError("[YooAsset][UI] Load UI settings failed: " + handle.LastError);
-            yield break;
-        }
+            handle = result.Handle;
+            loadedSettings = result.Settings;
+            resolvedAddress = result.Address;
+        });
 
-        YooAssetUiSettings loadedSettings = handle.GetAssetObject<YooAssetUiSettings>();
         if (loadedSettings == null)
         {
-            handle.Release();
-            Debug.LogError("[YooAsset][UI] Loaded UI settings asset is invalid: " + uiSettingsAddress);
+#if UNITY_EDITOR
+            loadedSettings = TryLoadSettingsFromEditor(uiSettingsAddress, out resolvedAddress);
+#endif
+        }
+
+        if (loadedSettings == null)
+        {
+            if (handle != null && handle.IsValid)
+            {
+                handle.Release();
+            }
+
+            Debug.LogError("[YooAsset][UI] Load UI settings failed: " + uiSettingsAddress);
             yield break;
         }
 
         settingsHandle = handle;
         settings = loadedSettings;
-        activeSettingsAddress = uiSettingsAddress;
+        activeSettingsAddress = string.IsNullOrEmpty(resolvedAddress) ? uiSettingsAddress : resolvedAddress;
     }
+
+    private IEnumerator TryLoadSettingsFromPackage(ResourcePackage package, string configuredAddress, Action<SettingsLoadResult> onCompleted)
+    {
+        string[] candidateAddresses = BuildSettingsAddressCandidates(configuredAddress);
+        for (int i = 0; i < candidateAddresses.Length; i++)
+        {
+            string candidateAddress = candidateAddresses[i];
+            if (string.IsNullOrWhiteSpace(candidateAddress))
+            {
+                continue;
+            }
+
+            AssetHandle handle = package.LoadAssetAsync<YooAssetUiSettings>(candidateAddress);
+            yield return handle;
+
+            if (handle.Status != EOperationStatus.Succeed)
+            {
+                if (handle.IsValid)
+                {
+                    handle.Release();
+                }
+
+                continue;
+            }
+
+            YooAssetUiSettings loadedSettings = handle.GetAssetObject<YooAssetUiSettings>();
+            if (loadedSettings == null)
+            {
+                handle.Release();
+                continue;
+            }
+
+            onCompleted?.Invoke(new SettingsLoadResult(candidateAddress, handle, loadedSettings));
+            yield break;
+        }
+    }
+
+    private static string[] BuildSettingsAddressCandidates(string configuredAddress)
+    {
+        List<string> candidates = new List<string>(4);
+        AddCandidate(candidates, configuredAddress);
+        AddCandidate(candidates, Path.ChangeExtension(configuredAddress, null));
+        AddCandidate(candidates, Path.GetFileNameWithoutExtension(configuredAddress));
+        return candidates.ToArray();
+    }
+
+    private static void AddCandidate(List<string> candidates, string candidate)
+    {
+        if (string.IsNullOrWhiteSpace(candidate))
+        {
+            return;
+        }
+
+        for (int i = 0; i < candidates.Count; i++)
+        {
+            if (string.Equals(candidates[i], candidate, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+        }
+
+        candidates.Add(candidate);
+    }
+
+#if UNITY_EDITOR
+    private static YooAssetUiSettings TryLoadSettingsFromEditor(string configuredAddress, out string resolvedAddress)
+    {
+        string[] candidateAddresses = BuildSettingsAddressCandidates(configuredAddress);
+        for (int i = 0; i < candidateAddresses.Length; i++)
+        {
+            string candidateAddress = candidateAddresses[i];
+            if (string.IsNullOrWhiteSpace(candidateAddress) || candidateAddress.StartsWith("Assets/", StringComparison.Ordinal) == false)
+            {
+                continue;
+            }
+
+            YooAssetUiSettings asset = UnityEditor.AssetDatabase.LoadAssetAtPath<YooAssetUiSettings>(candidateAddress);
+            if (asset != null)
+            {
+                GameLog.Warning("[YooAsset][UI] UI settings fell back to AssetDatabase loading: " + candidateAddress);
+                resolvedAddress = candidateAddress;
+                return asset;
+            }
+        }
+
+        resolvedAddress = string.Empty;
+        return null;
+    }
+#endif
 
     private RectTransform EnsureScreenLayer(YooAssetUiSceneBinding binding)
     {
@@ -448,6 +548,20 @@ public sealed class YooAssetUiManager : MonoBehaviour
             Instance = instance;
         }
     }
+
+    private readonly struct SettingsLoadResult
+    {
+        public readonly string Address;
+        public readonly AssetHandle Handle;
+        public readonly YooAssetUiSettings Settings;
+
+        public SettingsLoadResult(string address, AssetHandle handle, YooAssetUiSettings settings)
+        {
+            Address = address;
+            Handle = handle;
+            Settings = settings;
+        }
+    }
 }
 
 internal static class UiCameraStackUtility
@@ -469,7 +583,7 @@ internal static class UiCameraStackUtility
         AssignWorldCamera(uiRoot, uiCamera);
         if (baseCamera == null)
         {
-            Debug.LogWarning("[YooAsset][UI] Base camera was not found for UI root: " + uiRoot.name);
+            GameLog.Warning("[YooAsset][UI] Base camera was not found for UI root: " + uiRoot.name);
             return false;
         }
 
@@ -477,7 +591,7 @@ internal static class UiCameraStackUtility
         UniversalAdditionalCameraData uiData = uiCamera.GetUniversalAdditionalCameraData();
         if (baseData == null || uiData == null)
         {
-            Debug.LogWarning("[YooAsset][UI] URP camera data is missing while binding UI camera stack.");
+            GameLog.Warning("[YooAsset][UI] URP camera data is missing while binding UI camera stack.");
             return false;
         }
 

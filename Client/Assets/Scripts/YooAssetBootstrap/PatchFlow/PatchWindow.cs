@@ -98,7 +98,7 @@ public class PatchWindow : MonoBehaviour
         {
             var msg = message as PatchEventDefine.PatchStepsChange;
             _tips.text = msg.Tips;
-            UnityEngine.Debug.Log(msg.Tips);
+            GameLog.Info(msg.Tips);
         }
         else if (message is PatchEventDefine.FoundUpdateFiles)
         {

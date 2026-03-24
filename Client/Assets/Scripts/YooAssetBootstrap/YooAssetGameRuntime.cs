@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using UniFramework.Event;
 using YooAsset;
 using YooSceneHandle = YooAsset.SceneHandle;
@@ -16,6 +17,7 @@ public sealed class YooAssetGameRuntime : MonoBehaviour
 
     private YooAssetBootstrapSettings settings;
     private YooAssetUiManager uiManager;
+    private YooAssetImageManager imageManager;
     private ResourcePackage package;
     private YooSceneHandle activeSceneHandle;
     private AssetHandle activePrefabHandle;
@@ -51,6 +53,11 @@ public sealed class YooAssetGameRuntime : MonoBehaviour
         get { return uiManager; }
     }
 
+    public YooAssetImageManager ImageManager
+    {
+        get { return imageManager; }
+    }
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetStatics()
     {
@@ -81,6 +88,7 @@ public sealed class YooAssetGameRuntime : MonoBehaviour
         GameObject go = new GameObject(nameof(YooAssetGameRuntime));
         DontDestroyOnLoad(go);
         go.AddComponent<YooAssetUiManager>();
+        go.AddComponent<YooAssetImageManager>();
         go.AddComponent<YooAssetGameRuntime>();
         bootstrapCreated = true;
     }
@@ -128,6 +136,82 @@ public sealed class YooAssetGameRuntime : MonoBehaviour
         return instance.uiManager.CloseScreen(screenId);
     }
 
+    public static Coroutine LoadTextureAsset(string assetId, string address, System.Action<Texture2D> onLoaded = null)
+    {
+        if (instance == null || instance.imageManager == null)
+        {
+            Debug.LogError("[YooAsset][Image] Runtime image manager is not available.");
+            return null;
+        }
+
+        return instance.StartCoroutine(instance.LoadTextureAssetRoutine(assetId, address, onLoaded));
+    }
+
+    public static Coroutine LoadSpriteAsset(string assetId, string address, System.Action<Sprite> onLoaded = null)
+    {
+        if (instance == null || instance.imageManager == null)
+        {
+            Debug.LogError("[YooAsset][Image] Runtime image manager is not available.");
+            return null;
+        }
+
+        return instance.StartCoroutine(instance.LoadSpriteAssetRoutine(assetId, address, onLoaded));
+    }
+
+    public static Coroutine LoadAtlasSpriteAsset(string atlasId, string atlasAddress, string spriteName, System.Action<Sprite> onLoaded = null)
+    {
+        if (instance == null || instance.imageManager == null)
+        {
+            Debug.LogError("[YooAsset][Image] Runtime image manager is not available.");
+            return null;
+        }
+
+        return instance.StartCoroutine(instance.LoadAtlasSpriteAssetRoutine(atlasId, atlasAddress, spriteName, onLoaded));
+    }
+
+    public static Coroutine LoadTextureToRawImage(string assetId, string address, RawImage target, bool setNativeSize = false, System.Action<Texture2D> onLoaded = null)
+    {
+        if (instance == null || instance.imageManager == null)
+        {
+            Debug.LogError("[YooAsset][Image] Runtime image manager is not available.");
+            return null;
+        }
+
+        return instance.StartCoroutine(instance.LoadTextureToRawImageRoutine(assetId, address, target, setNativeSize, onLoaded));
+    }
+
+    public static Coroutine LoadSpriteToImage(string assetId, string address, Image target, bool setNativeSize = false, System.Action<Sprite> onLoaded = null)
+    {
+        if (instance == null || instance.imageManager == null)
+        {
+            Debug.LogError("[YooAsset][Image] Runtime image manager is not available.");
+            return null;
+        }
+
+        return instance.StartCoroutine(instance.LoadSpriteToImageRoutine(assetId, address, target, setNativeSize, onLoaded));
+    }
+
+    public static Coroutine LoadAtlasSpriteToImage(string atlasId, string atlasAddress, string spriteName, Image target, bool setNativeSize = false, System.Action<Sprite> onLoaded = null)
+    {
+        if (instance == null || instance.imageManager == null)
+        {
+            Debug.LogError("[YooAsset][Image] Runtime image manager is not available.");
+            return null;
+        }
+
+        return instance.StartCoroutine(instance.LoadAtlasSpriteToImageRoutine(atlasId, atlasAddress, spriteName, target, setNativeSize, onLoaded));
+    }
+
+    public static bool ReleaseLoadedImageAsset(string assetId)
+    {
+        if (instance == null || instance.imageManager == null)
+        {
+            return false;
+        }
+
+        return instance.imageManager.ReleaseAsset(assetId);
+    }
+
     public static bool RefreshUiCameraStack(Camera baseCamera = null)
     {
         if (instance == null || instance.uiManager == null)
@@ -150,6 +234,12 @@ public sealed class YooAssetGameRuntime : MonoBehaviour
         if (uiManager == null)
         {
             uiManager = gameObject.AddComponent<YooAssetUiManager>();
+        }
+
+        imageManager = GetComponent<YooAssetImageManager>();
+        if (imageManager == null)
+        {
+            imageManager = gameObject.AddComponent<YooAssetImageManager>();
         }
 
         instance = this;
@@ -263,16 +353,93 @@ public sealed class YooAssetGameRuntime : MonoBehaviour
         }
 
         YooAssets.SetDefaultPackage(package);
+        if (imageManager != null)
+        {
+            imageManager.SetPackage(package);
+        }
+
         packageInitialized = true;
         packageInitializing = false;
-        Debug.LogFormat("[YooAsset] Package '{0}' is ready.", settings.PackageName);
+        GameLog.InfoFormat("[YooAsset] Package '{0}' is ready.", settings.PackageName);
+    }
+
+    private IEnumerator LoadTextureAssetRoutine(string assetId, string address, System.Action<Texture2D> onLoaded)
+    {
+        yield return EnsurePackageReadyRoutine();
+        if (packageInitialized == false || imageManager == null)
+        {
+            yield break;
+        }
+
+        imageManager.SetPackage(package);
+        yield return imageManager.LoadTexture(assetId, address, onLoaded);
+    }
+
+    private IEnumerator LoadSpriteAssetRoutine(string assetId, string address, System.Action<Sprite> onLoaded)
+    {
+        yield return EnsurePackageReadyRoutine();
+        if (packageInitialized == false || imageManager == null)
+        {
+            yield break;
+        }
+
+        imageManager.SetPackage(package);
+        yield return imageManager.LoadSprite(assetId, address, onLoaded);
+    }
+
+    private IEnumerator LoadAtlasSpriteAssetRoutine(string atlasId, string atlasAddress, string spriteName, System.Action<Sprite> onLoaded)
+    {
+        yield return EnsurePackageReadyRoutine();
+        if (packageInitialized == false || imageManager == null)
+        {
+            yield break;
+        }
+
+        imageManager.SetPackage(package);
+        yield return imageManager.LoadAtlasSprite(atlasId, atlasAddress, spriteName, onLoaded);
+    }
+
+    private IEnumerator LoadTextureToRawImageRoutine(string assetId, string address, RawImage target, bool setNativeSize, System.Action<Texture2D> onLoaded)
+    {
+        yield return EnsurePackageReadyRoutine();
+        if (packageInitialized == false || imageManager == null)
+        {
+            yield break;
+        }
+
+        imageManager.SetPackage(package);
+        yield return imageManager.LoadTextureToRawImage(assetId, address, target, setNativeSize, onLoaded);
+    }
+
+    private IEnumerator LoadSpriteToImageRoutine(string assetId, string address, Image target, bool setNativeSize, System.Action<Sprite> onLoaded)
+    {
+        yield return EnsurePackageReadyRoutine();
+        if (packageInitialized == false || imageManager == null)
+        {
+            yield break;
+        }
+
+        imageManager.SetPackage(package);
+        yield return imageManager.LoadSpriteToImage(assetId, address, target, setNativeSize, onLoaded);
+    }
+
+    private IEnumerator LoadAtlasSpriteToImageRoutine(string atlasId, string atlasAddress, string spriteName, Image target, bool setNativeSize, System.Action<Sprite> onLoaded)
+    {
+        yield return EnsurePackageReadyRoutine();
+        if (packageInitialized == false || imageManager == null)
+        {
+            yield break;
+        }
+
+        imageManager.SetPackage(package);
+        yield return imageManager.LoadAtlasSpriteToImage(atlasId, atlasAddress, spriteName, target, setNativeSize, onLoaded);
     }
 
     private IEnumerator LoadEntryRoutine(string entryId)
     {
         if (entryLoading)
         {
-            Debug.LogWarning("[YooAsset] Entry loading is already in progress.");
+            GameLog.Warning("[YooAsset] Entry loading is already in progress.");
             yield break;
         }
 
@@ -296,7 +463,7 @@ public sealed class YooAssetGameRuntime : MonoBehaviour
         }
 
         entryLoading = true;
-        Debug.LogFormat("[YooAsset] Load entry '{0}' ({1}).", entry.DisplayName, entry.Address);
+        GameLog.InfoFormat("[YooAsset] Load entry '{0}' ({1}).", entry.DisplayName, entry.Address);
         PreparePatchWindowForEntryTransition();
 
         if (entry.LoadMode == YooAssetMiniGameEntryLoadMode.Scene)
@@ -383,7 +550,7 @@ public sealed class YooAssetGameRuntime : MonoBehaviour
     {
         if (YooAssets.Initialized == false)
         {
-            Debug.Log("[YooAsset] Initialize runtime.");
+            GameLog.Info("[YooAsset] Initialize runtime.");
             YooAssets.Initialize();
         }
 
@@ -403,7 +570,7 @@ public sealed class YooAssetGameRuntime : MonoBehaviour
         GameObject patchWindowPrefab = Resources.Load<GameObject>("PatchWindow");
         if (patchWindowPrefab == null)
         {
-            Debug.LogWarning("[YooAsset] PatchWindow prefab was not found in Resources.");
+            GameLog.Warning("[YooAsset] PatchWindow prefab was not found in Resources.");
             return;
         }
 

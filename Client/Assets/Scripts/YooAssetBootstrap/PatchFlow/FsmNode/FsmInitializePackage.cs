@@ -42,7 +42,7 @@ internal class FsmInitializePackage : IStateNode
         }
         catch (System.Exception exception)
         {
-            Debug.LogWarning(exception);
+            GameLog.Warning(exception);
             PatchEventDefine.InitializeFailed.SendEventMessage();
             yield break;
         }
@@ -52,7 +52,7 @@ internal class FsmInitializePackage : IStateNode
         // 如果初始化失败弹出提示界面
         if (initializationOperation.Status != EOperationStatus.Succeed)
         {
-            Debug.LogWarning($"{initializationOperation.Error}");
+            GameLog.Warning(initializationOperation.Error);
             PatchEventDefine.InitializeFailed.SendEventMessage();
         }
         else

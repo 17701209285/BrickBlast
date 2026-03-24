@@ -36,12 +36,12 @@ internal class FsmRequestPackageVersion : IStateNode
 
         if (operation.Status != EOperationStatus.Succeed)
         {
-            Debug.LogWarning(operation.Error);
+            GameLog.Warning(operation.Error);
             PatchEventDefine.PackageVersionRequestFailed.SendEventMessage();
         }
         else
         {
-            Debug.Log($"Request package version : {operation.PackageVersion}");
+            GameLog.InfoFormat("Request package version : {0}", operation.PackageVersion);
             _machine.SetBlackboardValue("PackageVersion", operation.PackageVersion);
             _machine.ChangeState<FsmUpdatePackageManifest>();
         }
