@@ -1515,6 +1515,42 @@ PrefabInstance:
       propertyPath: m_Name
       value: UIChessBoard
       objectReference: {fileID: 0}
+    - target: {fileID: 5462893073785062948, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5462893073785062948, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5462893073785062948, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5462893073785062948, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5462893073785062948, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 1003
+      objectReference: {fileID: 0}
+    - target: {fileID: 5462893073785062948, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -10.238
+      objectReference: {fileID: 0}
+    - target: {fileID: 5462893073785062948, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 24.71997
+      objectReference: {fileID: 0}
+    - target: {fileID: 8443957670038043914, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: -95.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 8443957670038043914, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -1.0499878
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
