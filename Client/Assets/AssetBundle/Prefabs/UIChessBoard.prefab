@@ -995,7 +995,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UIChessBoard
   OriginPrefab: {fileID: 1333875958311173310}
   ParentTransform: {fileID: 5462893073785062948}
-  LevelConfig: {fileID: 11400000, guid: b938cfb62a5cc2b752e3858c980314c0, type: 2}
+  LevelConfig: {fileID: 11400000, guid: e87ddc551af24425afebf3c6d46c7416, type: 2}
   LoadConfigOnStart: 1
   AnimateDrop: 1
   DropDuration: 0.22
@@ -1338,7 +1338,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: -93, y: -627}
-  m_SizeDelta: {x: 67, y: 63}
+  m_SizeDelta: {x: 30, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2812765160655054591
 CanvasRenderer:
@@ -1542,7 +1542,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &3338320917632593634
 RectTransform:
   m_ObjectHideFlags: 0
