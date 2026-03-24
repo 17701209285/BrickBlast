@@ -100,6 +100,9 @@ public class UIChessBoard : MonoBehaviour
     private ArrayList<ChessElement> chessElements;
     private readonly List<CollisionCandidate> collisionCandidates = new List<CollisionCandidate>(64);
     private readonly Vector3[] playAreaWorldCornersBuffer = new Vector3[4];
+    private LevelCellType[] shiftSourceTypesBuffer;
+    private int[] shiftSourceLivesBuffer;
+    private int[] shiftSourceSpecialValuesBuffer;
     private RectTransform collisionCandidateSpace;
     private int collisionCandidateFrame = -1;
     private int boardWidth;
@@ -477,9 +480,10 @@ public class UIChessBoard : MonoBehaviour
             return;
         }
 
-        var sourceTypes = new LevelCellType[boardWidth * boardHeight];
-        var sourceLives = new int[boardWidth * boardHeight];
-        var sourceSpecialValues = new int[boardWidth * boardHeight];
+        EnsureShiftSourceBuffers();
+        var sourceTypes = shiftSourceTypesBuffer;
+        var sourceLives = shiftSourceLivesBuffer;
+        var sourceSpecialValues = shiftSourceSpecialValuesBuffer;
         for (int y = 0; y < boardHeight; y++)
         {
             for (int x = 0; x < boardWidth; x++)
@@ -524,6 +528,25 @@ public class UIChessBoard : MonoBehaviour
 
         EvaluateBottomRowGameOver();
         RebuildCollisionCandidates();
+    }
+
+    private void EnsureShiftSourceBuffers()
+    {
+        var requiredLength = Mathf.Max(1, boardWidth * boardHeight);
+        if (shiftSourceTypesBuffer == null || shiftSourceTypesBuffer.Length != requiredLength)
+        {
+            shiftSourceTypesBuffer = new LevelCellType[requiredLength];
+        }
+
+        if (shiftSourceLivesBuffer == null || shiftSourceLivesBuffer.Length != requiredLength)
+        {
+            shiftSourceLivesBuffer = new int[requiredLength];
+        }
+
+        if (shiftSourceSpecialValuesBuffer == null || shiftSourceSpecialValuesBuffer.Length != requiredLength)
+        {
+            shiftSourceSpecialValuesBuffer = new int[requiredLength];
+        }
     }
 
     private void ApplyCells(FCell[] cells, int animateFromRows = 0)

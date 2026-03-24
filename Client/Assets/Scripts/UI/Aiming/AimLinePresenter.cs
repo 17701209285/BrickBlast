@@ -60,6 +60,7 @@ public class AimLinePresenter : MonoBehaviour
     public RectTransform AimOriginTransform => AimOrigin;
 
     private BallVolleyController ballVolleyController;
+    private AimPreviewImpactData activeImpactData;
     private bool isSubscribed;
     private bool aimInputEnabled = true;
 
@@ -202,7 +203,8 @@ public class AimLinePresenter : MonoBehaviour
         {
             AimImpactEffectView.Show(previewPath, impactData);
         }
-        AimPreviewBlockScanner.ApplyPreview(ChessBoard, impactData);
+        AimPreviewBlockScanner.ApplyPreview(ChessBoard, activeImpactData, impactData);
+        activeImpactData = impactData;
     }
 
     private bool TryGetAimDirection(Vector2 screenPosition, out Vector2 originLocalPosition, out Vector2 aimDirection)
@@ -314,7 +316,8 @@ public class AimLinePresenter : MonoBehaviour
             AimImpactEffectView.Hide();
         }
 
-        AimPreviewBlockScanner.ClearPreview(ChessBoard);
+        AimPreviewBlockScanner.ClearPreview(ChessBoard, activeImpactData);
+        activeImpactData = default;
     }
 
     private void EnsureDependencies()

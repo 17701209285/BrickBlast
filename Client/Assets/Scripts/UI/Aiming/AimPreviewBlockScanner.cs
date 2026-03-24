@@ -4,27 +4,28 @@ public static class AimPreviewBlockScanner
 {
     private const float PreviewHitEpsilon = 0.01f;
 
-    public static void ApplyPreview(UIChessBoard board, in AimPreviewImpactData impactData)
+    public static void ApplyPreview(UIChessBoard board, in AimPreviewImpactData previousImpactData, in AimPreviewImpactData nextImpactData)
     {
         if (board == null)
         {
             return;
         }
 
-        for (int y = 0; y < board.BoardHeight; y++)
-        {
-            for (int x = 0; x < board.BoardWidth; x++)
-            {
-                var chessElement = board.GetChessElement(x, y);
-                if (chessElement == null)
-                {
-                    continue;
-                }
+        DisableRemovedHighlight(previousImpactData.HighlightBlock, previousImpactData, nextImpactData);
+        DisableRemovedHighlight(previousImpactData.AdditionalHighlightBlock, previousImpactData, nextImpactData);
+        EnableNewHighlight(nextImpactData.HighlightBlock, previousImpactData, nextImpactData);
+        EnableNewHighlight(nextImpactData.AdditionalHighlightBlock, previousImpactData, nextImpactData);
+    }
 
-                var isHit = chessElement.HasContent && impactData.Highlights(chessElement);
-                chessElement.SetAimPreviewActive(isHit);
-            }
+    public static void ClearPreview(UIChessBoard board, in AimPreviewImpactData impactData)
+    {
+        if (board == null)
+        {
+            return;
         }
+
+        SetPreviewActive(impactData.HighlightBlock, false);
+        SetPreviewActive(impactData.AdditionalHighlightBlock, false);
     }
 
     public static AimPreviewImpactData BuildImpactData(
@@ -55,26 +56,6 @@ public static class AimPreviewBlockScanner
         return default;
     }
 
-    public static void ClearPreview(UIChessBoard board)
-    {
-        if (board == null)
-        {
-            return;
-        }
-
-        for (int y = 0; y < board.BoardHeight; y++)
-        {
-            for (int x = 0; x < board.BoardWidth; x++)
-            {
-                var chessElement = board.GetChessElement(x, y);
-                if (chessElement != null)
-                {
-                    chessElement.SetAimPreviewActive(false);
-                }
-            }
-        }
-    }
-
     private static bool TryGetSegmentBlockHit(
         UIChessBoard board,
         RectTransform previewSpace,
@@ -101,5 +82,46 @@ public static class AimPreviewBlockScanner
             segmentLength,
             hitTolerance,
             out hit);
+    }
+
+    private static void DisableRemovedHighlight(
+        ChessElement chessElement,
+        in AimPreviewImpactData previousImpactData,
+        in AimPreviewImpactData nextImpactData)
+    {
+        if (chessElement == null || !previousImpactData.Highlights(chessElement) || nextImpactData.Highlights(chessElement))
+        {
+            return;
+        }
+
+        SetPreviewActive(chessElement, false);
+    }
+
+    private static void EnableNewHighlight(
+        ChessElement chessElement,
+        in AimPreviewImpactData previousImpactData,
+        in AimPreviewImpactData nextImpactData)
+    {
+        if (chessElement == null || !nextImpactData.Highlights(chessElement))
+        {
+            return;
+        }
+
+        if (previousImpactData.Highlights(chessElement))
+        {
+            return;
+        }
+
+        SetPreviewActive(chessElement, true);
+    }
+
+    private static void SetPreviewActive(ChessElement chessElement, bool active)
+    {
+        if (chessElement == null)
+        {
+            return;
+        }
+
+        chessElement.SetAimPreviewActive(active);
     }
 }
