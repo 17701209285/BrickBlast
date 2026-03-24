@@ -39,5 +39,6 @@ Material:
     - _TextureScrollY: 0
     m_Colors:
     - _BaseColor: {r: 1, g: 0.9, b: 0.18, a: 0.95}
-    - _TrailColor: {r: 1, g: 0.55, b: 0.06, a: 0.28}
+    - _TrailColor: {r: 0.18967378, g: 1, b: 0, a: 0.28}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
