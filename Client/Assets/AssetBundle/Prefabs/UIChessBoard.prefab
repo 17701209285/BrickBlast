@@ -1276,7 +1276,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -1.0499878, y: -935.2801}
+  m_AnchoredPosition: {x: -1.0499878, y: -935.28015}
   m_SizeDelta: {x: -95.4, y: 1230.18}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6496620767708523987
@@ -1578,8 +1578,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -10.238, y: 24.71997}
-  m_SizeDelta: {x: 1003, y: 1230.2}
+  m_AnchoredPosition: {x: -1.044, y: 24.71997}
+  m_SizeDelta: {x: 984.61, y: 1230.2}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3776209933972734221
 CanvasRenderer:
@@ -1756,7 +1756,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ChessElement
   m_Space: {x: 3, y: 3}
   m_Offset: {x: 15, y: -15}
-  m_EmptyColor: {r: 1, g: 1, b: 1, a: 0.08}
+  m_EmptyColor: {r: 1, g: 1, b: 1, a: 0}
   m_SquareLowLifeColor: {r: 0.96, g: 0.79, b: 0.33, a: 1}
   m_SquareHighLifeColor: {r: 0.88, g: 0.29, b: 0.23, a: 1}
   m_TriangleLowLifeColor: {r: 0.44, g: 0.78, b: 0.97, a: 1}

@@ -23,7 +23,7 @@ public class ChessElement : MonoBehaviour
     [SerializeField]
     private Vector2 m_Offset;
     [SerializeField]
-    private Color m_EmptyColor = new Color(1f, 1f, 1f, 0.08f);
+    private Color m_EmptyColor = new Color(1f, 1f, 1f, 0f);
     [SerializeField]
     private Color m_SquareLowLifeColor = new Color(0.96f, 0.79f, 0.33f, 1f);
     [SerializeField]
