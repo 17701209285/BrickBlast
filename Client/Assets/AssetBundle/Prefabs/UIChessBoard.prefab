@@ -932,6 +932,7 @@ GameObject:
   - component: {fileID: 1860902773978886331}
   - component: {fileID: 2390130052666712514}
   - component: {fileID: 4285825462255419185}
+  - component: {fileID: 5162348761459023471}
   - component: {fileID: 6301200011732254101}
   - component: {fileID: 6548271640948263211}
   - component: {fileID: 2355076698915962381}
@@ -1001,6 +1002,20 @@ MonoBehaviour:
   CurrentLevel: {fileID: 4026532249268482522}
   NexttLevel: {fileID: 8711231861604092273}
   LastLevel: {fileID: 5429742030713440858}
+--- !u!114 &5162348761459023471
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3748741464985914959}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6d6a2bcfdc648ae8d5f6b91a5dc98d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::YooAssetLevelLoader
+  ChessBoard: {fileID: 4285825462255419185}
+  LevelConfigAddressPattern: Assets/AssetBundle/LevelConfig/LevelConfig1_{0}.asset
 --- !u!114 &6301200011732254101
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1044,7 +1059,7 @@ MonoBehaviour:
   ProjectileContainer: {fileID: 5200410885382117529}
   LaunchBallCountLabel: {fileID: 5191878036652039999}
   ResultWindow: {fileID: 0}
-  LevelLoader: {fileID: 0}
+  LevelLoader: {fileID: 5162348761459023471}
   ResultWindowParent: {fileID: 0}
   ResultWindowAddress: Assets/AssetBundle/Prefabs/UIResultWindow.prefab
   InitialBallCount: 60

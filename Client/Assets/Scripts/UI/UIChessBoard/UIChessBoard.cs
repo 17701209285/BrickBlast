@@ -38,201 +38,6 @@ public readonly struct ProjectileHitEffectResult
     }
 }
 
-[DisallowMultipleComponent]
-public class YooAssetLevelLoader : MonoBehaviour
-{
-    [SerializeField]
-    private UIChessBoard ChessBoard;
-
-    [SerializeField]
-    private string LevelConfigAddressPattern = "Assets/AssetBundle/LevelConfig/LevelConfig1_{0}.asset";
-
-    private AssetHandle currentLevelHandle;
-
-    public bool IsLoading { get; private set; }
-
-    private void Awake()
-    {
-        if (ChessBoard == null)
-        {
-            ChessBoard = GetComponent<UIChessBoard>();
-        }
-    }
-
-    private void OnDestroy()
-    {
-        ReleaseHandle(ref currentLevelHandle);
-    }
-
-    public bool CanLoadNextLevel()
-    {
-        return TryGetNextLevelAddress(out _);
-    }
-
-    public void LoadNextLevel(Action<bool> onCompleted = null)
-    {
-        if (!TryGetNextLevelAddress(out var levelAddress))
-        {
-            onCompleted?.Invoke(false);
-            return;
-        }
-
-        LoadLevelByAddress(levelAddress, onCompleted);
-    }
-
-    public void ReloadCurrentLevel(Action<bool> onCompleted = null)
-    {
-        var currentLevelAddress = ResolveCurrentLevelAddress();
-        if (string.IsNullOrWhiteSpace(currentLevelAddress))
-        {
-            onCompleted?.Invoke(false);
-            return;
-        }
-
-        LoadLevelByAddress(currentLevelAddress, onCompleted);
-    }
-
-    public void LoadLevelByAddress(string levelAddress, Action<bool> onCompleted = null)
-    {
-        if (IsLoading)
-        {
-            onCompleted?.Invoke(false);
-            return;
-        }
-
-        StartCoroutine(LoadLevelRoutine(levelAddress, onCompleted));
-    }
-
-    private IEnumerator LoadLevelRoutine(string levelAddress, Action<bool> onCompleted)
-    {
-        if (string.IsNullOrWhiteSpace(levelAddress))
-        {
-            onCompleted?.Invoke(false);
-            yield break;
-        }
-
-        var package = ResolveResourcePackage();
-        if (package == null)
-        {
-            Debug.LogError("[YooAssetLevelLoader] YooAsset package is not ready.", this);
-            onCompleted?.Invoke(false);
-            yield break;
-        }
-
-        IsLoading = true;
-        var handle = package.LoadAssetAsync<LevelConfigScritable>(levelAddress);
-        yield return handle;
-
-        if (handle.Status != EOperationStatus.Succeed)
-        {
-            Debug.LogError("[YooAssetLevelLoader] Failed to load level config: " + handle.LastError, this);
-            if (handle.IsValid)
-            {
-                handle.Release();
-            }
-
-            IsLoading = false;
-            onCompleted?.Invoke(false);
-            yield break;
-        }
-
-        var levelConfig = handle.GetAssetObject<LevelConfigScritable>();
-        if (levelConfig == null)
-        {
-            Debug.LogError("[YooAssetLevelLoader] Loaded level asset is invalid: " + levelAddress, this);
-            handle.Release();
-            IsLoading = false;
-            onCompleted?.Invoke(false);
-            yield break;
-        }
-
-        ReleaseHandle(ref currentLevelHandle);
-        currentLevelHandle = handle;
-
-        if (ChessBoard != null)
-        {
-            ChessBoard.SetLevelConfig(levelConfig, levelAddress);
-            ChessBoard.ReloadLevel();
-        }
-
-        IsLoading = false;
-        onCompleted?.Invoke(true);
-    }
-
-    private bool TryGetNextLevelAddress(out string levelAddress)
-    {
-        levelAddress = string.Empty;
-        if (ChessBoard == null || !ChessBoard.TryGetCurrentLevelNumber(out var currentLevelNumber))
-        {
-            return false;
-        }
-
-        levelAddress = BuildLevelAddress(currentLevelNumber + 1);
-        if (string.IsNullOrWhiteSpace(levelAddress))
-        {
-            return false;
-        }
-
-        var package = ResolveResourcePackage();
-        return package != null && package.CheckLocationValid(levelAddress);
-    }
-
-    private string ResolveCurrentLevelAddress()
-    {
-        if (ChessBoard != null && string.IsNullOrWhiteSpace(ChessBoard.CurrentLevelAddress) == false)
-        {
-            return ChessBoard.CurrentLevelAddress;
-        }
-
-        if (ChessBoard != null && ChessBoard.TryGetCurrentLevelNumber(out var currentLevelNumber))
-        {
-            return BuildLevelAddress(currentLevelNumber);
-        }
-
-        return string.Empty;
-    }
-
-    private string BuildLevelAddress(int levelNumber)
-    {
-        if (levelNumber <= 0 || string.IsNullOrWhiteSpace(LevelConfigAddressPattern))
-        {
-            return string.Empty;
-        }
-
-        return string.Format(LevelConfigAddressPattern, levelNumber);
-    }
-
-    private ResourcePackage ResolveResourcePackage()
-    {
-        var runtime = YooAssetGameRuntime.Instance;
-        if (runtime != null && runtime.Settings != null)
-        {
-            var configuredPackage = YooAssets.TryGetPackage(runtime.Settings.PackageName);
-            if (configuredPackage != null)
-            {
-                return configuredPackage;
-            }
-        }
-
-        return YooAssets.TryGetPackage("DefaultPackage");
-    }
-
-    private static void ReleaseHandle(ref AssetHandle handle)
-    {
-        if (handle == null)
-        {
-            return;
-        }
-
-        if (handle.IsValid)
-        {
-            handle.Release();
-        }
-
-        handle = null;
-    }
-}
-
 public enum ChessDamageSource
 {
     Projectile = 0,
@@ -330,6 +135,7 @@ public class UIChessBoard : MonoBehaviour
 
     private void Start()
     {
+        EnsureOriginPrefabReference();
         EnsureLayoutController();
         RefreshLevelLabels();
         if (LoadConfigOnStart)
@@ -346,6 +152,7 @@ public class UIChessBoard : MonoBehaviour
     [ContextMenu("Reload Level")]
     public void ReloadLevel()
     {
+        EnsureOriginPrefabReference();
         visibleStartRow = LevelConfig == null ? 0 : LevelConfig.GetInitialVisibleStartRow();
         currentLevelAddress = ResolveLevelAddress(LevelConfig, currentLevelAddress);
         RefreshLevelLabels();
@@ -443,6 +250,11 @@ public class UIChessBoard : MonoBehaviour
         return LevelConfig != null && LevelConfig.HasPendingDropRows(visibleStartRow);
     }
 
+    public bool HasPendingDropContent()
+    {
+        return LevelConfig != null && LevelConfig.HasPendingDropContent(visibleStartRow);
+    }
+
     public bool AreVisibleBricksCleared()
     {
         if (chessElements == null)
@@ -494,6 +306,11 @@ public class UIChessBoard : MonoBehaviour
 
         DropNextBatch();
         return true;
+    }
+
+    public bool IsLevelCompleted()
+    {
+        return AreVisibleBricksCleared() && !HasPendingDropContent();
     }
 
     public int GetPendingDropRowCount()
@@ -716,9 +533,16 @@ public class UIChessBoard : MonoBehaviour
 
     private void InitChessBoard(int width, int height)
     {
+        EnsureOriginPrefabReference();
         width = Mathf.Max(1, width);
         height = Mathf.Max(1, height);
         ApplyBoardLayout(width, height);
+
+        if (OriginPrefab == null)
+        {
+            Debug.LogError("[UIChessBoard] OriginPrefab is missing. Failed to initialize chess board.", this);
+            return;
+        }
 
         if (chessElements != null && boardWidth == width && boardHeight == height)
         {
@@ -943,8 +767,28 @@ public class UIChessBoard : MonoBehaviour
 
     private void ApplyBoardLayout(int width, int height)
     {
+        EnsureOriginPrefabReference();
         EnsureLayoutController();
         LayoutController?.ApplyLayout(width, height, OriginPrefab, ParentTransform);
+    }
+
+    private void EnsureOriginPrefabReference()
+    {
+        if (OriginPrefab != null)
+        {
+            return;
+        }
+
+        var itemTransform = transform.Find("Item");
+        if (itemTransform != null)
+        {
+            OriginPrefab = itemTransform.GetComponent<ChessElement>();
+        }
+
+        if (OriginPrefab == null)
+        {
+            OriginPrefab = GetComponentInChildren<ChessElement>(true);
+        }
     }
 
     private void EnsureLayoutController()

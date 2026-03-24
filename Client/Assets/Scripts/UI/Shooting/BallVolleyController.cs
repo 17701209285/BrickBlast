@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,9 +6,18 @@ using UnityEngine.UI;
 using TMPro;
 using YooAsset;
 
+public enum LevelSettlementResult
+{
+    None = 0,
+    Victory = 1,
+    Defeat = 2
+}
+
 [DisallowMultipleComponent]
 public class BallVolleyController : MonoBehaviour
 {
+    public event Action<LevelSettlementResult> LevelSettlementTriggered;
+
     [SerializeField]
     private AimLinePresenter AimLinePresenter;
 
@@ -100,10 +110,12 @@ public class BallVolleyController : MonoBehaviour
     private AssetHandle resultWindowPrefabHandle;
     private bool isResultWindowLoading;
     private bool pendingResultIsVictory;
+    private LevelSettlementResult lastSettlementResult;
 
     public int CurrentBallCount => currentBallCount;
     public bool IsVolleyActive => volleyActive;
     public float PreviewCollisionTolerance => Mathf.Max(0.01f, CollisionSkin);
+    public LevelSettlementResult LastSettlementResult => lastSettlementResult;
 
     private void Awake()
     {
@@ -754,7 +766,7 @@ public class BallVolleyController : MonoBehaviour
 
     private bool TryHandleLevelCompleted()
     {
-        if (ChessBoard == null || !ChessBoard.AreVisibleBricksCleared() || ChessBoard.HasPendingDropBatch())
+        if (ChessBoard == null || !ChessBoard.IsLevelCompleted())
         {
             return false;
         }
@@ -765,6 +777,7 @@ public class BallVolleyController : MonoBehaviour
 
     private void ShowResultWindow(bool isVictory)
     {
+        NotifyLevelSettlement(isVictory ? LevelSettlementResult.Victory : LevelSettlementResult.Defeat);
         pendingResultIsVictory = isVictory;
         aimUnlockTimer = 0f;
         AimLinePresenter?.SetAimInputEnabled(false);
@@ -822,6 +835,7 @@ public class BallVolleyController : MonoBehaviour
 
         var parent = ResolveResultWindowParent();
         var instance = Instantiate(prefab, parent, false);
+        instance.transform.SetAsLastSibling();
         ResultWindow = instance.GetComponent<UIResultWindow>();
         if (ResultWindow == null)
         {
@@ -842,6 +856,7 @@ public class BallVolleyController : MonoBehaviour
             return;
         }
 
+        ResultWindow.transform.SetAsLastSibling();
         ResultWindow.Show(pendingResultIsVictory, LevelLoader != null && LevelLoader.CanLoadNextLevel(), HandleResultPrimaryButtonClicked);
     }
 
@@ -882,6 +897,8 @@ public class BallVolleyController : MonoBehaviour
         {
             ResultWindow.Hide();
         }
+
+        lastSettlementResult = LevelSettlementResult.None;
 
         if (!volleyActive && aimUnlockTimer <= 0f && (ChessBoard == null || !ChessBoard.IsGameOver))
         {
@@ -932,6 +949,17 @@ public class BallVolleyController : MonoBehaviour
     private bool IsLevelTransitionLoading()
     {
         return LevelLoader != null && LevelLoader.IsLoading;
+    }
+
+    private void NotifyLevelSettlement(LevelSettlementResult settlementResult)
+    {
+        if (settlementResult == LevelSettlementResult.None || lastSettlementResult == settlementResult)
+        {
+            return;
+        }
+
+        lastSettlementResult = settlementResult;
+        LevelSettlementTriggered?.Invoke(settlementResult);
     }
 
     private static void ReleaseHandle(ref AssetHandle handle)

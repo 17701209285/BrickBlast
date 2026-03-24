@@ -168,6 +168,31 @@ public class LevelConfigScritable : ScriptableObject
         return DropRowCount > 0 && GetRemainingDropRowCount(visibleStartRow) > 0;
     }
 
+    public bool HasPendingDropContent(int visibleStartRow)
+    {
+        if (Cells == null || Cells.Length == 0)
+        {
+            return false;
+        }
+
+        var normalizedVisibleStartRow = Mathf.Clamp(visibleStartRow, 0, TotalRows);
+        for (int i = 0; i < Cells.Length; i++)
+        {
+            var cell = Cells[i];
+            if (cell == null || cell.Y >= normalizedVisibleStartRow)
+            {
+                continue;
+            }
+
+            if (LevelCellTypeUtility.HasSerializedContent(cell.Type, cell.Life))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public int GetNextDropSourceRow(int visibleStartRow)
     {
         var rowCount = GetNextDropCount(visibleStartRow);

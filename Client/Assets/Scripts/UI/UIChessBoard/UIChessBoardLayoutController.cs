@@ -107,6 +107,11 @@ public class UIChessBoardLayoutController : MonoBehaviour
         {
             LegacyGridLayout = BoardArea.GetComponent<GridLayoutGroup>();
         }
+
+        if (LegacyGridLayout != null)
+        {
+            CellSpacing = LegacyGridLayout.spacing;
+        }
     }
 
     private void CaptureBaseline(Rect rootRect)
