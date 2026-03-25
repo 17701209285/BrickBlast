@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d9f9bf299343417e8f8f8a1ab7e45a99, type: 3}
+  m_Name: LevelPlayAdsSettings
+  m_EditorClassIdentifier: 
+  autoCreateRuntimeObject: 1
+  bootstrapSceneName: Launch
+  runtimeObjectName: Ads Runtime
+  initializeOnAwake: 1
+  persistAcrossScenes: 1
+  validateIntegrationBeforeInit: 1
+  enableAdaptersDebug: 1
+  verboseLifecycleLogs: 1
+  launchTestSuiteAfterInit: 0
+  androidAppKey: 
+  iosAppKey: 25b7317a5
+  userId: 
+  rewardedAdUnitId: d1whemwoc0usf0xd
+  rewardedPlacementName: 
+  autoLoadRewarded: 1
+  interstitialAdUnitId: 
+  interstitialPlacementName: 
+  autoLoadInterstitial: 1
+  bannerAdUnitId: 
+  bannerPlacementName: 
+  autoLoadBanner: 0
+  autoShowBanner: 0
+  bannerRespectSafeArea: 1
+  bannerUseAdaptiveSize: 1
+  bannerAtBottom: 1
