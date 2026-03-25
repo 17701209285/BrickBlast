@@ -20,7 +20,7 @@ MonoBehaviour:
   validateIntegrationBeforeInit: 1
   enableAdaptersDebug: 1
   verboseLifecycleLogs: 1
-  launchTestSuiteAfterInit: 0
+  launchTestSuiteAfterInit: 1
   androidAppKey: 
   iosAppKey: 25b7317a5
   userId: 
