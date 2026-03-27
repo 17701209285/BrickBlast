@@ -292,7 +292,7 @@ public sealed class YooAssetGameRuntime : MonoBehaviour
             BootstrapRemoteServices remoteServices = new BootstrapRemoteServices(primaryUrl, fallbackUrl);
 
             HostPlayModeParameters hostParameters = new HostPlayModeParameters();
-            hostParameters.BuildinFileSystemParameters = FileSystemParameters.CreateDefaultBuildinFileSystemParameters();
+            hostParameters.BuildinFileSystemParameters = null;
             hostParameters.CacheFileSystemParameters = FileSystemParameters.CreateDefaultCacheFileSystemParameters(remoteServices);
             return hostParameters;
         }

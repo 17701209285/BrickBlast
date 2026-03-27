@@ -16,7 +16,7 @@ public sealed class YooAssetBootstrapSettings : ScriptableObject
     [Header("Package")]
     [SerializeField] private string packageName = "DefaultPackage";
     [SerializeField] private EPlayMode editorPlayMode = EPlayMode.EditorSimulateMode;
-    [SerializeField] private EPlayMode playerPlayMode = EPlayMode.OfflinePlayMode;
+    [SerializeField] private EPlayMode playerPlayMode = EPlayMode.HostPlayMode;
     [SerializeField] private int requestTimeoutSeconds = 60;
     [SerializeField] private int downloaderMaxConcurrency = 10;
     [SerializeField] private int failedRetryCount = 3;
@@ -24,11 +24,11 @@ public sealed class YooAssetBootstrapSettings : ScriptableObject
     [SerializeField] private bool appendTimeTicksToVersionRequest = true;
 
     [Header("Remote")]
-    [SerializeField] private string hostServerRoot = "http://127.0.0.1/CDN";
+    [SerializeField] private string hostServerRoot = "https://storage.googleapis.com/brickblast_bucket/CDN";
     [SerializeField] private string fallbackHostServerRoot = string.Empty;
     [SerializeField] private bool appendPlatformToHostServer = true;
     [SerializeField] private bool appendVersionToHostServer = true;
-    [SerializeField] private string hostServerVersion = "v0.1.0";
+    [SerializeField] private string hostServerVersion = "v1.0.0";
 
     [Header("Entries")]
     [SerializeField] private List<YooAssetMiniGameEntry> gameEntries = new List<YooAssetMiniGameEntry>();
@@ -161,7 +161,7 @@ public sealed class YooAssetBootstrapSettings : ScriptableObject
             case UnityEditor.BuildTarget.Android:
                 return "Android";
             case UnityEditor.BuildTarget.iOS:
-                return "IPhone";
+                return "iOS";
             case UnityEditor.BuildTarget.WebGL:
                 return "WebGL";
             default:
@@ -173,7 +173,7 @@ public sealed class YooAssetBootstrapSettings : ScriptableObject
             case RuntimePlatform.Android:
                 return "Android";
             case RuntimePlatform.IPhonePlayer:
-                return "IPhone";
+                return "iOS";
             case RuntimePlatform.WebGLPlayer:
                 return "WebGL";
             default:

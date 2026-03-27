@@ -27,6 +27,7 @@ public class FsmCreateDownloader : IStateNode
     void CreateDownloader()
     {
         var packageName = (string)_machine.GetBlackboardValue("PackageName");
+        var runtime = (YooAssetGameRuntime)_machine.GetBlackboardValue("Runtime");
         var package = YooAssets.GetPackage(packageName);
         int downloadingMaxNum = (int)_machine.GetBlackboardValue("DownloaderMaxConcurrency");
         int failedTryAgain = (int)_machine.GetBlackboardValue("FailedRetryCount");
@@ -40,11 +41,24 @@ public class FsmCreateDownloader : IStateNode
         }
         else
         {
+            bool autoDownload = runtime != null
+                && runtime.Settings != null
+                && runtime.Settings.AutoDownloadRemoteUpdates;
+
             // 发现新更新文件后，挂起流程系统
             // 注意：开发者需要在下载前检测磁盘空间不足
             int totalDownloadCount = downloader.TotalDownloadCount;
             long totalDownloadBytes = downloader.TotalDownloadBytes;
-            PatchEventDefine.FoundUpdateFiles.SendEventMessage(totalDownloadCount, totalDownloadBytes);
+            Debug.Log($"[YooAsset] Found {totalDownloadCount} remote files ({totalDownloadBytes} bytes). AutoDownload={autoDownload}");
+
+            if (autoDownload)
+            {
+                _machine.ChangeState<FsmDownloadPackageFiles>();
+            }
+            else
+            {
+                PatchEventDefine.FoundUpdateFiles.SendEventMessage(totalDownloadCount, totalDownloadBytes);
+            }
         }
     }
 }

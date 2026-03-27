@@ -47,6 +47,7 @@ public class PatchWindow : MonoBehaviour
         }
         private void OnClickYes()
         {
+            Debug.Log("[YooAsset] Patch dialog confirmed.");
             _clickOK?.Invoke();
             Hide();
         }
@@ -103,6 +104,7 @@ public class PatchWindow : MonoBehaviour
         else if (message is PatchEventDefine.FoundUpdateFiles)
         {
             var msg = message as PatchEventDefine.FoundUpdateFiles;
+            Debug.Log($"[YooAsset] Found update files. Count={msg.TotalCount} Bytes={msg.TotalSizeBytes}");
             System.Action callback = () =>
             {
                 UserEventDefine.UserBeginDownloadWebFiles.SendEventMessage();

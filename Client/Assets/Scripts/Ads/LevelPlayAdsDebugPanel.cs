@@ -1,8 +1,9 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public sealed class LevelPlayAdsDebugPanel : MonoBehaviour
 {
-    [SerializeField] private KeyCode ToggleKey = KeyCode.F8;
+    [SerializeField] private Key ToggleKey = Key.F8;
     [SerializeField] private bool StartHidden;
 
     private const float WindowWidth = 320f;
@@ -19,7 +20,8 @@ public sealed class LevelPlayAdsDebugPanel : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(ToggleKey))
+        var keyboard = Keyboard.current;
+        if (keyboard != null && ToggleKey != Key.None && keyboard[ToggleKey].wasPressedThisFrame)
         {
             isVisible = !isVisible;
         }

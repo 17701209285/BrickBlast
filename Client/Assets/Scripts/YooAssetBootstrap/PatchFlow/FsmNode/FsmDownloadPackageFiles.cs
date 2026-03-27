@@ -27,6 +27,13 @@ public class FsmDownloadPackageFiles : IStateNode
     private IEnumerator BeginDownload()
     {
         var downloader = (ResourceDownloaderOperation)_machine.GetBlackboardValue("Downloader");
+        if (downloader == null)
+        {
+            Debug.LogError("[YooAsset] Downloader was not created before download.");
+            yield break;
+        }
+
+        Debug.Log($"[YooAsset] Begin download. TotalCount={downloader.TotalDownloadCount} TotalBytes={downloader.TotalDownloadBytes}");
         downloader.DownloadErrorCallback = PatchEventDefine.WebFileDownloadFailed.SendEventMessage;
         downloader.DownloadUpdateCallback = PatchEventDefine.DownloadUpdate.SendEventMessage;
         downloader.BeginDownload();
@@ -34,7 +41,12 @@ public class FsmDownloadPackageFiles : IStateNode
 
         // 检测下载结果
         if (downloader.Status != EOperationStatus.Succeed)
+        {
+            Debug.LogError($"[YooAsset] Download failed: {downloader.Error}");
             yield break;
+        }
+
+        Debug.Log("[YooAsset] Download completed.");
 
         _machine.ChangeState<FsmDownloadPackageOver>();
     }

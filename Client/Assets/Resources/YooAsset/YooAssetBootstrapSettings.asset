@@ -17,17 +17,17 @@ MonoBehaviour:
   uiSettingsAddress: Assets/AssetBundle/YooAssetBootstrap/YooAssetUiSettings.asset
   packageName: DefaultPackage
   editorPlayMode: 0
-  playerPlayMode: 1
+  playerPlayMode: 2
   requestTimeoutSeconds: 60
   downloaderMaxConcurrency: 10
   failedRetryCount: 3
   autoDownloadRemoteUpdates: 1
   appendTimeTicksToVersionRequest: 1
-  hostServerRoot: http://127.0.0.1/CDN
+  hostServerRoot: https://storage.googleapis.com/brickblast_bucket/CDN
   fallbackHostServerRoot: 
   appendPlatformToHostServer: 1
   appendVersionToHostServer: 1
-  hostServerVersion: v0.1.0
+  hostServerVersion: v1.0.0
   gameEntries:
   - entryId: brick-blast
     displayName: Brick Blast

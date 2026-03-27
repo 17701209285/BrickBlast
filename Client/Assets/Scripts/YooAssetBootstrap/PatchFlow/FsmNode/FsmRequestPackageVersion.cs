@@ -36,6 +36,7 @@ internal class FsmRequestPackageVersion : IStateNode
 
         if (operation.Status != EOperationStatus.Succeed)
         {
+            Debug.LogWarning("[YooAsset] Request package version failed: " + operation.Error);
             GameLog.Warning(operation.Error);
             PatchEventDefine.PackageVersionRequestFailed.SendEventMessage();
         }
