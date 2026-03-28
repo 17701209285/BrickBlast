@@ -1,3 +1,4 @@
+using ImportedLevels;
 using UnityEngine;
 
 public enum BallCollisionType
@@ -45,6 +46,50 @@ public readonly struct BallCollisionHit
 
 public static class BallPhysicsUtility
 {
+    private readonly struct ShapePolygon
+    {
+        public int Count { get; }
+        private readonly Vector2 vertex0;
+        private readonly Vector2 vertex1;
+        private readonly Vector2 vertex2;
+        private readonly Vector2 vertex3;
+
+        public ShapePolygon(Vector2 v0, Vector2 v1, Vector2 v2)
+        {
+            Count = 3;
+            vertex0 = v0;
+            vertex1 = v1;
+            vertex2 = v2;
+            vertex3 = default;
+        }
+
+        public ShapePolygon(Vector2 v0, Vector2 v1, Vector2 v2, Vector2 v3)
+        {
+            Count = 4;
+            vertex0 = v0;
+            vertex1 = v1;
+            vertex2 = v2;
+            vertex3 = v3;
+        }
+
+        public Vector2 GetVertex(int index)
+        {
+            switch (index)
+            {
+                case 0:
+                    return vertex0;
+                case 1:
+                    return vertex1;
+                case 2:
+                    return vertex2;
+                case 3:
+                    return vertex3;
+                default:
+                    return default;
+            }
+        }
+    }
+
     private const float DirectionThresholdEpsilon = 0.0001f;
 
     public static bool TryGetNextHit(
@@ -82,29 +127,40 @@ public static class BallPhysicsUtility
 
     public static Vector2 Reflect(Vector2 direction, Vector2 hitNormal)
     {
-        var normalizedNormal = NormalizeNormal(hitNormal);
-        if (Mathf.Abs(normalizedNormal.x) > 0.5f)
+        var normalizedNormal = NormalizeCollisionNormal(hitNormal);
+        if (normalizedNormal == Vector2.zero)
         {
-            direction.x = -direction.x;
+            return direction.normalized;
         }
 
-        if (Mathf.Abs(normalizedNormal.y) > 0.5f)
+        if (Mathf.Abs(normalizedNormal.x) <= DirectionThresholdEpsilon || Mathf.Abs(normalizedNormal.y) <= DirectionThresholdEpsilon)
         {
-            direction.y = -direction.y;
+            var snappedNormal = NormalizeNormal(normalizedNormal);
+            if (Mathf.Abs(snappedNormal.x) > 0.5f)
+            {
+                direction.x = -direction.x;
+            }
+
+            if (Mathf.Abs(snappedNormal.y) > 0.5f)
+            {
+                direction.y = -direction.y;
+            }
+
+            return direction.normalized;
         }
 
-        return direction.normalized;
+        return Vector2.Reflect(direction.normalized, normalizedNormal).normalized;
     }
 
     public static Vector2 GetSeparationOffset(Vector2 hitNormal, float skin)
     {
-        var normalizedNormal = NormalizeNormal(hitNormal);
+        var normalizedNormal = NormalizeCollisionNormal(hitNormal);
         if (normalizedNormal == Vector2.zero || skin <= 0f)
         {
             return Vector2.zero;
         }
 
-        return normalizedNormal.normalized * skin;
+        return normalizedNormal * skin;
     }
 
     public static bool TryGetOverlapBlockHit(
@@ -141,9 +197,9 @@ public static class BallPhysicsUtility
                 continue;
             }
 
-            if (!TryResolveExpandedRectOverlap(
+            if (!TryResolveCandidateOverlap(
+                    candidate,
                     ballCenter,
-                    candidate.RectInBoardSpace,
                     radius,
                     epsilon,
                     out var normal,
@@ -351,16 +407,17 @@ public static class BallPhysicsUtility
                 continue;
             }
 
-            if (!TryRaycastExpandedRect(
+            if (!TryRaycastCollisionCandidate(
+                    collisionCandidate,
                     origin,
                     direction,
-                    collisionCandidate.RectInBoardSpace,
                     radius,
                     maxDistance,
                     epsilon,
                     out var distance,
                     out var centerPoint,
-                    out var normal))
+                    out var normal,
+                    out var impactPoint))
             {
                 continue;
             }
@@ -370,7 +427,7 @@ public static class BallPhysicsUtility
                 distance,
                 centerPoint,
                 normal,
-                centerPoint - GetImpactOffset(normal, radius),
+                impactPoint,
                 direction,
                 block);
             if (!foundHit || hitCandidate.Distance < closestHit.Distance - simultaneousTolerance)
@@ -493,6 +550,23 @@ public static class BallPhysicsUtility
         return true;
     }
 
+    private static bool TryResolveCandidateOverlap(
+        in UIChessBoard.CollisionCandidate candidate,
+        Vector2 ballCenter,
+        float radius,
+        float epsilon,
+        out Vector2 normal,
+        out Vector2 impactPoint,
+        out Vector2 resolvedPosition)
+    {
+        if (TryBuildCollisionPolygon(candidate.RectInBoardSpace, candidate.ShapeType, out var polygon))
+        {
+            return TryResolveConvexPolygonOverlap(ballCenter, polygon, radius, epsilon, out normal, out impactPoint, out resolvedPosition);
+        }
+
+        return TryResolveExpandedRectOverlap(ballCenter, candidate.RectInBoardSpace, radius, epsilon, out normal, out impactPoint, out resolvedPosition);
+    }
+
     private static bool TryUpdateAxis(
         float origin,
         float direction,
@@ -587,6 +661,13 @@ public static class BallPhysicsUtility
         return new Vector2(Mathf.RoundToInt(Mathf.Sign(normal.x) * Mathf.Clamp01(Mathf.Abs(normal.x))), Mathf.RoundToInt(Mathf.Sign(normal.y) * Mathf.Clamp01(Mathf.Abs(normal.y))));
     }
 
+    private static Vector2 NormalizeCollisionNormal(Vector2 normal)
+    {
+        return normal.sqrMagnitude <= DirectionThresholdEpsilon * DirectionThresholdEpsilon
+            ? Vector2.zero
+            : normal.normalized;
+    }
+
     private static float GetSimultaneousBlockDistanceTolerance(float radius, float epsilon)
     {
         return Mathf.Max(epsilon, Mathf.Min(3f, Mathf.Max(1.25f, radius * 0.2f)));
@@ -653,7 +734,7 @@ public static class BallPhysicsUtility
                 continue;
             }
 
-            if (!TryGetSharedBlockContact(augmentedHit.Point, candidate.RectInBoardSpace, radius, spatialTolerance, epsilon, out var impactPoint, out var normal))
+            if (!TryGetSharedBlockContact(augmentedHit.Point, candidate, radius, spatialTolerance, epsilon, out var impactPoint, out var normal))
             {
                 continue;
             }
@@ -689,16 +770,6 @@ public static class BallPhysicsUtility
         return new Vector2(x, y);
     }
 
-    private static Vector2 GetImpactOffset(Vector2 normal, float radius)
-    {
-        if (normal == Vector2.zero || radius <= 0f)
-        {
-            return Vector2.zero;
-        }
-
-        return normal.normalized * radius;
-    }
-
     private static float GetSharedBlockSpatialTolerance(float radius, float simultaneousTolerance, float epsilon)
     {
         return Mathf.Max(epsilon, Mathf.Max(simultaneousTolerance, Mathf.Min(6f, Mathf.Max(1.5f, radius * 0.18f))));
@@ -706,13 +777,19 @@ public static class BallPhysicsUtility
 
     private static bool TryGetSharedBlockContact(
         Vector2 ballCenter,
-        Rect rect,
+        in UIChessBoard.CollisionCandidate candidate,
         float radius,
         float spatialTolerance,
         float epsilon,
         out Vector2 impactPoint,
         out Vector2 normal)
     {
+        if (TryBuildCollisionPolygon(candidate.RectInBoardSpace, candidate.ShapeType, out var polygon))
+        {
+            return TryGetSharedPolygonContact(ballCenter, polygon, radius, spatialTolerance, epsilon, out impactPoint, out normal);
+        }
+
+        var rect = candidate.RectInBoardSpace;
         impactPoint = new Vector2(
             Mathf.Clamp(ballCenter.x, rect.xMin, rect.xMax),
             Mathf.Clamp(ballCenter.y, rect.yMin, rect.yMax));
@@ -739,5 +816,360 @@ public static class BallPhysicsUtility
 
         normal = Vector2.zero;
         return false;
+    }
+
+    private static bool TryRaycastCollisionCandidate(
+        in UIChessBoard.CollisionCandidate candidate,
+        Vector2 origin,
+        Vector2 direction,
+        float radius,
+        float maxDistance,
+        float epsilon,
+        out float distance,
+        out Vector2 point,
+        out Vector2 normal,
+        out Vector2 impactPoint)
+    {
+        if (TryBuildCollisionPolygon(candidate.RectInBoardSpace, candidate.ShapeType, out var polygon))
+        {
+            return TryRaycastConvexPolygon(origin, direction, polygon, radius, maxDistance, epsilon, out distance, out point, out normal, out impactPoint);
+        }
+
+        if (TryRaycastExpandedRect(origin, direction, candidate.RectInBoardSpace, radius, maxDistance, epsilon, out distance, out point, out normal))
+        {
+            impactPoint = point - (NormalizeCollisionNormal(normal) * radius);
+            return true;
+        }
+
+        impactPoint = origin;
+        return false;
+    }
+
+    private static bool TryBuildCollisionPolygon(Rect rect, LegacyBrickShapeType shapeType, out ShapePolygon polygon)
+    {
+        var bottomLeft = new Vector2(rect.xMin, rect.yMin);
+        var topLeft = new Vector2(rect.xMin, rect.yMax);
+        var topRight = new Vector2(rect.xMax, rect.yMax);
+        var bottomRight = new Vector2(rect.xMax, rect.yMin);
+        switch (shapeType)
+        {
+            case LegacyBrickShapeType.RightTriangleLeftDown:
+                polygon = new ShapePolygon(bottomLeft, bottomRight, topLeft);
+                return true;
+            case LegacyBrickShapeType.RightTriangleLeftUp:
+                polygon = new ShapePolygon(bottomLeft, topLeft, topRight);
+                return true;
+            case LegacyBrickShapeType.RightTriangleRightUp:
+                polygon = new ShapePolygon(topLeft, topRight, bottomRight);
+                return true;
+            case LegacyBrickShapeType.RightTriangleRightDown:
+                polygon = new ShapePolygon(bottomLeft, bottomRight, topRight);
+                return true;
+            case LegacyBrickShapeType.EquilateralTriangle:
+                polygon = new ShapePolygon(bottomLeft, bottomRight, new Vector2(rect.center.x, rect.yMax));
+                return true;
+            default:
+                polygon = default;
+                return false;
+        }
+    }
+
+    private static bool TryRaycastConvexPolygon(
+        Vector2 origin,
+        Vector2 direction,
+        ShapePolygon polygon,
+        float radius,
+        float maxDistance,
+        float epsilon,
+        out float distance,
+        out Vector2 point,
+        out Vector2 normal,
+        out Vector2 impactPoint)
+    {
+        distance = 0f;
+        point = origin;
+        normal = Vector2.zero;
+        impactPoint = origin;
+
+        var foundHit = false;
+        var bestDistance = float.MaxValue;
+        var bestNormal = Vector2.zero;
+        var bestImpactPoint = origin;
+        for (int i = 0; i < polygon.Count; i++)
+        {
+            var a = polygon.GetVertex(i);
+            var b = polygon.GetVertex((i + 1) % polygon.Count);
+            var edge = b - a;
+            if (edge.sqrMagnitude <= epsilon * epsilon)
+            {
+                continue;
+            }
+
+            var outwardNormal = NormalizeCollisionNormal(new Vector2(edge.y, -edge.x));
+            var denominator = Vector2.Dot(outwardNormal, direction);
+            if (denominator >= -DirectionThresholdEpsilon)
+            {
+                continue;
+            }
+
+            var edgeDistance = Vector2.Dot(outwardNormal, origin - a);
+            var hitDistance = (radius - edgeDistance) / denominator;
+            if (hitDistance <= epsilon || hitDistance > maxDistance)
+            {
+                continue;
+            }
+
+            var candidatePoint = origin + (direction * hitDistance);
+            var candidateImpactPoint = candidatePoint - (outwardNormal * radius);
+            if (!IsPointNearSegment(candidateImpactPoint, a, b, epsilon))
+            {
+                continue;
+            }
+
+            RegisterPolygonHitCandidate(hitDistance, outwardNormal, candidateImpactPoint, ref foundHit, ref bestDistance, ref bestNormal, ref bestImpactPoint, epsilon);
+        }
+
+        for (int i = 0; i < polygon.Count; i++)
+        {
+            var vertex = polygon.GetVertex(i);
+            if (!TryRaycastCircle(origin, direction, vertex, radius, maxDistance, epsilon, out var hitDistance, out var candidatePoint, out var candidateNormal))
+            {
+                continue;
+            }
+
+            RegisterPolygonHitCandidate(hitDistance, candidateNormal, vertex, ref foundHit, ref bestDistance, ref bestNormal, ref bestImpactPoint, epsilon);
+        }
+
+        if (!foundHit)
+        {
+            return false;
+        }
+
+        distance = bestDistance;
+        point = origin + (direction * bestDistance);
+        normal = NormalizeCollisionNormal(bestNormal);
+        impactPoint = bestImpactPoint;
+        return normal != Vector2.zero;
+    }
+
+    private static void RegisterPolygonHitCandidate(
+        float candidateDistance,
+        Vector2 candidateNormal,
+        Vector2 candidateImpactPoint,
+        ref bool foundHit,
+        ref float bestDistance,
+        ref Vector2 bestNormal,
+        ref Vector2 bestImpactPoint,
+        float epsilon)
+    {
+        if (!foundHit || candidateDistance < bestDistance - epsilon)
+        {
+            foundHit = true;
+            bestDistance = candidateDistance;
+            bestNormal = candidateNormal;
+            bestImpactPoint = candidateImpactPoint;
+            return;
+        }
+
+        if (Mathf.Abs(candidateDistance - bestDistance) <= epsilon)
+        {
+            bestNormal += candidateNormal;
+        }
+    }
+
+    private static bool TryRaycastCircle(
+        Vector2 origin,
+        Vector2 direction,
+        Vector2 circleCenter,
+        float radius,
+        float maxDistance,
+        float epsilon,
+        out float distance,
+        out Vector2 point,
+        out Vector2 normal)
+    {
+        distance = 0f;
+        point = origin;
+        normal = Vector2.zero;
+
+        var offset = origin - circleCenter;
+        var projection = Vector2.Dot(offset, direction);
+        var c = Vector2.Dot(offset, offset) - (radius * radius);
+        var discriminant = (projection * projection) - c;
+        if (discriminant < 0f)
+        {
+            return false;
+        }
+
+        var hitDistance = -projection - Mathf.Sqrt(discriminant);
+        if (hitDistance <= epsilon || hitDistance > maxDistance)
+        {
+            return false;
+        }
+
+        point = origin + (direction * hitDistance);
+        normal = NormalizeCollisionNormal(point - circleCenter);
+        if (normal == Vector2.zero)
+        {
+            return false;
+        }
+
+        distance = hitDistance;
+        return true;
+    }
+
+    private static bool TryResolveConvexPolygonOverlap(
+        Vector2 ballCenter,
+        ShapePolygon polygon,
+        float radius,
+        float epsilon,
+        out Vector2 normal,
+        out Vector2 impactPoint,
+        out Vector2 resolvedPosition)
+    {
+        impactPoint = ballCenter;
+        normal = Vector2.zero;
+        resolvedPosition = ballCenter;
+
+        var isInside = IsPointInsideConvexPolygon(ballCenter, polygon, epsilon);
+        if (!TryGetClosestPointOnPolygonBoundary(ballCenter, polygon, out impactPoint, out var boundaryNormal))
+        {
+            return false;
+        }
+
+        var offset = ballCenter - impactPoint;
+        var distance = offset.magnitude;
+        if (!isInside && distance > radius + epsilon)
+        {
+            return false;
+        }
+
+        if (distance > epsilon)
+        {
+            normal = isInside ? -(offset / distance) : (offset / distance);
+        }
+        else
+        {
+            normal = boundaryNormal;
+        }
+
+        normal = NormalizeCollisionNormal(normal);
+        if (normal == Vector2.zero)
+        {
+            return false;
+        }
+
+        resolvedPosition = impactPoint + (normal * (radius + epsilon));
+        return true;
+    }
+
+    private static bool TryGetSharedPolygonContact(
+        Vector2 ballCenter,
+        ShapePolygon polygon,
+        float radius,
+        float spatialTolerance,
+        float epsilon,
+        out Vector2 impactPoint,
+        out Vector2 normal)
+    {
+        impactPoint = ballCenter;
+        normal = Vector2.zero;
+        var isInside = IsPointInsideConvexPolygon(ballCenter, polygon, epsilon);
+        if (!TryGetClosestPointOnPolygonBoundary(ballCenter, polygon, out impactPoint, out var boundaryNormal))
+        {
+            return false;
+        }
+
+        var offset = ballCenter - impactPoint;
+        var maxContactDistance = radius + spatialTolerance;
+        if (!isInside && offset.sqrMagnitude > maxContactDistance * maxContactDistance)
+        {
+            return false;
+        }
+
+        if (offset.sqrMagnitude > epsilon * epsilon)
+        {
+            normal = isInside ? -offset.normalized : offset.normalized;
+        }
+        else
+        {
+            normal = boundaryNormal;
+        }
+
+        normal = NormalizeCollisionNormal(normal);
+        return normal != Vector2.zero;
+    }
+
+    private static bool TryGetClosestPointOnPolygonBoundary(
+        Vector2 point,
+        ShapePolygon polygon,
+        out Vector2 closestPoint,
+        out Vector2 outwardNormal)
+    {
+        closestPoint = point;
+        outwardNormal = Vector2.zero;
+        if (polygon.Count < 2)
+        {
+            return false;
+        }
+
+        var found = false;
+        var bestDistanceSquared = float.MaxValue;
+        for (int i = 0; i < polygon.Count; i++)
+        {
+            var a = polygon.GetVertex(i);
+            var b = polygon.GetVertex((i + 1) % polygon.Count);
+            var candidatePoint = ClosestPointOnSegment(point, a, b);
+            var distanceSquared = (point - candidatePoint).sqrMagnitude;
+            if (found && distanceSquared >= bestDistanceSquared)
+            {
+                continue;
+            }
+
+            found = true;
+            bestDistanceSquared = distanceSquared;
+            closestPoint = candidatePoint;
+            outwardNormal = NormalizeCollisionNormal(new Vector2((b - a).y, -(b - a).x));
+        }
+
+        return found;
+    }
+
+    private static bool IsPointInsideConvexPolygon(Vector2 point, ShapePolygon polygon, float epsilon)
+    {
+        for (int i = 0; i < polygon.Count; i++)
+        {
+            var a = polygon.GetVertex(i);
+            var b = polygon.GetVertex((i + 1) % polygon.Count);
+            if (Cross(b - a, point - a) < -epsilon)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool IsPointNearSegment(Vector2 point, Vector2 a, Vector2 b, float epsilon)
+    {
+        return (ClosestPointOnSegment(point, a, b) - point).sqrMagnitude <= epsilon * epsilon;
+    }
+
+    private static Vector2 ClosestPointOnSegment(Vector2 point, Vector2 a, Vector2 b)
+    {
+        var edge = b - a;
+        var edgeLengthSquared = edge.sqrMagnitude;
+        if (edgeLengthSquared <= DirectionThresholdEpsilon * DirectionThresholdEpsilon)
+        {
+            return a;
+        }
+
+        var t = Mathf.Clamp01(Vector2.Dot(point - a, edge) / edgeLengthSquared);
+        return a + (edge * t);
+    }
+
+    private static float Cross(Vector2 a, Vector2 b)
+    {
+        return (a.x * b.y) - (a.y * b.x);
     }
 }

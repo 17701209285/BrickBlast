@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using DG.Tweening;
+using ImportedLevels;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -54,6 +55,7 @@ public class ChessElement : MonoBehaviour
     private bool aimPreviewActive;
     private bool specialTouchedThisVolley;
     private int specialTriggerCountThisVolley;
+    private LegacyBrickShapeType legacyShapeType = LegacyBrickShapeType.None;
     private IChessHitEffectPlayer[] hitEffectPlayers;
     private readonly Vector3[] worldCornersBuffer = new Vector3[4];
 
@@ -62,6 +64,7 @@ public class ChessElement : MonoBehaviour
     public LevelCellType Type => LevelCellTypeUtility.NormalizeType(cellType, life);
     public int Life => LevelCellTypeUtility.NormalizeLife(cellType, life);
     public int SpecialValue => LevelCellTypeUtility.ResolveSpecialValue(cellType, specialValue);
+    public LegacyBrickShapeType LegacyShapeType => legacyShapeType;
     public bool HasContent => Type != LevelCellType.Empty;
     public bool CountsAsBrick => LevelCellTypeUtility.UsesLife(Type);
     public bool IsSpecialItem => LevelCellTypeUtility.IsSpecial(Type);
@@ -115,11 +118,16 @@ public class ChessElement : MonoBehaviour
         return cellSize.y + m_Space.y;
     }
 
-    public void SetCellContent(LevelCellType inType, int inLife, int inSpecialValue = 0)
+    public void SetCellContent(
+        LevelCellType inType,
+        int inLife,
+        int inSpecialValue = 0,
+        LegacyBrickShapeType inLegacyShapeType = LegacyBrickShapeType.None)
     {
         cellType = LevelCellTypeUtility.NormalizeType(inType, inLife);
         life = LevelCellTypeUtility.NormalizeLife(cellType, inLife);
         specialValue = LevelCellTypeUtility.ResolveSpecialValue(cellType, inSpecialValue);
+        legacyShapeType = ResolveRuntimeShapeType(cellType, inLegacyShapeType);
         specialTouchedThisVolley = false;
         specialTriggerCountThisVolley = 0;
         RefreshView();
@@ -162,7 +170,7 @@ public class ChessElement : MonoBehaviour
 
     public void ClearContent()
     {
-        SetCellContent(LevelCellType.Empty, 0, 0);
+        SetCellContent(LevelCellType.Empty, 0, 0, LegacyBrickShapeType.None);
     }
 
     public bool ClearTouchedSpecialAtTurnEnd()
@@ -241,7 +249,7 @@ public class ChessElement : MonoBehaviour
             return;
         }
 
-        SetCellContent(other.Type, other.Life, other.SpecialValue);
+        SetCellContent(other.Type, other.Life, other.SpecialValue, other.LegacyShapeType);
     }
 
     public void ResetVisualPosition()
@@ -353,7 +361,24 @@ public class ChessElement : MonoBehaviour
             return;
         }
 
-        name = $"Element[X:{X} Y:{Y} Type:{Type} Life:{Life} Special:{SpecialValue}]";
+        name = $"Element[X:{X} Y:{Y} Type:{Type} Life:{Life} Special:{SpecialValue} Shape:{LegacyShapeType}]";
+    }
+
+    private static LegacyBrickShapeType ResolveRuntimeShapeType(LevelCellType type, LegacyBrickShapeType shapeType)
+    {
+        if (type == LevelCellType.Empty)
+        {
+            return LegacyBrickShapeType.None;
+        }
+
+        if (shapeType != LegacyBrickShapeType.None)
+        {
+            return shapeType;
+        }
+
+        return type == LevelCellType.Triangle
+            ? LegacyBrickShapeType.EquilateralTriangle
+            : LegacyBrickShapeType.Square;
     }
 
     private void CacheComponents()

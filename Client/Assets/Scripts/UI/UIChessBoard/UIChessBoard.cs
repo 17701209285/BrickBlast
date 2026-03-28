@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using DG.Tweening;
 using System.Collections.Generic;
+using ImportedLevels;
 using UnityEngine;
 using TMPro;
 using YooAsset;
@@ -55,11 +56,13 @@ public class UIChessBoard : MonoBehaviour
     {
         public ChessElement Element { get; }
         public Rect RectInBoardSpace { get; }
+        public LegacyBrickShapeType ShapeType { get; }
 
-        public CollisionCandidate(ChessElement element, Rect rectInBoardSpace)
+        public CollisionCandidate(ChessElement element, Rect rectInBoardSpace, LegacyBrickShapeType shapeType)
         {
             Element = element;
             RectInBoardSpace = rectInBoardSpace;
+            ShapeType = shapeType;
         }
     }
 
@@ -115,6 +118,7 @@ public class UIChessBoard : MonoBehaviour
     private LevelCellType[] shiftSourceTypesBuffer;
     private int[] shiftSourceLivesBuffer;
     private int[] shiftSourceSpecialValuesBuffer;
+    private LegacyBrickShapeType[] shiftSourceShapeTypesBuffer;
     private RectTransform collisionCandidateSpace;
     private int collisionCandidateFrame = -1;
     private int boardWidth;
@@ -609,6 +613,7 @@ public class UIChessBoard : MonoBehaviour
         var sourceTypes = shiftSourceTypesBuffer;
         var sourceLives = shiftSourceLivesBuffer;
         var sourceSpecialValues = shiftSourceSpecialValuesBuffer;
+        var sourceShapeTypes = shiftSourceShapeTypesBuffer;
         for (int y = 0; y < boardHeight; y++)
         {
             for (int x = 0; x < boardWidth; x++)
@@ -618,6 +623,7 @@ public class UIChessBoard : MonoBehaviour
                 sourceTypes[index] = source == null ? LevelCellType.Empty : source.Type;
                 sourceLives[index] = source == null ? 0 : source.Life;
                 sourceSpecialValues[index] = source == null ? 0 : source.SpecialValue;
+                sourceShapeTypes[index] = source == null ? LegacyBrickShapeType.None : source.LegacyShapeType;
             }
         }
 
@@ -638,7 +644,8 @@ public class UIChessBoard : MonoBehaviour
                     var sourceType = sourceTypes[sourceIndex];
                     var sourceLife = sourceLives[sourceIndex];
                     var sourceSpecialValue = sourceSpecialValues[sourceIndex];
-                    target.SetCellContent(sourceType, sourceLife, sourceSpecialValue);
+                    var sourceShapeType = sourceShapeTypes[sourceIndex];
+                    target.SetCellContent(sourceType, sourceLife, sourceSpecialValue, sourceShapeType);
 
                     var shouldAnimateDrop = LevelCellTypeUtility.HasSerializedContent(sourceType, sourceLife);
                     PlayDropAnimation(target, shouldAnimateDrop ? rowCount : 0);
@@ -672,6 +679,11 @@ public class UIChessBoard : MonoBehaviour
         {
             shiftSourceSpecialValuesBuffer = new int[requiredLength];
         }
+
+        if (shiftSourceShapeTypesBuffer == null || shiftSourceShapeTypesBuffer.Length != requiredLength)
+        {
+            shiftSourceShapeTypesBuffer = new LegacyBrickShapeType[requiredLength];
+        }
     }
 
     private void ApplyCells(FCell[] cells, int animateFromRows = 0)
@@ -692,7 +704,7 @@ public class UIChessBoard : MonoBehaviour
             var chessElement = chessElements.Get(cell.X, cell.Y);
             if (chessElement != null)
             {
-                chessElement.SetCellContent(cell.Type, cell.Life, cell.SpecialValue);
+                chessElement.SetCellContent(cell.Type, cell.Life, cell.SpecialValue, cell.LegacyShapeType);
                 PlayDropAnimation(chessElement, animateFromRows);
             }
         }
@@ -995,7 +1007,7 @@ public class UIChessBoard : MonoBehaviour
                 if (chessElement != null && chessElement.HasContent)
                 {
                     var collisionRect = GetInsetCollisionRect(chessElement.GetRectInSpace(relativeTo));
-                    collisionCandidates.Add(new CollisionCandidate(chessElement, collisionRect));
+                    collisionCandidates.Add(new CollisionCandidate(chessElement, collisionRect, chessElement.LegacyShapeType));
                 }
             }
         }
