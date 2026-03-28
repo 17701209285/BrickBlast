@@ -172,6 +172,11 @@ public static class BallPhysicsUtility
             hit = MergeSimultaneousBlockHit(hit, candidateHit);
         }
 
+        if (foundHit)
+        {
+            hit = AugmentSharedBlockHit(hit, candidates, radius, simultaneousTolerance, epsilon);
+        }
+
         return foundHit;
     }
 
@@ -380,6 +385,11 @@ public static class BallPhysicsUtility
                 closestHit = MergeSimultaneousBlockHit(closestHit, hitCandidate);
                 foundHit = true;
             }
+        }
+
+        if (foundHit)
+        {
+            closestHit = AugmentSharedBlockHit(closestHit, candidates, radius, simultaneousTolerance, epsilon);
         }
 
         hit = closestHit;
@@ -620,6 +630,54 @@ public static class BallPhysicsUtility
             additionalBlock);
     }
 
+    private static BallCollisionHit AugmentSharedBlockHit(
+        BallCollisionHit hit,
+        System.Collections.Generic.IReadOnlyList<UIChessBoard.CollisionCandidate> candidates,
+        float radius,
+        float simultaneousTolerance,
+        float epsilon)
+    {
+        if (hit.Type != BallCollisionType.Block || hit.Block == null || candidates == null || candidates.Count == 0)
+        {
+            return hit;
+        }
+
+        var augmentedHit = hit;
+        var spatialTolerance = GetSharedBlockSpatialTolerance(radius, simultaneousTolerance, epsilon);
+        for (int i = 0; i < candidates.Count; i++)
+        {
+            var candidate = candidates[i];
+            var block = candidate.Element;
+            if (block == null || !block.HasContent || block == augmentedHit.Block || block == augmentedHit.AdditionalBlock)
+            {
+                continue;
+            }
+
+            if (!TryGetSharedBlockContact(augmentedHit.Point, candidate.RectInBoardSpace, radius, spatialTolerance, epsilon, out var impactPoint, out var normal))
+            {
+                continue;
+            }
+
+            augmentedHit = MergeSimultaneousBlockHit(
+                augmentedHit,
+                new BallCollisionHit(
+                    BallCollisionType.Block,
+                    augmentedHit.Distance,
+                    augmentedHit.Point,
+                    normal,
+                    impactPoint,
+                    augmentedHit.ImpactDirection,
+                    block));
+
+            if (augmentedHit.AdditionalBlock != null)
+            {
+                break;
+            }
+        }
+
+        return augmentedHit;
+    }
+
     private static Vector2 BuildAxisFallbackNormal(Vector2 a, Vector2 b)
     {
         var x = Mathf.Abs(a.x) > 0.5f
@@ -639,5 +697,47 @@ public static class BallPhysicsUtility
         }
 
         return normal.normalized * radius;
+    }
+
+    private static float GetSharedBlockSpatialTolerance(float radius, float simultaneousTolerance, float epsilon)
+    {
+        return Mathf.Max(epsilon, Mathf.Max(simultaneousTolerance, Mathf.Min(6f, Mathf.Max(1.5f, radius * 0.18f))));
+    }
+
+    private static bool TryGetSharedBlockContact(
+        Vector2 ballCenter,
+        Rect rect,
+        float radius,
+        float spatialTolerance,
+        float epsilon,
+        out Vector2 impactPoint,
+        out Vector2 normal)
+    {
+        impactPoint = new Vector2(
+            Mathf.Clamp(ballCenter.x, rect.xMin, rect.xMax),
+            Mathf.Clamp(ballCenter.y, rect.yMin, rect.yMax));
+
+        var offset = ballCenter - impactPoint;
+        var maxContactDistance = radius + spatialTolerance;
+        if (offset.sqrMagnitude > maxContactDistance * maxContactDistance)
+        {
+            normal = Vector2.zero;
+            return false;
+        }
+
+        normal = NormalizeNormal(offset);
+        if (normal != Vector2.zero)
+        {
+            return true;
+        }
+
+        if (TryResolveExpandedRectOverlap(ballCenter, rect, radius, spatialTolerance + epsilon, out normal, out impactPoint, out _))
+        {
+            normal = NormalizeNormal(normal);
+            return normal != Vector2.zero;
+        }
+
+        normal = Vector2.zero;
+        return false;
     }
 }

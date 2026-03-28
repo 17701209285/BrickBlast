@@ -1,4 +1,6 @@
 using System.Collections;
+using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
@@ -24,9 +26,11 @@ public sealed class YooAssetGameRuntime : MonoBehaviour
     private AssetHandle activePrefabHandle;
     private GameObject activePrefabInstance;
     private GameObject patchWindowInstance;
+    private readonly List<AssetHandle> shaderVariantCollectionHandles = new List<AssetHandle>();
     private string activeEntryId = string.Empty;
     private bool packageInitializing;
     private bool packageInitialized;
+    private bool shaderVariantsWarmed;
     private bool entryLoading;
 
     public static YooAssetGameRuntime Instance
@@ -271,6 +275,11 @@ public sealed class YooAssetGameRuntime : MonoBehaviour
         yield return LoadEntryRoutine(settings.StartupEntryId);
     }
 
+    private void OnDestroy()
+    {
+        ReleaseShaderVariantCollections();
+    }
+
     public Coroutine RunHostedCoroutine(IEnumerator routine)
     {
         return StartCoroutine(routine);
@@ -371,9 +380,147 @@ public sealed class YooAssetGameRuntime : MonoBehaviour
             spriteAtlasBridge.SetPackage(package);
         }
 
+        yield return WarmUpShaderVariantsRoutine();
         packageInitialized = true;
         packageInitializing = false;
         GameLog.InfoFormat("[YooAsset] Package '{0}' is ready.", settings.PackageName);
+    }
+
+    private IEnumerator WarmUpShaderVariantsRoutine()
+    {
+        if (shaderVariantsWarmed || settings == null || package == null)
+        {
+            yield break;
+        }
+
+        shaderVariantsWarmed = true;
+        IReadOnlyList<string> configuredAddresses = settings.ShaderVariantCollectionAddresses;
+        if (configuredAddresses == null || configuredAddresses.Count == 0)
+        {
+            yield break;
+        }
+
+        int warmedCount = 0;
+        for (int i = 0; i < configuredAddresses.Count; i++)
+        {
+            string configuredAddress = configuredAddresses[i];
+            if (string.IsNullOrWhiteSpace(configuredAddress))
+            {
+                continue;
+            }
+
+            AssetHandle handle = null;
+            ShaderVariantCollection collection = null;
+            string resolvedAddress = string.Empty;
+
+            yield return TryLoadShaderVariantCollectionRoutine(package, configuredAddress, result =>
+            {
+                handle = result.Handle;
+                collection = result.Collection;
+                resolvedAddress = result.Address;
+            });
+
+            if (collection == null)
+            {
+                Debug.LogWarning("[YooAsset][Shader] Failed to load ShaderVariantCollection: " + configuredAddress);
+                continue;
+            }
+
+            collection.WarmUp();
+            warmedCount++;
+            if (handle != null && handle.IsValid)
+            {
+                shaderVariantCollectionHandles.Add(handle);
+            }
+
+            Debug.Log("[YooAsset][Shader] Warmed ShaderVariantCollection: " + resolvedAddress);
+        }
+
+        Debug.Log("[YooAsset][Shader] Warmed collections: " + warmedCount);
+    }
+
+    private IEnumerator TryLoadShaderVariantCollectionRoutine(ResourcePackage resourcePackage, string configuredAddress, System.Action<ShaderVariantCollectionLoadResult> onCompleted)
+    {
+        string[] candidates = BuildAddressCandidates(configuredAddress);
+        for (int i = 0; i < candidates.Length; i++)
+        {
+            string candidateAddress = candidates[i];
+            if (string.IsNullOrWhiteSpace(candidateAddress))
+            {
+                continue;
+            }
+
+            if (resourcePackage.CheckLocationValid(candidateAddress) == false)
+            {
+                continue;
+            }
+
+            AssetHandle handle = resourcePackage.LoadAssetAsync<ShaderVariantCollection>(candidateAddress);
+            yield return handle;
+
+            if (handle.Status != EOperationStatus.Succeed)
+            {
+                if (handle.IsValid)
+                {
+                    handle.Release();
+                }
+
+                continue;
+            }
+
+            ShaderVariantCollection collection = handle.GetAssetObject<ShaderVariantCollection>();
+            if (collection == null)
+            {
+                handle.Release();
+                continue;
+            }
+
+            onCompleted?.Invoke(new ShaderVariantCollectionLoadResult(candidateAddress, handle, collection));
+            yield break;
+        }
+    }
+
+    private static string[] BuildAddressCandidates(string configuredAddress)
+    {
+        List<string> candidates = new List<string>(4);
+        AddAddressCandidate(candidates, configuredAddress);
+        AddAddressCandidate(candidates, Path.ChangeExtension(configuredAddress, null));
+        AddAddressCandidate(candidates, Path.GetFileName(configuredAddress));
+        AddAddressCandidate(candidates, Path.GetFileNameWithoutExtension(configuredAddress));
+        return candidates.ToArray();
+    }
+
+    private static void AddAddressCandidate(List<string> candidates, string candidate)
+    {
+        if (string.IsNullOrWhiteSpace(candidate))
+        {
+            return;
+        }
+
+        for (int i = 0; i < candidates.Count; i++)
+        {
+            if (string.Equals(candidates[i], candidate, System.StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+        }
+
+        candidates.Add(candidate);
+    }
+
+    private void ReleaseShaderVariantCollections()
+    {
+        for (int i = shaderVariantCollectionHandles.Count - 1; i >= 0; i--)
+        {
+            AssetHandle handle = shaderVariantCollectionHandles[i];
+            if (handle != null && handle.IsValid)
+            {
+                handle.Release();
+            }
+        }
+
+        shaderVariantCollectionHandles.Clear();
+        shaderVariantsWarmed = false;
     }
 
     private IEnumerator LoadTextureAssetRoutine(string assetId, string address, System.Action<Texture2D> onLoaded)
@@ -654,6 +801,20 @@ public sealed class YooAssetGameRuntime : MonoBehaviour
         string IRemoteServices.GetRemoteFallbackURL(string fileName)
         {
             return fallbackUrl.TrimEnd('/') + "/" + fileName;
+        }
+    }
+
+    private readonly struct ShaderVariantCollectionLoadResult
+    {
+        public readonly string Address;
+        public readonly AssetHandle Handle;
+        public readonly ShaderVariantCollection Collection;
+
+        public ShaderVariantCollectionLoadResult(string address, AssetHandle handle, ShaderVariantCollection collection)
+        {
+            Address = address;
+            Handle = handle;
+            Collection = collection;
         }
     }
 }

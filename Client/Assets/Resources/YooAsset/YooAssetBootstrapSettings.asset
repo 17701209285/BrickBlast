@@ -16,7 +16,7 @@ MonoBehaviour:
   startupEntryId: brick-blast
   uiSettingsAddress: Assets/AssetBundle/YooAssetBootstrap/YooAssetUiSettings.asset
   packageName: DefaultPackage
-  editorPlayMode: 0
+  editorPlayMode: 2
   playerPlayMode: 2
   requestTimeoutSeconds: 60
   downloaderMaxConcurrency: 10
@@ -28,6 +28,8 @@ MonoBehaviour:
   appendPlatformToHostServer: 1
   appendVersionToHostServer: 1
   hostServerVersion: v1.0.0
+  shaderVariantCollectionAddresses:
+  - Assets/AssetBundle/shadervariants/MyShaderVariants.shadervariants
   gameEntries:
   - entryId: brick-blast
     displayName: Brick Blast

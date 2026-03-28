@@ -30,6 +30,13 @@ public sealed class YooAssetBootstrapSettings : ScriptableObject
     [SerializeField] private bool appendVersionToHostServer = true;
     [SerializeField] private string hostServerVersion = "v1.0.0";
 
+    [Header("Shaders")]
+    [Tooltip("ShaderVariantCollection assets that should be loaded and warmed before entering the hot-update content.")]
+    [SerializeField] private List<string> shaderVariantCollectionAddresses = new List<string>
+    {
+        "Assets/AssetBundle/shadervariants/MyShaderVariants.shadervariants"
+    };
+
     [Header("Entries")]
     [SerializeField] private List<YooAssetMiniGameEntry> gameEntries = new List<YooAssetMiniGameEntry>();
 
@@ -130,6 +137,11 @@ public sealed class YooAssetBootstrapSettings : ScriptableObject
     {
         string root = string.IsNullOrWhiteSpace(fallbackHostServerRoot) ? hostServerRoot : fallbackHostServerRoot;
         return BuildHostServerUrl(root);
+    }
+
+    public IReadOnlyList<string> ShaderVariantCollectionAddresses
+    {
+        get { return shaderVariantCollectionAddresses; }
     }
 
     private string BuildHostServerUrl(string root)

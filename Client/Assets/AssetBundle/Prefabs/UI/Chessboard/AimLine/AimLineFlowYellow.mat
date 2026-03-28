@@ -31,7 +31,7 @@ Material:
     m_Floats:
     - _EdgeSoftness: 2.2
     - _FlowSpeed: 1.85
-    - _Glow: 1.15
+    - _Glow: 1.26
     - _PulseSharpness: 3.2
     - _StripeDensity: 14
     - _TextureContribution: 0.85
