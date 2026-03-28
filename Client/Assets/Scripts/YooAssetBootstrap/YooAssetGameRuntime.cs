@@ -18,6 +18,7 @@ public sealed class YooAssetGameRuntime : MonoBehaviour
     private YooAssetBootstrapSettings settings;
     private YooAssetUiManager uiManager;
     private YooAssetImageManager imageManager;
+    private YooAssetSpriteAtlasBridge spriteAtlasBridge;
     private ResourcePackage package;
     private YooSceneHandle activeSceneHandle;
     private AssetHandle activePrefabHandle;
@@ -89,6 +90,7 @@ public sealed class YooAssetGameRuntime : MonoBehaviour
         DontDestroyOnLoad(go);
         go.AddComponent<YooAssetUiManager>();
         go.AddComponent<YooAssetImageManager>();
+        go.AddComponent<YooAssetSpriteAtlasBridge>();
         go.AddComponent<YooAssetGameRuntime>();
         bootstrapCreated = true;
     }
@@ -242,6 +244,12 @@ public sealed class YooAssetGameRuntime : MonoBehaviour
             imageManager = gameObject.AddComponent<YooAssetImageManager>();
         }
 
+        spriteAtlasBridge = GetComponent<YooAssetSpriteAtlasBridge>();
+        if (spriteAtlasBridge == null)
+        {
+            spriteAtlasBridge = gameObject.AddComponent<YooAssetSpriteAtlasBridge>();
+        }
+
         instance = this;
     }
 
@@ -356,6 +364,11 @@ public sealed class YooAssetGameRuntime : MonoBehaviour
         if (imageManager != null)
         {
             imageManager.SetPackage(package);
+        }
+
+        if (spriteAtlasBridge != null)
+        {
+            spriteAtlasBridge.SetPackage(package);
         }
 
         packageInitialized = true;
