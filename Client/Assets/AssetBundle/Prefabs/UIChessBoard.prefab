@@ -503,7 +503,7 @@ LineRenderer:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 7.789583
+        value: 7.9969096
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -512,7 +512,7 @@ LineRenderer:
         outWeight: 0.33333334
       - serializedVersion: 3
         time: 1
-        value: 7.789583
+        value: 7.9969096
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -1169,7 +1169,7 @@ RectTransform:
   m_GameObject: {fileID: 3748741464985914959}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.9736979, y: 0.9736979, z: 1}
+  m_LocalScale: {x: 0.9996137, y: 0.9996137, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3384838260063144218}
@@ -1254,7 +1254,7 @@ MonoBehaviour:
   AimLineMaterial: {fileID: 2100000, guid: f07abe3b1e35449fa2571fe469f9f2d8, type: 2}
   LaunchOriginOffset: {x: 0, y: 180}
   MinVerticalDragDistance: 24
-  MinAimAngle: 5
+  MinAimAngle: 15
   MaxAimAngle: 165
   MaxLineLength: 1600
   BoundaryPadding: 6
@@ -1643,7 +1643,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -93, y: -627}
+  m_AnchoredPosition: {x: -93, y: -583}
   m_SizeDelta: {x: 30, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2812765160655054591
@@ -2002,7 +2002,7 @@ LineRenderer:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 7.789583
+        value: 7.9969096
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -2011,7 +2011,7 @@ LineRenderer:
         outWeight: 0.33333334
       - serializedVersion: 3
         time: 1
-        value: 7.789583
+        value: 7.9969096
         inSlope: 0
         outSlope: 0
         tangentMode: 0
