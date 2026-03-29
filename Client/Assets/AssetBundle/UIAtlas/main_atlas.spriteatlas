@@ -32,31 +32,63 @@ SpriteAtlas:
     secondaryTextureSettings: {}
     variantMultiplier: 1
     packables:
-    - {fileID: 21300000, guid: 0f1a88334605259469196b654502377c, type: 3}
-    - {fileID: 21300000, guid: 5eecea0fa53e24b4e9ab0197ef40b692, type: 3}
-    - {fileID: 21300000, guid: cd7d116cb11f506478558e6211a274b6, type: 3}
-    - {fileID: 21300000, guid: 8715c06e9d91a3545aa55c69bf1fe2db, type: 3}
-    - {fileID: 21300000, guid: 56ce2c4370f8e6042a92c96cb4494a21, type: 3}
+    - {fileID: 102900000, guid: dece0b27f5f002c40b021f3884123447, type: 3}
     bindAsDefault: 1
     isAtlasV2: 0
     cachedData: {fileID: 0}
     packedSpriteRenderDataKeys:
+    - ee020b7181d37cb44af58471473f4951: 21300000
+    - 0e18dcb1411110f4aaf1745257bfc6e6: 21300000
     - 0f1a88334605259469196b654502377c: 21300000
     - 56ce2c4370f8e6042a92c96cb4494a21: 21300000
+    - 32e1e124b95aa8d4c92e127f4191af07: 21300000
+    - 056da336b78bf594f89003c5377da5ed: 21300000
+    - 5dbb7028b4093d0449e0dcdeef7ec767: 21300000
+    - afa3c828ac63ed8499307f2fa09780b4: 21300000
+    - 97e30429c94315347a701dac31acbfa9: 21300000
+    - 3613613b94ee0df40a46f4f36110b4a9: 21300000
     - cd7d116cb11f506478558e6211a274b6: 21300000
+    - d325200d26f6fd7408cf93a833ce544e: 21300000
+    - 36ea185dcb0223646b7e8e34d581bd13: 21300000
+    - d6eb177d6b04f064aac803c18cdd7b7a: 21300000
+    - e9b7c2fd439a0bd40a5869e16408bc64: 21300000
     - 8715c06e9d91a3545aa55c69bf1fe2db: 21300000
     - 5eecea0fa53e24b4e9ab0197ef40b692: 21300000
   m_MasterAtlas: {fileID: 0}
   m_PackedSprites:
+  - {fileID: 21300000, guid: ee020b7181d37cb44af58471473f4951, type: 3}
+  - {fileID: 21300000, guid: 0e18dcb1411110f4aaf1745257bfc6e6, type: 3}
   - {fileID: 21300000, guid: 0f1a88334605259469196b654502377c, type: 3}
   - {fileID: 21300000, guid: 56ce2c4370f8e6042a92c96cb4494a21, type: 3}
+  - {fileID: 21300000, guid: 32e1e124b95aa8d4c92e127f4191af07, type: 3}
+  - {fileID: 21300000, guid: 056da336b78bf594f89003c5377da5ed, type: 3}
+  - {fileID: 21300000, guid: 5dbb7028b4093d0449e0dcdeef7ec767, type: 3}
+  - {fileID: 21300000, guid: afa3c828ac63ed8499307f2fa09780b4, type: 3}
+  - {fileID: 21300000, guid: 97e30429c94315347a701dac31acbfa9, type: 3}
+  - {fileID: 21300000, guid: 3613613b94ee0df40a46f4f36110b4a9, type: 3}
   - {fileID: 21300000, guid: cd7d116cb11f506478558e6211a274b6, type: 3}
+  - {fileID: 21300000, guid: d325200d26f6fd7408cf93a833ce544e, type: 3}
+  - {fileID: 21300000, guid: 36ea185dcb0223646b7e8e34d581bd13, type: 3}
+  - {fileID: 21300000, guid: d6eb177d6b04f064aac803c18cdd7b7a, type: 3}
+  - {fileID: 21300000, guid: e9b7c2fd439a0bd40a5869e16408bc64, type: 3}
   - {fileID: 21300000, guid: 8715c06e9d91a3545aa55c69bf1fe2db, type: 3}
   - {fileID: 21300000, guid: 5eecea0fa53e24b4e9ab0197ef40b692, type: 3}
   m_PackedSpriteNamesToIndex:
+  - Block_Blue_2
+  - Block_Pink_triangle
   - img_5
   - img_bg4
+  - Block_Yellow_triangle
+  - Block_Red_triangle
+  - Block_Green_triangle
+  - img_9
+  - Block_Green_2
+  - Block_Pink_2
   - img_7
+  - Block_Blue_triangle
+  - Block_Yellow2
+  - Block_Red_2
+  - img_10
   - img_8
   - img_6
   m_RenderDataMap: {}

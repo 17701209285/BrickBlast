@@ -20,121 +20,99 @@ MonoBehaviour:
   - X: 0
     Y: 1
     Type: 0
-    Life: 1
-  - X: 6
+    Life: 50
+  - X: 1
     Y: 1
     Type: 0
-    Life: 1
-  - X: 0
-    Y: 2
-    Type: 0
-    Life: 1
-  - X: 1
-    Y: 2
-    Type: 0
-    Life: 1
+    Life: 100
   - X: 2
-    Y: 2
-    Type: 3
-    Life: 0
+    Y: 1
+    Type: 0
+    Life: 150
   - X: 3
-    Y: 2
+    Y: 1
     Type: 0
-    Life: 1
+    Life: 200
   - X: 4
-    Y: 2
+    Y: 1
     Type: 0
-    Life: 1
-  - X: 6
-    Y: 2
-    Type: 0
-    Life: 1
-  - X: 6
+    Life: 250
+  - X: 0
     Y: 3
-    Type: 4
-    Life: 0
-  - X: 6
-    Y: 4
-    Type: 0
-    Life: 1
-  - X: 2
-    Y: 5
-    Type: 0
-    Life: 1
-  - X: 6
-    Y: 5
-    Type: 0
-    Life: 1
-  - X: 0
-    Y: 6
-    Type: 0
-    Life: 1
+    Type: 1
+    Life: 50
+    LegacyShapeType: 2
   - X: 1
-    Y: 6
-    Type: 0
-    Life: 1
+    Y: 3
+    Type: 1
+    Life: 100
+    LegacyShapeType: 3
   - X: 2
-    Y: 6
-    Type: 7
-    Life: 0
+    Y: 3
+    Type: 1
+    Life: 150
+    LegacyShapeType: 4
   - X: 3
-    Y: 6
-    Type: 0
-    Life: 1
+    Y: 3
+    Type: 1
+    Life: 200
+    LegacyShapeType: 5
   - X: 4
-    Y: 6
+    Y: 3
+    Type: 1
+    Life: 250
+    LegacyShapeType: 5
+  - X: 0
+    Y: 5
     Type: 0
-    Life: 1
-  - X: 5
-    Y: 6
-    Type: 0
-    Life: 1
-  - X: 6
-    Y: 6
-    Type: 0
-    Life: 1
-  - X: 7
-    Y: 6
-    Type: 0
-    Life: 1
+    Life: 75
+  - X: 1
+    Y: 5
+    Type: 1
+    Life: 75
+    LegacyShapeType: 2
   - X: 2
+    Y: 5
+    Type: 0
+    Life: 125
+  - X: 3
+    Y: 5
+    Type: 1
+    Life: 125
+    LegacyShapeType: 3
+  - X: 4
+    Y: 5
+    Type: 0
+    Life: 175
+  - X: 5
+    Y: 5
+    Type: 1
+    Life: 175
+    LegacyShapeType: 4
+  - X: 6
+    Y: 5
+    Type: 0
+    Life: 225
+  - X: 7
+    Y: 5
+    Type: 1
+    Life: 225
+    LegacyShapeType: 5
+  - X: 1
     Y: 7
     Type: 0
-    Life: 1
-  - X: 4
-    Y: 8
-    Type: 0
-    Life: 1
-  - X: 5
-    Y: 8
-    Type: 5
-    Life: 0
-  - X: 6
-    Y: 8
-    Type: 0
-    Life: 1
-  - X: 2
-    Y: 8
-    Type: 0
-    Life: 1
-  - X: 1
-    Y: 9
-    Type: 6
-    Life: 0
-  - X: 6
-    Y: 9
-    Type: 8
-    Life: 0
-    SpecialValue: 1
+    Life: 260
   - X: 3
-    Y: 10
-    Type: 0
-    Life: 1
+    Y: 7
+    Type: 1
+    Life: 260
+    LegacyShapeType: 2
   - X: 4
-    Y: 10
+    Y: 7
     Type: 0
-    Life: 1
+    Life: 50
   - X: 5
-    Y: 10
-    Type: 0
-    Life: 1
+    Y: 7
+    Type: 1
+    Life: 50
+    LegacyShapeType: 5

@@ -7,6 +7,20 @@ using TMPro;
 
 public class ChessElement : MonoBehaviour
 {
+    private enum BrickLifeBand
+    {
+        Blue,
+        Green,
+        Yellow,
+        Red,
+        Purple
+    }
+
+    private const int GreenLifeMin = 100;
+    private const int YellowLifeMin = 150;
+    private const int RedLifeMin = 200;
+    private const int PurpleLifeMin = 250;
+
     private static readonly Color HorizontalBlastLowLifeColor = new Color(0.47f, 0.89f, 0.46f, 1f);
     private static readonly Color HorizontalBlastHighLifeColor = new Color(0.16f, 0.67f, 0.31f, 1f);
     private static readonly Color VerticalBlastLowLifeColor = new Color(0.39f, 0.86f, 0.93f, 1f);
@@ -19,6 +33,12 @@ public class ChessElement : MonoBehaviour
     private static readonly Color CrossBlastHighLifeColor = new Color(0.14f, 0.68f, 0.49f, 1f);
     private static readonly Color ExtraBallsLowLifeColor = new Color(0.76f, 0.96f, 0.49f, 1f);
     private static readonly Color ExtraBallsHighLifeColor = new Color(0.35f, 0.73f, 0.17f, 1f);
+    private static readonly Color BlueBrickColor = new Color(0.42f, 0.80f, 0.97f, 1f);
+    private static readonly Color GreenBrickColor = new Color(0.42f, 0.82f, 0.42f, 1f);
+    private static readonly Color YellowBrickColor = new Color(0.98f, 0.82f, 0.34f, 1f);
+    private static readonly Color RedBrickColor = new Color(0.92f, 0.32f, 0.28f, 1f);
+    private static readonly Color PurpleBrickColor = new Color(0.86f, 0.46f, 0.93f, 1f);
+
     [SerializeField]
     private Vector2 m_Space;
     [SerializeField]
@@ -26,25 +46,51 @@ public class ChessElement : MonoBehaviour
     [SerializeField]
     private Color m_EmptyColor = new Color(1f, 1f, 1f, 0f);
     [SerializeField]
-    private Color m_SquareLowLifeColor = new Color(0.96f, 0.79f, 0.33f, 1f);
-    [SerializeField]
-    private Color m_SquareHighLifeColor = new Color(0.88f, 0.29f, 0.23f, 1f);
-    [SerializeField]
-    private Color m_TriangleLowLifeColor = new Color(0.44f, 0.78f, 0.97f, 1f);
-    [SerializeField]
-    private Color m_TriangleHighLifeColor = new Color(0.08f, 0.45f, 0.89f, 1f);
-    [SerializeField]
     [Range(0f, 1f)]
     private float m_AimPreviewHighlight = 0.35f;
 
     [SerializeField]
     TextMeshProUGUI m_BrickLife;
 
+    [SerializeField]
+    private Image m_BodyImage;
+
+    [SerializeField]
+    private Sprite m_PurpleSquareBodySprite;
+
+    [SerializeField]
+    private Sprite m_RedSquareBodySprite;
+
+    [SerializeField]
+    private Sprite m_YellowSquareBodySprite;
+
+    [SerializeField]
+    private Sprite m_GreenSquareBodySprite;
+
+    [SerializeField]
+    private Sprite m_BlueSquareBodySprite;
+
+    [SerializeField]
+    private Sprite m_PurpleTriangleBodySprite;
+
+    [SerializeField]
+    private Sprite m_RedTriangleBodySprite;
+
+    [SerializeField]
+    private Sprite m_YellowTriangleBodySprite;
+
+    [SerializeField]
+    private Sprite m_GreenTriangleBodySprite;
+
+    [SerializeField]
+    private Sprite m_BlueTriangleBodySprite;
+
     private static readonly Color DarkLifeTextColor = new Color(0.12f, 0.12f, 0.12f, 1f);
 
     private ChessElementData ChessData;
     private RectTransform selfRectTransform;
     private Image image;
+    private Image overlayImage;
     private Vector2 cellSize;
     private Vector2 baseAnchoredPosition;
     private LevelCellType cellType = LevelCellType.Empty;
@@ -313,10 +359,33 @@ public class ChessElement : MonoBehaviour
             StopAimPreviewAnimation();
         }
 
-        if (image != null)
+        var baseColor = GetContentColor(Type, Life);
+        var displayColor = aimPreviewActive ? Color.Lerp(baseColor, Color.white, m_AimPreviewHighlight) : baseColor;
+        var bodyImage = GetBodyImage(Type);
+        var bodySprite = ResolveBodySprite(Type, Life);
+        var inactiveBodyImage = GetInactiveBodyImage(bodyImage);
+
+        if (bodyImage != null)
         {
-            var baseColor = GetContentColor(Type, Life);
-            image.color = aimPreviewActive ? Color.Lerp(baseColor, Color.white, m_AimPreviewHighlight) : baseColor;
+            bodyImage.sprite = bodySprite;
+            bodyImage.color = bodySprite != null
+                ? (aimPreviewActive ? new Color(1f, 1f, 1f, 0.92f) : Color.white)
+                : displayColor;
+            bodyImage.enabled = HasContent || bodySprite != null;
+            ApplyBodyRotation(bodyImage.rectTransform, Type, legacyShapeType);
+        }
+
+        if (inactiveBodyImage != null)
+        {
+            inactiveBodyImage.sprite = null;
+            inactiveBodyImage.enabled = false;
+            ApplyBodyRotation(inactiveBodyImage.rectTransform, LevelCellType.Empty, LegacyBrickShapeType.None);
+        }
+
+        if (overlayImage != null)
+        {
+            overlayImage.sprite = null;
+            overlayImage.enabled = false;
         }
 
         RefreshLifeLabel();
@@ -335,7 +404,8 @@ public class ChessElement : MonoBehaviour
         switch (type)
         {
             case LevelCellType.Triangle:
-                return Color.Lerp(m_TriangleLowLifeColor, m_TriangleHighLifeColor, t);
+            case LevelCellType.Square:
+                return GetBrickLifeBandColor(ResolveBrickLifeBand(currentLife));
             case LevelCellType.HorizontalBlast:
                 return Color.Lerp(HorizontalBlastLowLifeColor, HorizontalBlastHighLifeColor, t);
             case LevelCellType.VerticalBlast:
@@ -349,7 +419,7 @@ public class ChessElement : MonoBehaviour
             case LevelCellType.ExtraBalls:
                 return Color.Lerp(ExtraBallsLowLifeColor, ExtraBallsHighLifeColor, t);
             default:
-                return Color.Lerp(m_SquareLowLifeColor, m_SquareHighLifeColor, t);
+                return GetBrickLifeBandColor(ResolveBrickLifeBand(currentLife));
         }
     }
 
@@ -381,6 +451,151 @@ public class ChessElement : MonoBehaviour
             : LegacyBrickShapeType.Square;
     }
 
+    private Image GetBodyImage(LevelCellType type)
+    {
+        if (type == LevelCellType.Triangle && m_BodyImage != null && m_BodyImage != image)
+        {
+            return m_BodyImage;
+        }
+
+        return image;
+    }
+
+    private Image GetInactiveBodyImage(Image activeBodyImage)
+    {
+        if (m_BodyImage != null && m_BodyImage != image && m_BodyImage != activeBodyImage)
+        {
+            return m_BodyImage;
+        }
+
+        if (image != null && image != activeBodyImage)
+        {
+            return image;
+        }
+
+        return null;
+    }
+
+    private Sprite ResolveBodySprite(LevelCellType type, int currentLife)
+    {
+        if (!LevelCellTypeUtility.UsesLife(type))
+        {
+            return null;
+        }
+
+        return ResolveBodySprite(type == LevelCellType.Triangle, ResolveBrickLifeBand(currentLife));
+    }
+
+    private Sprite ResolveBodySprite(bool isTriangle, BrickLifeBand lifeBand)
+    {
+        switch (lifeBand)
+        {
+            case BrickLifeBand.Purple:
+                return isTriangle ? FirstAssigned(m_PurpleTriangleBodySprite, m_RedTriangleBodySprite, m_YellowTriangleBodySprite, m_GreenTriangleBodySprite, m_BlueTriangleBodySprite)
+                    : FirstAssigned(m_PurpleSquareBodySprite, m_RedSquareBodySprite, m_YellowSquareBodySprite, m_GreenSquareBodySprite, m_BlueSquareBodySprite);
+            case BrickLifeBand.Red:
+                return isTriangle ? FirstAssigned(m_RedTriangleBodySprite, m_YellowTriangleBodySprite, m_GreenTriangleBodySprite, m_BlueTriangleBodySprite, m_PurpleTriangleBodySprite)
+                    : FirstAssigned(m_RedSquareBodySprite, m_YellowSquareBodySprite, m_GreenSquareBodySprite, m_BlueSquareBodySprite, m_PurpleSquareBodySprite);
+            case BrickLifeBand.Yellow:
+                return isTriangle ? FirstAssigned(m_YellowTriangleBodySprite, m_GreenTriangleBodySprite, m_BlueTriangleBodySprite, m_RedTriangleBodySprite, m_PurpleTriangleBodySprite)
+                    : FirstAssigned(m_YellowSquareBodySprite, m_GreenSquareBodySprite, m_BlueSquareBodySprite, m_RedSquareBodySprite, m_PurpleSquareBodySprite);
+            case BrickLifeBand.Green:
+                return isTriangle ? FirstAssigned(m_GreenTriangleBodySprite, m_BlueTriangleBodySprite, m_YellowTriangleBodySprite, m_RedTriangleBodySprite, m_PurpleTriangleBodySprite)
+                    : FirstAssigned(m_GreenSquareBodySprite, m_BlueSquareBodySprite, m_YellowSquareBodySprite, m_RedSquareBodySprite, m_PurpleSquareBodySprite);
+            default:
+                return isTriangle ? FirstAssigned(m_BlueTriangleBodySprite, m_GreenTriangleBodySprite, m_YellowTriangleBodySprite, m_RedTriangleBodySprite, m_PurpleTriangleBodySprite)
+                    : FirstAssigned(m_BlueSquareBodySprite, m_GreenSquareBodySprite, m_YellowSquareBodySprite, m_RedSquareBodySprite, m_PurpleSquareBodySprite);
+        }
+    }
+
+    private void ApplyBodyRotation(RectTransform bodyRectTransform, LevelCellType type, LegacyBrickShapeType shapeType)
+    {
+        if (bodyRectTransform == null)
+        {
+            return;
+        }
+
+        var rotationZ = 0f;
+        if (type == LevelCellType.Triangle)
+        {
+            rotationZ = GetTriangleBodyRotation(shapeType);
+        }
+
+        bodyRectTransform.localRotation = Quaternion.Euler(0f, 0f, rotationZ);
+    }
+
+    private static float GetTriangleBodyRotation(LegacyBrickShapeType shapeType)
+    {
+        switch (shapeType)
+        {
+            case LegacyBrickShapeType.RightTriangleLeftDown:
+                return 0f;
+            case LegacyBrickShapeType.RightTriangleLeftUp:
+                return 270f;
+            case LegacyBrickShapeType.RightTriangleRightUp:
+                return 180f;
+            case LegacyBrickShapeType.RightTriangleRightDown:
+                return 90f;
+            default:
+                return 0f;
+        }
+    }
+
+    private static BrickLifeBand ResolveBrickLifeBand(int currentLife)
+    {
+        if (currentLife >= PurpleLifeMin)
+        {
+            return BrickLifeBand.Purple;
+        }
+
+        if (currentLife >= RedLifeMin)
+        {
+            return BrickLifeBand.Red;
+        }
+
+        if (currentLife >= YellowLifeMin)
+        {
+            return BrickLifeBand.Yellow;
+        }
+
+        if (currentLife >= GreenLifeMin)
+        {
+            return BrickLifeBand.Green;
+        }
+
+        return BrickLifeBand.Blue;
+    }
+
+    private static Color GetBrickLifeBandColor(BrickLifeBand lifeBand)
+    {
+        switch (lifeBand)
+        {
+            case BrickLifeBand.Purple:
+                return PurpleBrickColor;
+            case BrickLifeBand.Red:
+                return RedBrickColor;
+            case BrickLifeBand.Yellow:
+                return YellowBrickColor;
+            case BrickLifeBand.Green:
+                return GreenBrickColor;
+            default:
+                return BlueBrickColor;
+        }
+    }
+
+    private static Sprite FirstAssigned(params Sprite[] candidates)
+    {
+        for (int i = 0; i < candidates.Length; i++)
+        {
+            if (candidates[i] != null)
+            {
+                return candidates[i];
+            }
+        }
+
+        return null;
+    }
+
     private void CacheComponents()
     {
         if (selfRectTransform == null)
@@ -391,6 +606,29 @@ public class ChessElement : MonoBehaviour
         if (image == null)
         {
             image = GetComponent<Image>();
+        }
+
+        if (m_BodyImage == null)
+        {
+            m_BodyImage = image;
+            var bodyTransform = transform.Find("body");
+            if (bodyTransform != null)
+            {
+                var bodyImage = bodyTransform.GetComponent<Image>();
+                if (bodyImage != null)
+                {
+                    m_BodyImage = bodyImage;
+                }
+            }
+        }
+
+        if (overlayImage == null)
+        {
+            var overlayTransform = transform.Find("overlay");
+            if (overlayTransform != null)
+            {
+                overlayImage = overlayTransform.GetComponent<Image>();
+            }
         }
 
         if (m_BrickLife == null)
