@@ -8,6 +8,9 @@ public class UIChessBoardLayoutController : MonoBehaviour
     private RectTransform BoardArea;
 
     [SerializeField]
+    private RectTransform BoardVisualContainer;
+
+    [SerializeField]
     private RectTransform LaunchBall;
 
     [SerializeField]
@@ -21,6 +24,7 @@ public class UIChessBoardLayoutController : MonoBehaviour
     private float MaxCellSize = 129f;
 
     private RectTransform rootRectTransform;
+    private Image boardVisualImage;
     private int currentColumns = -1;
     private int currentRows = -1;
     private Vector2 lastRootSize = Vector2.zero;
@@ -61,6 +65,7 @@ public class UIChessBoardLayoutController : MonoBehaviour
         var boardHeight = GetAxisLength(cellSize, CellSpacing.y, rows);
 
         ConfigureBoardArea(boardWidth, boardHeight);
+        ConfigureBoardVisual(cellSize);
         ConfigureTemplate(template, cellSizeVector);
         ConfigureRuntimeElements(cellSizeVector);
         ConfigureLegacyGrid(columns, cellSizeVector);
@@ -98,6 +103,19 @@ public class UIChessBoardLayoutController : MonoBehaviour
             BoardArea = transform.Find("Grid Layout") as RectTransform;
         }
 
+        if (BoardVisualContainer == null && BoardArea != null)
+        {
+            var boardParent = BoardArea.parent as RectTransform;
+            if (boardParent != null && boardParent != rootRectTransform && boardParent.GetComponent<Image>() != null)
+            {
+                BoardVisualContainer = boardParent;
+            }
+            else
+            {
+                BoardVisualContainer = BoardArea;
+            }
+        }
+
         if (LaunchBall == null)
         {
             LaunchBall = transform.Find("Ball") as RectTransform;
@@ -112,16 +130,22 @@ public class UIChessBoardLayoutController : MonoBehaviour
         {
             CellSpacing = LegacyGridLayout.spacing;
         }
+
+        if (boardVisualImage == null && BoardVisualContainer != null)
+        {
+            boardVisualImage = BoardVisualContainer.GetComponent<Image>();
+        }
     }
 
     private void CaptureBaseline(Rect rootRect)
     {
-        if (baselineCaptured || BoardArea == null || LaunchBall == null)
+        var boardReference = BoardVisualContainer != null ? BoardVisualContainer : BoardArea;
+        if (baselineCaptured || boardReference == null || LaunchBall == null)
         {
             return;
         }
 
-        var boardRect = GetRectInRootSpace(BoardArea);
+        var boardRect = GetRectInRootSpace(boardReference);
         var launchRect = GetRectInRootSpace(LaunchBall);
         boardTopInset = Mathf.Max(0f, rootRect.yMax - boardRect.yMax);
         launchOriginY = launchRect.center.y;
@@ -144,13 +168,50 @@ public class UIChessBoardLayoutController : MonoBehaviour
 
     private void ConfigureBoardArea(float boardWidth, float boardHeight)
     {
+        var boardReference = BoardVisualContainer != null ? BoardVisualContainer : BoardArea;
+        if (boardReference == null)
+        {
+            return;
+        }
+
         var boardTopY = rootRectTransform.rect.yMax - boardTopInset;
 
-        BoardArea.anchorMin = new Vector2(0.5f, 0.5f);
-        BoardArea.anchorMax = new Vector2(0.5f, 0.5f);
-        BoardArea.pivot = new Vector2(0.5f, 1f);
-        BoardArea.anchoredPosition = new Vector2(0f, boardTopY);
-        BoardArea.sizeDelta = new Vector2(boardWidth, boardHeight);
+        boardReference.anchorMin = new Vector2(0.5f, 0.5f);
+        boardReference.anchorMax = new Vector2(0.5f, 0.5f);
+        boardReference.pivot = new Vector2(0.5f, 1f);
+        boardReference.anchoredPosition = new Vector2(0f, boardTopY);
+        boardReference.sizeDelta = new Vector2(boardWidth, boardHeight);
+
+        if (BoardArea != null && BoardArea != boardReference)
+        {
+            BoardArea.anchorMin = Vector2.zero;
+            BoardArea.anchorMax = Vector2.one;
+            BoardArea.pivot = new Vector2(0.5f, 0.5f);
+            BoardArea.anchoredPosition = Vector2.zero;
+            BoardArea.sizeDelta = Vector2.zero;
+        }
+    }
+
+    private void ConfigureBoardVisual(float cellSize)
+    {
+        if (boardVisualImage == null || boardVisualImage.type != Image.Type.Tiled || boardVisualImage.sprite == null)
+        {
+            return;
+        }
+
+        var tileSize = cellSize + CellSpacing.x;
+        if (tileSize <= 0f)
+        {
+            return;
+        }
+
+        var pixelsPerUnit = boardVisualImage.pixelsPerUnit;
+        if (pixelsPerUnit <= 0f)
+        {
+            return;
+        }
+
+        boardVisualImage.pixelsPerUnitMultiplier = boardVisualImage.sprite.rect.width / (tileSize * pixelsPerUnit);
     }
 
     private void ConfigureTemplate(ChessElement template, Vector2 cellSize)

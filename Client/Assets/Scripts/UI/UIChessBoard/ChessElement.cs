@@ -86,6 +86,7 @@ public class ChessElement : MonoBehaviour
     private Sprite m_BlueTriangleBodySprite;
 
     private static readonly Color DarkLifeTextColor = new Color(0.12f, 0.12f, 0.12f, 1f);
+    private const float TriangleLifeLabelOffsetFactor = 1f / 6f;
 
     private ChessElementData ChessData;
     private RectTransform selfRectTransform;
@@ -663,11 +664,54 @@ public class ChessElement : MonoBehaviour
         if (!hasContent)
         {
             m_BrickLife.text = string.Empty;
+            ApplyLifeLabelOffset(Type, legacyShapeType);
             return;
         }
 
         m_BrickLife.text = GetRuntimeLifeLabel(Type, life, specialValue);
         m_BrickLife.color = GetLifeTextColor(Type, Life);
+        ApplyLifeLabelOffset(Type, legacyShapeType);
+    }
+
+    private void ApplyLifeLabelOffset(LevelCellType type, LegacyBrickShapeType shapeType)
+    {
+        if (m_BrickLife == null)
+        {
+            return;
+        }
+
+        var labelRect = m_BrickLife.rectTransform;
+        if (labelRect == null)
+        {
+            return;
+        }
+
+        if (type != LevelCellType.Triangle)
+        {
+            labelRect.anchoredPosition = Vector2.zero;
+            return;
+        }
+
+        var xOffset = cellSize.x * TriangleLifeLabelOffsetFactor;
+        var yOffset = cellSize.y * TriangleLifeLabelOffsetFactor;
+        switch (shapeType)
+        {
+            case LegacyBrickShapeType.RightTriangleLeftDown:
+                labelRect.anchoredPosition = new Vector2(-xOffset, -yOffset);
+                break;
+            case LegacyBrickShapeType.RightTriangleLeftUp:
+                labelRect.anchoredPosition = new Vector2(-xOffset, yOffset);
+                break;
+            case LegacyBrickShapeType.RightTriangleRightUp:
+                labelRect.anchoredPosition = new Vector2(xOffset, yOffset);
+                break;
+            case LegacyBrickShapeType.RightTriangleRightDown:
+                labelRect.anchoredPosition = new Vector2(xOffset, -yOffset);
+                break;
+            default:
+                labelRect.anchoredPosition = Vector2.zero;
+                break;
+        }
     }
 
     private static string GetRuntimeLifeLabel(LevelCellType type, int currentLife, int currentSpecialValue)

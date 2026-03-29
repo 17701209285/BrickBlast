@@ -503,7 +503,7 @@ LineRenderer:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 4.975
+        value: 8.533334
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -512,7 +512,7 @@ LineRenderer:
         outWeight: 0.33333334
       - serializedVersion: 3
         time: 1
-        value: 4.975
+        value: 8.533334
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -1169,7 +1169,7 @@ RectTransform:
   m_GameObject: {fileID: 3748741464985914959}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.621875, y: 0.621875, z: 1}
+  m_LocalScale: {x: 1.0666667, y: 1.0666667, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3384838260063144218}
@@ -1491,10 +1491,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1860902773978886331}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -1.0499878, y: -935.28015}
-  m_SizeDelta: {x: -95.4, y: 1230.18}
+  m_AnchoredPosition: {x: -1.0499878, y: 24.719849}
+  m_SizeDelta: {x: -95.4, y: -689.81995}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6496620767708523987
 CanvasRenderer:
@@ -2002,7 +2002,7 @@ LineRenderer:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 4.975
+        value: 8.533334
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -2011,7 +2011,7 @@ LineRenderer:
         outWeight: 0.33333334
       - serializedVersion: 3
         time: 1
-        value: 4.975
+        value: 8.533334
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -2087,17 +2087,17 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7014408278639824434}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1860902773978886331}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -1.044, y: 24.71997}
-  m_SizeDelta: {x: 984.61, y: 1230.2}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: -1.0440063, y: 24.71997}
+  m_SizeDelta: {x: -94.79004, y: -689.62}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3776209933972734221
 CanvasRenderer:

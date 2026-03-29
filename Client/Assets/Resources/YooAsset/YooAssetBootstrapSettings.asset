@@ -16,7 +16,7 @@ MonoBehaviour:
   startupEntryId: brick-blast
   uiSettingsAddress: Assets/AssetBundle/YooAssetBootstrap/YooAssetUiSettings.asset
   packageName: DefaultPackage
-  editorPlayMode: 2
+  editorPlayMode: 0
   playerPlayMode: 2
   requestTimeoutSeconds: 60
   downloaderMaxConcurrency: 10
