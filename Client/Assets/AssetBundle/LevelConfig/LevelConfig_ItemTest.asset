@@ -79,26 +79,6 @@ MonoBehaviour:
     LegacyHitChangeType: 0
   - X: 4
     Y: 2
-    Type: 0
-    Life: 70
-    SpecialValue: 0
-    LegacyBrickId: 0
-    LegacyBrickType: 0
-    LegacyShapeType: 0
-    LegacyAttributeType: 0
-    LegacyToolType: 0
-    LegacyExtraAttributes: 
-    LegacyBreakTime: {x: 0, y: 0}
-    LegacyIsMovable: 0
-    LegacyMovePosition: 0
-    LegacyIsCustomColor: 0
-    LegacyCustomColorIndex: 0
-    LegacySize: {x: 0, y: 0}
-    LegacyIsSplit: 0
-    LegacyHitPosition: {x: 0, y: 0}
-    LegacyHitChangeType: 0
-  - X: 5
-    Y: 2
     Type: 4
     Life: 1
     SpecialValue: 0
@@ -117,10 +97,50 @@ MonoBehaviour:
     LegacyIsSplit: 0
     LegacyHitPosition: {x: 0, y: 0}
     LegacyHitChangeType: 0
-  - X: 6
+  - X: 5
     Y: 2
     Type: 0
-    Life: 70
+    Life: 60
+    SpecialValue: 0
+    LegacyBrickId: 0
+    LegacyBrickType: 0
+    LegacyShapeType: 0
+    LegacyAttributeType: 0
+    LegacyToolType: 0
+    LegacyExtraAttributes: 
+    LegacyBreakTime: {x: 0, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 6
+    Y: 2
+    Type: 7
+    Life: 1
+    SpecialValue: 0
+    LegacyBrickId: 0
+    LegacyBrickType: 0
+    LegacyShapeType: 0
+    LegacyAttributeType: 0
+    LegacyToolType: 0
+    LegacyExtraAttributes: 
+    LegacyBreakTime: {x: 0, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 1
+    Y: 3
+    Type: 0
+    Life: 60
     SpecialValue: 0
     LegacyBrickId: 0
     LegacyBrickType: 0
@@ -139,8 +159,48 @@ MonoBehaviour:
     LegacyHitChangeType: 0
   - X: 2
     Y: 3
+    Type: 5
+    Life: 1
+    SpecialValue: 0
+    LegacyBrickId: 0
+    LegacyBrickType: 0
+    LegacyShapeType: 0
+    LegacyAttributeType: 0
+    LegacyToolType: 0
+    LegacyExtraAttributes: 
+    LegacyBreakTime: {x: 0, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 3
+    Y: 3
     Type: 0
-    Life: 60
+    Life: 65
+    SpecialValue: 0
+    LegacyBrickId: 0
+    LegacyBrickType: 0
+    LegacyShapeType: 0
+    LegacyAttributeType: 0
+    LegacyToolType: 0
+    LegacyExtraAttributes: 
+    LegacyBreakTime: {x: 0, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 4
+    Y: 3
+    Type: 6
+    Life: 1
     SpecialValue: 0
     LegacyBrickId: 0
     LegacyBrickType: 0
@@ -160,8 +220,28 @@ MonoBehaviour:
   - X: 5
     Y: 3
     Type: 0
-    Life: 60
+    Life: 65
     SpecialValue: 0
+    LegacyBrickId: 0
+    LegacyBrickType: 0
+    LegacyShapeType: 0
+    LegacyAttributeType: 0
+    LegacyToolType: 0
+    LegacyExtraAttributes: 
+    LegacyBreakTime: {x: 0, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 6
+    Y: 3
+    Type: 8
+    Life: 1
+    SpecialValue: 1
     LegacyBrickId: 0
     LegacyBrickType: 0
     LegacyShapeType: 0
@@ -199,8 +279,8 @@ MonoBehaviour:
     LegacyHitChangeType: 0
   - X: 2
     Y: 4
-    Type: 5
-    Life: 1
+    Type: 0
+    Life: 60
     SpecialValue: 0
     LegacyBrickId: 0
     LegacyBrickType: 0
@@ -218,6 +298,66 @@ MonoBehaviour:
     LegacyHitPosition: {x: 0, y: 0}
     LegacyHitChangeType: 0
   - X: 3
+    Y: 4
+    Type: 3
+    Life: 1
+    SpecialValue: 0
+    LegacyBrickId: 0
+    LegacyBrickType: 0
+    LegacyShapeType: 0
+    LegacyAttributeType: 0
+    LegacyToolType: 0
+    LegacyExtraAttributes: 
+    LegacyBreakTime: {x: 0, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 4
+    Y: 4
+    Type: 0
+    Life: 70
+    SpecialValue: 0
+    LegacyBrickId: 0
+    LegacyBrickType: 0
+    LegacyShapeType: 0
+    LegacyAttributeType: 0
+    LegacyToolType: 0
+    LegacyExtraAttributes: 
+    LegacyBreakTime: {x: 0, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 5
+    Y: 4
+    Type: 4
+    Life: 1
+    SpecialValue: 0
+    LegacyBrickId: 0
+    LegacyBrickType: 0
+    LegacyShapeType: 0
+    LegacyAttributeType: 0
+    LegacyToolType: 0
+    LegacyExtraAttributes: 
+    LegacyBreakTime: {x: 0, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 6
     Y: 4
     Type: 1
     Life: 60
@@ -237,10 +377,10 @@ MonoBehaviour:
     LegacyIsSplit: 0
     LegacyHitPosition: {x: 0, y: 0}
     LegacyHitChangeType: 0
-  - X: 4
-    Y: 4
+  - X: 1
+    Y: 5
     Type: 0
-    Life: 70
+    Life: 65
     SpecialValue: 0
     LegacyBrickId: 0
     LegacyBrickType: 0
@@ -257,8 +397,8 @@ MonoBehaviour:
     LegacyIsSplit: 0
     LegacyHitPosition: {x: 0, y: 0}
     LegacyHitChangeType: 0
-  - X: 5
-    Y: 4
+  - X: 2
+    Y: 5
     Type: 7
     Life: 1
     SpecialValue: 0
@@ -277,10 +417,30 @@ MonoBehaviour:
     LegacyIsSplit: 0
     LegacyHitPosition: {x: 0, y: 0}
     LegacyHitChangeType: 0
-  - X: 6
-    Y: 4
+  - X: 3
+    Y: 5
     Type: 0
-    Life: 70
+    Life: 65
+    SpecialValue: 0
+    LegacyBrickId: 0
+    LegacyBrickType: 0
+    LegacyShapeType: 0
+    LegacyAttributeType: 0
+    LegacyToolType: 0
+    LegacyExtraAttributes: 
+    LegacyBreakTime: {x: 0, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 4
+    Y: 5
+    Type: 5
+    Life: 1
     SpecialValue: 0
     LegacyBrickId: 0
     LegacyBrickType: 0
@@ -300,7 +460,27 @@ MonoBehaviour:
   - X: 5
     Y: 5
     Type: 0
-    Life: 60
+    Life: 65
+    SpecialValue: 0
+    LegacyBrickId: 0
+    LegacyBrickType: 0
+    LegacyShapeType: 0
+    LegacyAttributeType: 0
+    LegacyToolType: 0
+    LegacyExtraAttributes: 
+    LegacyBreakTime: {x: 0, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 6
+    Y: 5
+    Type: 6
+    Life: 1
     SpecialValue: 0
     LegacyBrickId: 0
     LegacyBrickType: 0
@@ -320,7 +500,7 @@ MonoBehaviour:
   - X: 1
     Y: 6
     Type: 0
-    Life: 60
+    Life: 70
     SpecialValue: 0
     LegacyBrickId: 0
     LegacyBrickType: 0
@@ -339,9 +519,9 @@ MonoBehaviour:
     LegacyHitChangeType: 0
   - X: 2
     Y: 6
-    Type: 6
+    Type: 8
     Life: 1
-    SpecialValue: 0
+    SpecialValue: 1
     LegacyBrickId: 0
     LegacyBrickType: 0
     LegacyShapeType: 0
@@ -360,7 +540,7 @@ MonoBehaviour:
   - X: 3
     Y: 6
     Type: 0
-    Life: 60
+    Life: 70
     SpecialValue: 0
     LegacyBrickId: 0
     LegacyBrickType: 0
@@ -379,9 +559,9 @@ MonoBehaviour:
     LegacyHitChangeType: 0
   - X: 4
     Y: 6
-    Type: 8
+    Type: 3
     Life: 1
-    SpecialValue: 1
+    SpecialValue: 0
     LegacyBrickId: 0
     LegacyBrickType: 0
     LegacyShapeType: 0
@@ -419,8 +599,28 @@ MonoBehaviour:
     LegacyHitChangeType: 0
   - X: 6
     Y: 6
+    Type: 4
+    Life: 1
+    SpecialValue: 0
+    LegacyBrickId: 0
+    LegacyBrickType: 0
+    LegacyShapeType: 0
+    LegacyAttributeType: 0
+    LegacyToolType: 0
+    LegacyExtraAttributes: 
+    LegacyBreakTime: {x: 0, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 2
+    Y: 7
     Type: 0
-    Life: 70
+    Life: 75
     SpecialValue: 0
     LegacyBrickId: 0
     LegacyBrickType: 0
@@ -459,8 +659,8 @@ MonoBehaviour:
     LegacyHitChangeType: 0
   - X: 4
     Y: 7
-    Type: 0
-    Life: 75
+    Type: 7
+    Life: 1
     SpecialValue: 0
     LegacyBrickId: 0
     LegacyBrickType: 0
@@ -481,6 +681,66 @@ MonoBehaviour:
     Y: 7
     Type: 0
     Life: 75
+    SpecialValue: 0
+    LegacyBrickId: 0
+    LegacyBrickType: 0
+    LegacyShapeType: 0
+    LegacyAttributeType: 0
+    LegacyToolType: 0
+    LegacyExtraAttributes: 
+    LegacyBreakTime: {x: 0, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 3
+    Y: 8
+    Type: 0
+    Life: 80
+    SpecialValue: 0
+    LegacyBrickId: 0
+    LegacyBrickType: 0
+    LegacyShapeType: 0
+    LegacyAttributeType: 0
+    LegacyToolType: 0
+    LegacyExtraAttributes: 
+    LegacyBreakTime: {x: 0, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 4
+    Y: 8
+    Type: 8
+    Life: 1
+    SpecialValue: 1
+    LegacyBrickId: 0
+    LegacyBrickType: 0
+    LegacyShapeType: 0
+    LegacyAttributeType: 0
+    LegacyToolType: 0
+    LegacyExtraAttributes: 
+    LegacyBreakTime: {x: 0, y: 0}
+    LegacyIsMovable: 0
+    LegacyMovePosition: 0
+    LegacyIsCustomColor: 0
+    LegacyCustomColorIndex: 0
+    LegacySize: {x: 0, y: 0}
+    LegacyIsSplit: 0
+    LegacyHitPosition: {x: 0, y: 0}
+    LegacyHitChangeType: 0
+  - X: 5
+    Y: 8
+    Type: 0
+    Life: 80
     SpecialValue: 0
     LegacyBrickId: 0
     LegacyBrickType: 0

@@ -1214,7 +1214,7 @@ MonoBehaviour:
   DropDurationPerExtraRow: 0.04
   MaxDropDuration: 0.3
   DropEase: 9
-  CollisionRectInset: 0
+  CollisionRectInset: 8
   LayoutController: {fileID: 0}
   CurrentLevel: {fileID: 4026532249268482522}
   NexttLevel: {fileID: 8711231861604092273}
@@ -1279,7 +1279,7 @@ MonoBehaviour:
   LevelLoader: {fileID: 5162348761459023471}
   ResultWindowParent: {fileID: 0}
   ResultWindowAddress: Assets/AssetBundle/Prefabs/UIResultWindow.prefab
-  InitialBallCount: 60
+  InitialBallCount: 1
   BallSpeed: 2600
   LaunchInterval: 0.02
   SplitFanHalfAngle: 32
