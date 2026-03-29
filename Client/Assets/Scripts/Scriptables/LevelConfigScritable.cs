@@ -106,12 +106,15 @@ public class FCell
 [CreateAssetMenu(fileName = "LevelConfig", menuName = "Scriptable Objects/LevelConfig")]
 public class LevelConfigScritable : ScriptableObject
 {
+    public const int FixedBoardWidth = 8;
+    public const int FixedVisibleHeight = 10;
+
     [Min(1)]
-    public int Width = 11;
+    public int Width = FixedBoardWidth;
 
     [FormerlySerializedAs("Height")]
     [Min(1)]
-    public int VisibleHeight = 14;
+    public int VisibleHeight = FixedVisibleHeight;
 
     [Min(1)]
     public int TotalRows = 14;
@@ -125,9 +128,9 @@ public class LevelConfigScritable : ScriptableObject
 
     public void SetBoardInfo(int width, int visibleHeight, int totalRows, int dropRowCount)
     {
-        Width = Mathf.Max(1, width);
-        VisibleHeight = Mathf.Max(1, visibleHeight);
-        TotalRows = Mathf.Max(VisibleHeight, totalRows);
+        Width = FixedBoardWidth;
+        VisibleHeight = FixedVisibleHeight;
+        TotalRows = Mathf.Max(FixedVisibleHeight, totalRows);
         DropRowCount = Mathf.Max(0, dropRowCount);
     }
 
@@ -254,9 +257,9 @@ public class LevelConfigScritable : ScriptableObject
 #if UNITY_EDITOR
     private void OnValidate()
     {
-        Width = Mathf.Max(1, Width);
-        VisibleHeight = Mathf.Max(1, VisibleHeight);
-        TotalRows = Mathf.Max(VisibleHeight, TotalRows);
+        Width = FixedBoardWidth;
+        VisibleHeight = FixedVisibleHeight;
+        TotalRows = Mathf.Max(FixedVisibleHeight, TotalRows);
         DropRowCount = Mathf.Max(0, DropRowCount);
         NormalizeCells();
     }
@@ -269,7 +272,7 @@ public class LevelConfigScritable : ScriptableObject
             return Array.Empty<FCell>();
         }
 
-        width = Mathf.Max(1, width);
+        width = FixedBoardWidth;
         totalRows = Mathf.Max(1, totalRows);
 
         var uniqueCells = new Dictionary<Vector2Int, FCell>();

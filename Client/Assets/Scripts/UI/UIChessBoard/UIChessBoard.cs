@@ -764,12 +764,12 @@ public class UIChessBoard : MonoBehaviour
 
     private int GetBoardWidth()
     {
-        return LevelConfig != null ? Mathf.Max(1, LevelConfig.Width) : Mathf.Max(1, GlobleValue.ChessWidth);
+        return LevelConfigScritable.FixedBoardWidth;
     }
 
     private int GetBoardHeight()
     {
-        return LevelConfig != null ? Mathf.Max(1, LevelConfig.VisibleHeight) : Mathf.Max(1, GlobleValue.ChessHeight);
+        return LevelConfigScritable.FixedVisibleHeight;
     }
 
     private void ApplyBoardLayout()

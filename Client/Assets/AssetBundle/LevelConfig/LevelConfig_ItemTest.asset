@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: LevelConfig_ItemTest
   m_EditorClassIdentifier: Assembly-CSharp::LevelConfigScritable
   Width: 8
-  VisibleHeight: 12
-  TotalRows: 12
+  VisibleHeight: 10
+  TotalRows: 10
   DropRowCount: 0
   Cells:
   - X: 0

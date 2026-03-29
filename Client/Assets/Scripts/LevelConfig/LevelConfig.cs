@@ -14,12 +14,12 @@ public class LevelConfig : MonoBehaviour
 {
     [SerializeField]
     [Min(1)]
-    private int width = 11;
+    private int width = LevelConfigScritable.FixedBoardWidth;
 
     [FormerlySerializedAs("height")]
     [SerializeField]
     [Min(1)]
-    private int visibleHeight = 14;
+    private int visibleHeight = LevelConfigScritable.FixedVisibleHeight;
 
     [SerializeField]
     [Min(1)]
@@ -49,7 +49,7 @@ public class LevelConfig : MonoBehaviour
     private FCell[] authoredCells = Array.Empty<FCell>();
 
     public int Width => Mathf.Max(1, width);
-    public int VisibleHeight => Mathf.Max(1, visibleHeight);
+    public int VisibleHeight => LevelConfigScritable.FixedVisibleHeight;
     public int TotalRows => Mathf.Max(VisibleHeight, totalRows);
     public int DropRowCount => Mathf.Max(0, dropRowCount);
     public int EditRowOffset => ClampEditRowOffset(editRowOffset);
@@ -58,8 +58,8 @@ public class LevelConfig : MonoBehaviour
 
     private void Reset()
     {
-        width = Mathf.Max(1, GlobleValue.ChessWidth);
-        visibleHeight = Mathf.Max(1, GlobleValue.ChessHeight);
+        width = LevelConfigScritable.FixedBoardWidth;
+        visibleHeight = LevelConfigScritable.FixedVisibleHeight;
         totalRows = visibleHeight;
         dropRowCount = Mathf.Max(0, Mathf.Min(3, visibleHeight));
         editRowOffset = Mathf.Max(0, totalRows - visibleHeight);
@@ -235,8 +235,8 @@ public class LevelConfig : MonoBehaviour
             return;
         }
 
-        width = Mathf.Max(1, source.Width);
-        visibleHeight = Mathf.Max(1, source.VisibleHeight);
+        width = LevelConfigScritable.FixedBoardWidth;
+        visibleHeight = LevelConfigScritable.FixedVisibleHeight;
         totalRows = Mathf.Max(visibleHeight, source.TotalRows);
         dropRowCount = Mathf.Max(0, source.DropRowCount);
         editRowOffset = Mathf.Max(0, totalRows - visibleHeight);
@@ -281,8 +281,8 @@ public class LevelConfig : MonoBehaviour
 
     private void ClampConfigValues()
     {
-        width = Mathf.Max(1, width);
-        visibleHeight = Mathf.Max(1, visibleHeight);
+        width = LevelConfigScritable.FixedBoardWidth;
+        visibleHeight = LevelConfigScritable.FixedVisibleHeight;
         totalRows = Mathf.Max(visibleHeight, totalRows);
         dropRowCount = Mathf.Max(0, dropRowCount);
         editRowOffset = ClampEditRowOffset(editRowOffset);
