@@ -228,7 +228,8 @@ public class AimLinePresenter : MonoBehaviour
         }
 
         var angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        angle = Mathf.Clamp(angle, MinAimAngle, MaxAimAngle);
+        GetAimAngleBounds(originLocalPosition, out var minAimAngle, out var maxAimAngle);
+        angle = Mathf.Clamp(angle, minAimAngle, maxAimAngle);
 
         aimDirection = DegreeToDirection(angle);
         return true;
@@ -269,6 +270,43 @@ public class AimLinePresenter : MonoBehaviour
 
         var rect = AimArea.rect;
         return new Vector2(rect.center.x + LaunchOriginOffset.x, rect.yMin + LaunchOriginOffset.y);
+    }
+
+    private void GetAimAngleBounds(Vector2 originLocalPosition, out float minAimAngle, out float maxAimAngle)
+    {
+        var previewBounds = GetPreviewBounds();
+        if (previewBounds.width <= 0f)
+        {
+            minAimAngle = MinAimAngle;
+            maxAimAngle = MaxAimAngle;
+            return;
+        }
+
+        var boardHalfWidth = Mathf.Max(0.001f, previewBounds.width * 0.5f);
+        var cellWidth = previewBounds.width / Mathf.Max(1f, LevelConfigScritable.FixedBoardWidth);
+        var firstColumnCenterInset = Mathf.Max(0.001f, cellWidth * 0.5f);
+        var shallowReferenceAngle = Mathf.Min(
+            Mathf.Clamp(MinAimAngle, 0.5f, 89f),
+            Mathf.Clamp(180f - MaxAimAngle, 0.5f, 89f));
+        var referenceRise = Mathf.Tan(shallowReferenceAngle * Mathf.Deg2Rad) * (boardHalfWidth + firstColumnCenterInset);
+        var leftTravelDistance = Mathf.Max(0.001f, (originLocalPosition.x - previewBounds.xMin) + firstColumnCenterInset);
+        var rightTravelDistance = Mathf.Max(0.001f, (previewBounds.xMax - originLocalPosition.x) + firstColumnCenterInset);
+
+        minAimAngle = Mathf.Clamp(
+            Mathf.Atan2(referenceRise, rightTravelDistance) * Mathf.Rad2Deg,
+            0.5f,
+            89f);
+        maxAimAngle = Mathf.Clamp(
+            180f - (Mathf.Atan2(referenceRise, leftTravelDistance) * Mathf.Rad2Deg),
+            91f,
+            179.5f);
+
+        if (minAimAngle >= maxAimAngle)
+        {
+            var centerAngle = (minAimAngle + maxAimAngle) * 0.5f;
+            minAimAngle = Mathf.Clamp(centerAngle - 0.5f, 0.5f, 89f);
+            maxAimAngle = Mathf.Clamp(centerAngle + 0.5f, 91f, 179.5f);
+        }
     }
 
     private float GetPreviewBallRadius()

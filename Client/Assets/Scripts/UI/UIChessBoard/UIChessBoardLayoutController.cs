@@ -273,7 +273,7 @@ public class UIChessBoardLayoutController : MonoBehaviour
         LaunchBall.anchorMin = new Vector2(0.5f, 0.5f);
         LaunchBall.anchorMax = new Vector2(0.5f, 0.5f);
         LaunchBall.pivot = new Vector2(0.5f, 0.5f);
-        LaunchBall.anchoredPosition = baselineLaunchAnchoredPosition;
+        LaunchBall.anchoredPosition = new Vector2(0f, baselineLaunchAnchoredPosition.y);
     }
 
     private void RestoreBoardReference(RectTransform boardReference)

@@ -160,14 +160,6 @@ PrefabInstance:
       value: 1920
       objectReference: {fileID: 0}
     - target: {fileID: 1860902773978886331, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 0.9996137
-      objectReference: {fileID: 0}
-    - target: {fileID: 1860902773978886331, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 0.9996137
-      objectReference: {fileID: 0}
-    - target: {fileID: 1860902773978886331, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
@@ -215,10 +207,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1971229797070825727, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: -583
-      objectReference: {fileID: 0}
     - target: {fileID: 3024974973462010308, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
       propertyPath: m_Parameters.widthCurve.m_Curve.Array.data[0].value
       value: 0.041666668
@@ -233,7 +221,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6301200011732254101, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
       propertyPath: MinAimAngle
-      value: 15
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 7419450678404451547, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
       propertyPath: m_Parameters.widthCurve.m_Curve.Array.data[0].value
