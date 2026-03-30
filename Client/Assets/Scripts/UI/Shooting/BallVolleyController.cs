@@ -178,8 +178,6 @@ public class BallVolleyController : MonoBehaviour
             }
         }
 
-        ChessBoard?.RefreshCollisionCandidates(GetSimulationSpace());
-
         for (int i = activeProjectiles.Count - 1; i >= 0; i--)
         {
             var projectile = activeProjectiles[i];

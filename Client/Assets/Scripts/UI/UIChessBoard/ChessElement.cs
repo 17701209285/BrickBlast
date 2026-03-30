@@ -663,14 +663,49 @@ public class ChessElement : MonoBehaviour
 
         if (!hasContent)
         {
-            m_BrickLife.text = string.Empty;
+            m_BrickLife.SetText(string.Empty);
             ApplyLifeLabelOffset(Type, legacyShapeType);
             return;
         }
 
-        m_BrickLife.text = GetRuntimeLifeLabel(Type, life, specialValue);
+        SetRuntimeLifeLabel(m_BrickLife, Type, life, specialValue);
         m_BrickLife.color = GetLifeTextColor(Type, Life);
         ApplyLifeLabelOffset(Type, legacyShapeType);
+    }
+
+    private static void SetRuntimeLifeLabel(TextMeshProUGUI label, LevelCellType type, int currentLife, int currentSpecialValue)
+    {
+        if (label == null)
+        {
+            return;
+        }
+
+        if (type == LevelCellType.Empty)
+        {
+            label.SetText(string.Empty);
+            return;
+        }
+
+        if (type == LevelCellType.ExtraBalls)
+        {
+            label.SetText("+{0}", LevelCellTypeUtility.ResolveSpecialValue(type, currentSpecialValue));
+            return;
+        }
+
+        var marker = GetRuntimeTypeMarker(type);
+        if (LevelCellTypeUtility.IsSpecial(type))
+        {
+            label.SetText(marker);
+            return;
+        }
+
+        if (string.IsNullOrEmpty(marker))
+        {
+            label.SetText("{0}", currentLife);
+            return;
+        }
+
+        label.SetText($"{marker}{currentLife}");
     }
 
     private void ApplyLifeLabelOffset(LevelCellType type, LegacyBrickShapeType shapeType)

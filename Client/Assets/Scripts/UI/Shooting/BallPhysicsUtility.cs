@@ -127,6 +127,53 @@ public static class BallPhysicsUtility
         return foundHit && hit.Type != BallCollisionType.None;
     }
 
+    public static bool TryCalculatePathSegment(
+        UIChessBoard board,
+        RectTransform simulationSpace,
+        Rect bounds,
+        float collectorY,
+        Vector2 origin,
+        Vector2 direction,
+        float radius,
+        float epsilon,
+        ChessElement ignoredBlock,
+        ChessElement ignoredAdditionalBlock,
+        out BallPathSegment segment)
+    {
+        segment = default;
+        if (!TryGetNextHit(
+                board,
+                simulationSpace,
+                bounds,
+                collectorY,
+                origin,
+                direction,
+                radius,
+                float.PositiveInfinity,
+                epsilon,
+                ignoredBlock,
+                ignoredAdditionalBlock,
+                out var hit))
+        {
+            return false;
+        }
+
+        var normalizedDirection = direction.normalized;
+        var nextDirection = normalizedDirection;
+        if (hit.Type == BallCollisionType.Block || hit.Type == BallCollisionType.Wall)
+        {
+            nextDirection = Reflect(normalizedDirection, hit.Normal);
+        }
+
+        segment = new BallPathSegment(
+            origin,
+            normalizedDirection,
+            hit.Distance,
+            nextDirection,
+            hit);
+        return true;
+    }
+
     public static Vector2 Reflect(Vector2 direction, Vector2 hitNormal)
     {
         var normalizedNormal = NormalizeCollisionNormal(hitNormal);
@@ -255,6 +302,48 @@ public static class BallPhysicsUtility
         out BallCollisionHit hit)
     {
         return TryGetBlockHit(board, simulationSpace, origin, direction, radius, maxDistance, epsilon, ignoredBlock, ignoredAdditionalBlock, out hit);
+    }
+
+    public static bool IsOverlappingBlock(
+        UIChessBoard board,
+        RectTransform simulationSpace,
+        ChessElement targetBlock,
+        Vector2 ballCenter,
+        float radius,
+        float epsilon)
+    {
+        if (board == null || simulationSpace == null || targetBlock == null || !targetBlock.HasContent)
+        {
+            return false;
+        }
+
+        board.RefreshCollisionCandidates(simulationSpace);
+
+        var candidates = board.CollisionCandidates;
+        if (candidates == null || candidates.Count == 0)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < candidates.Count; i++)
+        {
+            var candidate = candidates[i];
+            if (candidate.Element != targetBlock)
+            {
+                continue;
+            }
+
+            return TryResolveCandidateOverlap(
+                candidate,
+                ballCenter,
+                radius,
+                epsilon,
+                out _,
+                out _,
+                out _);
+        }
+
+        return false;
     }
 
     private static bool TryGetCollectorHit(

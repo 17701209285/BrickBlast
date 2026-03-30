@@ -1286,7 +1286,7 @@ MonoBehaviour:
   BallCollisionRadiusScale: 1
   CollisionSkin: 1
   SimulationStep: 0.008333334
-  MaxCollisionsPerStep: 6
+  MaxCollisionsPerStep: 5
   FallbackSubstepDistance: 6
   MaxRuntimeProjectileCount: 180
   MoveBoardDownAfterVolley: 1
