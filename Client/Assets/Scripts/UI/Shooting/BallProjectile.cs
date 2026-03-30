@@ -216,19 +216,7 @@ public class BallProjectile : MonoBehaviour
 
                 if (overlapHit.Block != null)
                 {
-                    var effectResult = chessBoard != null
-                        ? chessBoard.ResolveProjectileBlockHit(overlapHit)
-                        : default;
-                    if (TryHandleProjectileHitEffect(effectResult))
-                    {
-                        return;
-                    }
-
-                    if (effectResult.PassThrough)
-                    {
-                        localPosition = nextPosition + (direction * GetPassThroughOffset());
-                        continue;
-                    }
+                    LogOverlapFallbackHit(overlapHit, nextPosition, resolvedPosition);
                 }
 
                 direction = BallPhysicsUtility.Reflect(direction, overlapHit.Normal);
@@ -334,5 +322,27 @@ public class BallProjectile : MonoBehaviour
         }
 
         return reflected;
+    }
+
+    private void LogOverlapFallbackHit(in BallCollisionHit overlapHit, Vector2 nextPosition, Vector2 resolvedPosition)
+    {
+        var primary = DescribeBlock(overlapHit.Block);
+        var additional = overlapHit.AdditionalBlock != null
+            ? $", Additional={DescribeBlock(overlapHit.AdditionalBlock)}"
+            : string.Empty;
+        Debug.LogError(
+            $"[BallProjectile] Overlap fallback detected. Damage was skipped because the projectile entered block interior without a swept boundary hit. " +
+            $"Projectile={name}, Primary={primary}{additional}, Next={nextPosition}, Resolved={resolvedPosition}, Current={localPosition}, Direction={direction}, Radius={radius}, Skin={collisionSkin}",
+            this);
+    }
+
+    private static string DescribeBlock(ChessElement block)
+    {
+        if (block == null)
+        {
+            return "null";
+        }
+
+        return $"[{block.name}] X={block.X} Y={block.Y} Type={block.Type} Life={block.Life}";
     }
 }
