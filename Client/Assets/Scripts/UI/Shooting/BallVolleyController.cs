@@ -235,7 +235,7 @@ public class BallVolleyController : MonoBehaviour
         var splitPlan = BallSplitSpawnPlanner.CreatePlan(activeProjectileCount, MaxRuntimeProjectileCount, SplitFanHalfAngle, baseDirection);
         if (splitPlan.ReuseSourceProjectile)
         {
-            sourceProjectile.Launch(CreateLaunchData(splitOriginLocalPosition, splitPlan.GetDirection(0)));
+            sourceProjectile.Launch(CreateLaunchData(splitOriginLocalPosition, splitPlan.GetDirection(0), false));
             return;
         }
 
@@ -259,7 +259,7 @@ public class BallVolleyController : MonoBehaviour
             return;
         }
 
-        sourceProjectile.Launch(CreateLaunchData(redirectOriginLocalPosition, redirectDirection));
+        sourceProjectile.Launch(CreateLaunchData(redirectOriginLocalPosition, redirectDirection, sourceProjectile.CanTriggerSplitSpecial));
     }
 
     public void AddBallCount(int ballCountDelta)
@@ -321,7 +321,7 @@ public class BallVolleyController : MonoBehaviour
             return;
         }
 
-        projectile.Launch(CreateLaunchData(launchOrigin, launchDirection));
+        projectile.Launch(CreateLaunchData(launchOrigin, launchDirection, true));
         activeProjectiles.Add(projectile);
         activeProjectileCount++;
     }
@@ -338,6 +338,8 @@ public class BallVolleyController : MonoBehaviour
         MoveLaunchBallTo(firstLandingPoint);
         SetLaunchBallVisible(true);
         RefreshLaunchBallCountLabel();
+
+        ChessBoard?.ClearTouchedSpecialItemsAtTurnEnd();
 
         var aimLockDuration = 0f;
         if (TryHandleLevelCompleted())
@@ -509,7 +511,7 @@ public class BallVolleyController : MonoBehaviour
             return;
         }
 
-        projectile.Launch(CreateLaunchData(originLocalPosition, direction));
+        projectile.Launch(CreateLaunchData(originLocalPosition, direction, false));
         activeProjectiles.Add(projectile);
         activeProjectileCount++;
     }
@@ -619,7 +621,7 @@ public class BallVolleyController : MonoBehaviour
         return GetBallRadius() * Mathf.Clamp(BallCollisionRadiusScale, 0.6f, 1f);
     }
 
-    private BallProjectileLaunchData CreateLaunchData(Vector2 originLocalPosition, Vector2 direction)
+    private BallProjectileLaunchData CreateLaunchData(Vector2 originLocalPosition, Vector2 direction, bool canTriggerSplitSpecial)
     {
         return new BallProjectileLaunchData(
             this,
@@ -634,7 +636,8 @@ public class BallVolleyController : MonoBehaviour
             CollisionSkin,
             SimulationStep,
             MaxCollisionsPerStep,
-            FallbackSubstepDistance);
+            FallbackSubstepDistance,
+            canTriggerSplitSpecial);
     }
 
     private void WarmupProjectilePool()

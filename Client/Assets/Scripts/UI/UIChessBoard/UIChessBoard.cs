@@ -324,6 +324,11 @@ public class UIChessBoard : MonoBehaviour
 
     public ProjectileHitEffectResult ResolveProjectileBlockHit(in BallCollisionHit hit)
     {
+        return ResolveProjectileBlockHit(hit, true);
+    }
+
+    public ProjectileHitEffectResult ResolveProjectileBlockHit(in BallCollisionHit hit, bool allowSplitSpecial)
+    {
         if (hit.Type != BallCollisionType.Block)
         {
             return default;
@@ -331,11 +336,27 @@ public class UIChessBoard : MonoBehaviour
 
         var result = default(ProjectileHitEffectResult);
         var impactAccumulator = new ChessBoardImpactAccumulator(ChessDamageSource.Projectile, hit.ImpactPoint);
-        ApplyDamageWithEffects(hit.Block, 1, hit.ImpactPoint, hit.ImpactDirection, ChessDamageSource.Projectile, ref result, impactAccumulator);
+        ApplyDamageWithEffects(
+            hit.Block,
+            1,
+            hit.ImpactPoint,
+            hit.ImpactDirection,
+            ChessDamageSource.Projectile,
+            ref result,
+            impactAccumulator,
+            allowSplitSpecial);
 
         if (hit.AdditionalBlock != null && hit.AdditionalBlock != hit.Block)
         {
-            ApplyDamageWithEffects(hit.AdditionalBlock, 1, hit.AdditionalImpactPoint, hit.ImpactDirection, ChessDamageSource.Projectile, ref result, impactAccumulator);
+            ApplyDamageWithEffects(
+                hit.AdditionalBlock,
+                1,
+                hit.AdditionalImpactPoint,
+                hit.ImpactDirection,
+                ChessDamageSource.Projectile,
+                ref result,
+                impactAccumulator,
+                allowSplitSpecial);
         }
 
         RebuildCollisionCandidates();
@@ -824,7 +845,8 @@ public class UIChessBoard : MonoBehaviour
         Vector2 impactDirection,
         ChessDamageSource source,
         ref ProjectileHitEffectResult projectileHitEffect,
-        ChessBoardImpactAccumulator impactAccumulator)
+        ChessBoardImpactAccumulator impactAccumulator,
+        bool allowSplitSpecial = true)
     {
         if (target == null || damage <= 0 || !target.HasContent)
         {
@@ -844,8 +866,13 @@ public class UIChessBoard : MonoBehaviour
             return;
         }
 
-        var specialEffectResult = ChessSpecialEffectProcessor.TryTrigger(this, target, impactDirection, source, impactAccumulator);
-        target.ConsumeSpecialItem();
+        var specialEffectResult = ChessSpecialEffectProcessor.TryTrigger(
+            this,
+            target,
+            impactDirection,
+            source,
+            impactAccumulator,
+            allowSplitSpecial);
         if (specialEffectResult.IsTriggered)
         {
             projectileHitEffect = MergeProjectileHitEffects(projectileHitEffect, specialEffectResult.ToProjectileHitEffectResult());

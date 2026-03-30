@@ -21,8 +21,10 @@ public class BallProjectile : MonoBehaviour
     private float fallbackSubstepDistance;
     private float simulationAccumulator;
     private bool isFlying;
+    private bool canTriggerSplitSpecial;
 
     public bool IsFlying => isFlying;
+    public bool CanTriggerSplitSpecial => canTriggerSplitSpecial;
 
     private void Awake()
     {
@@ -58,6 +60,7 @@ public class BallProjectile : MonoBehaviour
         simulationStep = Mathf.Max(0.001f, launchData.SimulationStep);
         maxCollisionsPerStep = Mathf.Max(1, launchData.MaxCollisionsPerStep);
         fallbackSubstepDistance = Mathf.Max(0.5f, launchData.FallbackSubstepDistance);
+        canTriggerSplitSpecial = launchData.CanTriggerSplitSpecial;
         simulationAccumulator = 0f;
         isFlying = true;
 
@@ -126,7 +129,7 @@ public class BallProjectile : MonoBehaviour
             if (hit.Type == BallCollisionType.Block && hit.Block != null)
             {
                 var effectResult = chessBoard != null
-                    ? chessBoard.ResolveProjectileBlockHit(hit)
+                    ? chessBoard.ResolveProjectileBlockHit(hit, canTriggerSplitSpecial)
                     : default;
                 if (TryHandleProjectileHitEffect(effectResult))
                 {
@@ -252,6 +255,11 @@ public class BallProjectile : MonoBehaviour
 
         if (effectResult.SplitIntoThreeWay)
         {
+            if (!canTriggerSplitSpecial)
+            {
+                return false;
+            }
+
             if (owner != null)
             {
                 owner.HandleSplitTrigger(this, effectResult.SplitOrigin, effectResult.SplitDirection);

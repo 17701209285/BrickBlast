@@ -15,6 +15,7 @@ public readonly struct BallProjectileLaunchData
     public float SimulationStep { get; }
     public int MaxCollisionsPerStep { get; }
     public float FallbackSubstepDistance { get; }
+    public bool CanTriggerSplitSpecial { get; }
 
     public BallProjectileLaunchData(
         BallVolleyController owner,
@@ -29,7 +30,8 @@ public readonly struct BallProjectileLaunchData
         float collisionSkin,
         float simulationStep,
         int maxCollisionsPerStep,
-        float fallbackSubstepDistance)
+        float fallbackSubstepDistance,
+        bool canTriggerSplitSpecial)
     {
         Owner = owner;
         ChessBoard = chessBoard;
@@ -44,5 +46,6 @@ public readonly struct BallProjectileLaunchData
         SimulationStep = simulationStep;
         MaxCollisionsPerStep = maxCollisionsPerStep;
         FallbackSubstepDistance = fallbackSubstepDistance;
+        CanTriggerSplitSpecial = canTriggerSplitSpecial;
     }
 }
