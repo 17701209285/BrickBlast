@@ -503,7 +503,7 @@ LineRenderer:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 3.1407409
+        value: 7.789583
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -512,7 +512,7 @@ LineRenderer:
         outWeight: 0.33333334
       - serializedVersion: 3
         time: 1
-        value: 3.1407409
+        value: 7.789583
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -1169,7 +1169,7 @@ RectTransform:
   m_GameObject: {fileID: 3748741464985914959}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.3925926, y: 0.3925926, z: 1}
+  m_LocalScale: {x: 0.9736979, y: 0.9736979, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3384838260063144218}
@@ -1214,7 +1214,7 @@ MonoBehaviour:
   DropDurationPerExtraRow: 0.04
   MaxDropDuration: 0.3
   DropEase: 9
-  CollisionRectInset: 8
+  CollisionRectInset: 2
   LayoutController: {fileID: 0}
   CurrentLevel: {fileID: 4026532249268482522}
   NexttLevel: {fileID: 8711231861604092273}
@@ -2002,7 +2002,7 @@ LineRenderer:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 3.1407409
+        value: 7.789583
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -2011,7 +2011,7 @@ LineRenderer:
         outWeight: 0.33333334
       - serializedVersion: 3
         time: 1
-        value: 3.1407409
+        value: 7.789583
         inSlope: 0
         outSlope: 0
         tangentMode: 0
