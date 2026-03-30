@@ -7,6 +7,7 @@ public class BallProjectile : MonoBehaviour
     private const float MinimumSweepCollisionEpsilon = 0.01f;
     private const float MaximumTickDeltaTime = 0.05f;
     private const int MinimumSegmentTransitionBudget = 8;
+    private const float MinimumSimulationStep = 1f / 240f;
 
     private BallVolleyController owner;
     private UIChessBoard chessBoard;
@@ -20,6 +21,8 @@ public class BallProjectile : MonoBehaviour
     private float radius;
     private float collectorY;
     private float collisionSkin;
+    private float simulationStep;
+    private float fallbackSubstepDistance;
     private int maxCollisionsPerStep;
     private bool isFlying;
     private bool canTriggerSplitSpecial;
@@ -46,7 +49,24 @@ public class BallProjectile : MonoBehaviour
             return;
         }
 
-        Simulate(deltaTime);
+        var remainingTime = Mathf.Min(deltaTime, MaximumTickDeltaTime);
+        var stepDuration = Mathf.Max(MinimumSimulationStep, simulationStep);
+        while (remainingTime > 0.0001f && isFlying)
+        {
+            if (ClampInsideBoundsAndResolveCollector())
+            {
+                return;
+            }
+
+            var currentStep = Mathf.Min(stepDuration, remainingTime);
+            SimulateStep(currentStep);
+            remainingTime -= currentStep;
+
+            if (ClampInsideBoundsAndResolveCollector())
+            {
+                return;
+            }
+        }
     }
 
     public void Launch(in BallProjectileLaunchData launchData)
@@ -64,6 +84,8 @@ public class BallProjectile : MonoBehaviour
         radius = Mathf.Max(0f, launchData.Radius);
         collectorY = launchData.CollectorY;
         collisionSkin = Mathf.Max(0.01f, launchData.CollisionSkin);
+        simulationStep = Mathf.Max(MinimumSimulationStep, launchData.SimulationStep);
+        fallbackSubstepDistance = Mathf.Max(collisionSkin, launchData.FallbackSubstepDistance);
         maxCollisionsPerStep = Mathf.Max(1, launchData.MaxCollisionsPerStep);
         canTriggerSplitSpecial = launchData.CanTriggerSplitSpecial;
         ClearActiveSegment();
@@ -83,17 +105,16 @@ public class BallProjectile : MonoBehaviour
         gameObject.SetActive(false);
     }
 
-    // Chinese note: the projectile now moves along a cached path segment.
-    // We only ask physics for a new collision when the current segment is exhausted,
-    // which is much closer to the reference project's "segment driven" battle loop.
-    private void Simulate(float deltaTime)
+    // Chinese note: the projectile moves along a cached path segment.
+    // Fixed-size simulation slices keep dropped frames from turning into one huge movement step.
+    private void SimulateStep(float stepDeltaTime)
     {
-        if (deltaTime <= 0f)
+        if (stepDeltaTime <= 0f)
         {
             return;
         }
 
-        var remainingDistance = speed * Mathf.Min(deltaTime, MaximumTickDeltaTime);
+        var remainingDistance = speed * stepDeltaTime;
         var transitionBudget = Mathf.Max(MinimumSegmentTransitionBudget, maxCollisionsPerStep * 8);
 
         while (remainingDistance > 0.001f && isFlying && transitionBudget > 0)
@@ -258,13 +279,15 @@ public class BallProjectile : MonoBehaviour
 
     private void MoveWithoutResolvedSegment(ref float remainingDistance)
     {
-        var nextPosition = localPosition + (direction * remainingDistance);
+        var travelledDistance = Mathf.Min(remainingDistance, fallbackSubstepDistance);
+        var nextPosition = localPosition + (direction * travelledDistance);
         var nextDirection = direction;
         if (TryResolveBoundsFallback(ref nextPosition, ref nextDirection, out var collectedPoint))
         {
             localPosition = collectedPoint ?? nextPosition;
             direction = nextDirection;
-            remainingDistance = 0f;
+            remainingDistance = Mathf.Max(0f, remainingDistance - travelledDistance);
+            ClearActiveSegment();
 
             if (collectedPoint.HasValue)
             {
@@ -276,7 +299,7 @@ public class BallProjectile : MonoBehaviour
         else
         {
             localPosition = nextPosition;
-            remainingDistance = 0f;
+            remainingDistance = Mathf.Max(0f, remainingDistance - travelledDistance);
         }
     }
 
@@ -445,6 +468,54 @@ public class BallProjectile : MonoBehaviour
         activeSegment = default;
         activeSegmentTravelledDistance = 0f;
         hasActiveSegment = false;
+    }
+
+    // Chinese note: walls are treated as hard limits.
+    // If numerical drift or a missed sweep ever pushes the ball outside the field,
+    // we snap it back inside immediately and invalidate the cached segment.
+    private bool ClampInsideBoundsAndResolveCollector()
+    {
+        var left = collisionBounds.xMin + radius;
+        var right = collisionBounds.xMax - radius;
+        var top = collisionBounds.yMax - radius;
+        var corrected = false;
+
+        if (localPosition.x < left)
+        {
+            localPosition.x = left;
+            direction.x = Mathf.Abs(direction.x);
+            corrected = true;
+        }
+        else if (localPosition.x > right)
+        {
+            localPosition.x = right;
+            direction.x = -Mathf.Abs(direction.x);
+            corrected = true;
+        }
+
+        if (localPosition.y > top)
+        {
+            localPosition.y = top;
+            direction.y = -Mathf.Abs(direction.y);
+            corrected = true;
+        }
+
+        if (direction.y < 0f && localPosition.y <= collectorY && localPosition.x >= left && localPosition.x <= right)
+        {
+            localPosition = new Vector2(Mathf.Clamp(localPosition.x, left, right), collectorY);
+            ApplyPosition();
+            owner?.NotifyProjectileReturned(this, localPosition);
+            return true;
+        }
+
+        if (!corrected)
+        {
+            return false;
+        }
+
+        direction = direction.normalized;
+        ClearActiveSegment();
+        return false;
     }
 
     private void ApplyPosition()

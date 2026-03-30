@@ -1280,8 +1280,8 @@ MonoBehaviour:
   ResultWindowParent: {fileID: 0}
   ResultWindowAddress: Assets/AssetBundle/Prefabs/UIResultWindow.prefab
   InitialBallCount: 60
-  BallSpeed: 2600
-  LaunchInterval: 0.02
+  BallSpeed: 2000
+  LaunchInterval: 0.03
   SplitFanHalfAngle: 32
   BallCollisionRadiusScale: 1
   CollisionSkin: 1
