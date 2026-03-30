@@ -81,6 +81,8 @@ public static class AimPreviewBlockScanner
             ballRadius,
             segmentLength,
             hitTolerance,
+            null,
+            null,
             out hit);
     }
 

@@ -4,6 +4,9 @@ using UnityEngine.UI;
 [DisallowMultipleComponent]
 public class BallProjectile : MonoBehaviour
 {
+    private const float MinimumSweepCollisionEpsilon = 0.01f;
+    private const int OverlapBinarySearchIterations = 6;
+
     private BallVolleyController owner;
     private UIChessBoard chessBoard;
     private RectTransform simulationSpace;
@@ -22,6 +25,9 @@ public class BallProjectile : MonoBehaviour
     private float simulationAccumulator;
     private bool isFlying;
     private bool canTriggerSplitSpecial;
+    private ChessElement ignoredPassThroughBlock;
+    private ChessElement ignoredPassThroughAdditionalBlock;
+    private float ignoredPassThroughDistanceRemaining;
 
     public bool IsFlying => isFlying;
     public bool CanTriggerSplitSpecial => canTriggerSplitSpecial;
@@ -62,6 +68,7 @@ public class BallProjectile : MonoBehaviour
         fallbackSubstepDistance = Mathf.Max(0.5f, launchData.FallbackSubstepDistance);
         canTriggerSplitSpecial = launchData.CanTriggerSplitSpecial;
         simulationAccumulator = 0f;
+        ClearIgnoredPassThroughBlocks();
         isFlying = true;
 
         gameObject.SetActive(true);
@@ -73,6 +80,7 @@ public class BallProjectile : MonoBehaviour
     {
         isFlying = false;
         simulationAccumulator = 0f;
+        ClearIgnoredPassThroughBlocks();
         gameObject.SetActive(false);
     }
 
@@ -96,11 +104,9 @@ public class BallProjectile : MonoBehaviour
         var remainingDistance = speed * Mathf.Max(0f, stepDuration);
         var collisionCounter = 0;
 
-        // 中文备注：这里用固定步长来推进球，再在每个步长里处理多次连续反弹。
-        // 这种写法会比直接按帧推进稳定很多，更接近 Brick Blast 这类游戏的手感。
-        while (remainingDistance > 0.001f && collisionCounter++ < maxCollisionsPerStep)
+        while (remainingDistance > 0.001f && isFlying && collisionCounter < maxCollisionsPerStep)
         {
-            if (!BallPhysicsUtility.TryGetNextHit(
+            if (BallPhysicsUtility.TryGetNextHit(
                     chessBoard,
                     simulationSpace,
                     collisionBounds,
@@ -109,46 +115,72 @@ public class BallProjectile : MonoBehaviour
                     direction,
                     radius,
                     remainingDistance,
-                    collisionSkin,
+                    GetSweepCollisionEpsilon(),
+                    GetIgnoredPassThroughBlock(),
+                    GetIgnoredPassThroughAdditionalBlock(),
                     out var hit))
             {
-                AdvanceWithFallbackSteps(remainingDistance);
-                return;
-            }
-
-            localPosition = hit.Point;
-            remainingDistance = Mathf.Max(0f, remainingDistance - hit.Distance);
-
-            if (hit.Type == BallCollisionType.Collector)
-            {
-                ApplyPosition();
-                owner?.NotifyProjectileReturned(this, hit.Point);
-                return;
-            }
-
-            if (hit.Type == BallCollisionType.Block && hit.Block != null)
-            {
-                var effectResult = chessBoard != null
-                    ? chessBoard.ResolveProjectileBlockHit(hit, canTriggerSplitSpecial)
-                    : default;
-                if (TryHandleProjectileHitEffect(effectResult))
+                collisionCounter++;
+                if (ResolveHit(hit, ref remainingDistance))
                 {
                     return;
                 }
 
-                if (effectResult.PassThrough)
-                {
-                    AdvancePassThrough(ref remainingDistance);
-                    continue;
-                }
+                continue;
             }
 
-            direction = BallPhysicsUtility.Reflect(direction, hit.Normal);
+            AdvanceWithFallbackSteps(ref remainingDistance, ref collisionCounter);
+            break;
+        }
+
+        ApplyPosition();
+    }
+
+    private bool ResolveHit(in BallCollisionHit hit, ref float remainingDistance)
+    {
+        localPosition = hit.Point;
+        remainingDistance = Mathf.Max(0f, remainingDistance - hit.Distance);
+        ConsumeIgnoredPassThroughDistance(hit.Distance);
+
+        if (hit.Type == BallCollisionType.Collector)
+        {
+            ApplyPosition();
+            owner?.NotifyProjectileReturned(this, hit.Point);
+            return true;
+        }
+
+        if (hit.Type == BallCollisionType.Block && hit.Block != null)
+        {
+            var effectResult = chessBoard != null
+                ? chessBoard.ResolveProjectileBlockHit(hit, canTriggerSplitSpecial)
+                : default;
+            if (TryHandleProjectileHitEffect(effectResult))
+            {
+                return true;
+            }
+
+            if (effectResult.PassThrough)
+            {
+                AdvancePassThrough(ref remainingDistance, hit);
+                return false;
+            }
+        }
+
+        ClearIgnoredPassThroughBlocks();
+        var reflectedDirection = BallPhysicsUtility.Reflect(direction, hit.Normal);
+        direction = reflectedDirection;
+
+        if (hit.Type == BallCollisionType.Block && hit.Block != null)
+        {
+            AdvanceBounce(ref remainingDistance, hit, reflectedDirection);
+        }
+        else
+        {
             localPosition += BallPhysicsUtility.GetSeparationOffset(hit.Normal, collisionSkin);
             remainingDistance = Mathf.Max(0f, remainingDistance - collisionSkin);
         }
 
-        ApplyPosition();
+        return false;
     }
 
     private void ApplyPosition()
@@ -181,19 +213,46 @@ public class BallProjectile : MonoBehaviour
         }
     }
 
-    private void AdvanceWithFallbackSteps(float remainingDistance)
+    private void AdvanceWithFallbackSteps(ref float remainingDistance, ref int collisionCounter)
     {
-        var substepLength = Mathf.Max(fallbackSubstepDistance, radius * 0.5f);
-        var stepCount = Mathf.Max(1, Mathf.CeilToInt(remainingDistance / substepLength));
-        var stepDistance = remainingDistance / stepCount;
+        var substepLength = Mathf.Max(0.5f, fallbackSubstepDistance);
 
-        // 中文备注：这是连续碰撞的第二层兜底。
-        // 如果某个极端角度没有被提前扫到，只要球真的跨进砖块或越过边界，这里也会修正回来。
-        for (int i = 0; i < stepCount && isFlying; i++)
+        while (remainingDistance > 0.001f && isFlying && collisionCounter < maxCollisionsPerStep)
         {
-            var nextPosition = localPosition + (direction * stepDistance);
+            var sliceDistance = Mathf.Min(substepLength, remainingDistance);
+            if (sliceDistance <= 0.001f)
+            {
+                break;
+            }
+
+            if (BallPhysicsUtility.TryGetNextHit(
+                    chessBoard,
+                    simulationSpace,
+                    collisionBounds,
+                    collectorY,
+                    localPosition,
+                    direction,
+                    radius,
+                    sliceDistance,
+                    GetSweepCollisionEpsilon(),
+                    GetIgnoredPassThroughBlock(),
+                    GetIgnoredPassThroughAdditionalBlock(),
+                    out var hit))
+            {
+                collisionCounter++;
+                if (ResolveHit(hit, ref remainingDistance))
+                {
+                    return;
+                }
+
+                continue;
+            }
+
+            var nextPosition = localPosition + (direction * sliceDistance);
             if (TryResolveBoundsFallback(ref nextPosition, ref direction, out var collectedPoint))
             {
+                remainingDistance = Mathf.Max(0f, remainingDistance - sliceDistance);
+
                 if (collectedPoint.HasValue)
                 {
                     localPosition = collectedPoint.Value;
@@ -203,33 +262,77 @@ public class BallProjectile : MonoBehaviour
                 }
 
                 localPosition = nextPosition;
+                ConsumeIgnoredPassThroughDistance(sliceDistance);
                 continue;
             }
 
-            if (BallPhysicsUtility.TryGetOverlapBlockHit(
-                    chessBoard,
-                    simulationSpace,
-                    nextPosition,
-                    radius,
-                    collisionSkin,
-                    out var overlapHit,
-                    out var resolvedPosition))
+            if (TryResolveSegmentOverlap(nextPosition, out var overlapHit, out var resolvedPosition))
             {
-                localPosition = resolvedPosition + BallPhysicsUtility.GetSeparationOffset(overlapHit.Normal, collisionSkin);
+                collisionCounter++;
+                remainingDistance = Mathf.Max(0f, remainingDistance - sliceDistance);
+                localPosition = resolvedPosition;
 
-                if (overlapHit.Block != null)
+                if (ResolveHit(overlapHit, ref remainingDistance))
                 {
-                    LogOverlapFallbackHit(overlapHit, nextPosition, resolvedPosition);
+                    return;
                 }
 
-                direction = BallPhysicsUtility.Reflect(direction, overlapHit.Normal);
                 continue;
             }
 
             localPosition = nextPosition;
+            remainingDistance = Mathf.Max(0f, remainingDistance - sliceDistance);
+            ConsumeIgnoredPassThroughDistance(sliceDistance);
+        }
+    }
+
+    private bool TryResolveSegmentOverlap(Vector2 targetPosition, out BallCollisionHit hit, out Vector2 resolvedPosition)
+    {
+        if (!BallPhysicsUtility.TryGetOverlapBlockHit(
+                chessBoard,
+                simulationSpace,
+                targetPosition,
+                radius,
+                collisionSkin,
+                GetIgnoredPassThroughBlock(),
+                GetIgnoredPassThroughAdditionalBlock(),
+                out hit,
+                out resolvedPosition))
+        {
+            return false;
         }
 
-        ApplyPosition();
+        var clearPosition = localPosition;
+        var overlapPosition = targetPosition;
+        var bestHit = hit;
+        var bestResolvedPosition = resolvedPosition;
+        for (int i = 0; i < OverlapBinarySearchIterations; i++)
+        {
+            var midpoint = Vector2.Lerp(clearPosition, overlapPosition, 0.5f);
+            if (BallPhysicsUtility.TryGetOverlapBlockHit(
+                    chessBoard,
+                    simulationSpace,
+                    midpoint,
+                    radius,
+                    collisionSkin,
+                    GetIgnoredPassThroughBlock(),
+                    GetIgnoredPassThroughAdditionalBlock(),
+                    out var midpointHit,
+                    out var midpointResolvedPosition))
+            {
+                overlapPosition = midpoint;
+                bestHit = midpointHit;
+                bestResolvedPosition = midpointResolvedPosition;
+            }
+            else
+            {
+                clearPosition = midpoint;
+            }
+        }
+
+        hit = bestHit;
+        resolvedPosition = bestResolvedPosition;
+        return true;
     }
 
     private bool TryHandleProjectileHitEffect(ProjectileHitEffectResult effectResult)
@@ -275,16 +378,121 @@ public class BallProjectile : MonoBehaviour
         return false;
     }
 
-    private void AdvancePassThrough(ref float remainingDistance)
+    private void AdvancePassThrough(ref float remainingDistance, in BallCollisionHit hit)
     {
-        var passThroughOffset = GetPassThroughOffset();
-        localPosition += direction * passThroughOffset;
-        remainingDistance = Mathf.Max(0f, remainingDistance - passThroughOffset);
+        ignoredPassThroughBlock = hit.Block;
+        ignoredPassThroughAdditionalBlock = hit.AdditionalBlock;
+        ignoredPassThroughDistanceRemaining = Mathf.Max(0f, GetPassThroughOffset(hit));
+
+        var advanceDistance = Mathf.Min(
+            remainingDistance,
+            Mathf.Max(collisionSkin, GetSweepCollisionEpsilon()));
+        localPosition += direction * advanceDistance;
+        remainingDistance = Mathf.Max(0f, remainingDistance - advanceDistance);
+        ConsumeIgnoredPassThroughDistance(advanceDistance);
     }
 
-    private float GetPassThroughOffset()
+    private void AdvanceBounce(ref float remainingDistance, in BallCollisionHit hit, Vector2 reflectedDirection)
     {
-        return Mathf.Max(collisionSkin, radius * BallShootingConstants.PassThroughOffsetRadiusRatio);
+        var bounceOffset = GetBounceOffset(hit, reflectedDirection);
+        localPosition += reflectedDirection * bounceOffset;
+        remainingDistance = Mathf.Max(0f, remainingDistance - bounceOffset);
+    }
+
+    private float GetPassThroughOffset(in BallCollisionHit hit)
+    {
+        var baseOffset = Mathf.Max(collisionSkin, radius * BallShootingConstants.PassThroughOffsetRadiusRatio);
+        var primaryExitOffset = GetExitOffsetForBlock(hit.Block, direction);
+        var secondaryExitOffset = GetExitOffsetForBlock(hit.AdditionalBlock, direction);
+        return Mathf.Max(baseOffset, Mathf.Max(primaryExitOffset, secondaryExitOffset));
+    }
+
+    private float GetBounceOffset(in BallCollisionHit hit, Vector2 reflectedDirection)
+    {
+        var primaryExitOffset = GetExitOffsetForBlock(hit.Block, reflectedDirection);
+        var secondaryExitOffset = GetExitOffsetForBlock(hit.AdditionalBlock, reflectedDirection);
+        return Mathf.Max(collisionSkin, Mathf.Max(primaryExitOffset, secondaryExitOffset));
+    }
+
+    private float GetExitOffsetForBlock(ChessElement block, Vector2 travelDirection)
+    {
+        if (block == null || simulationSpace == null)
+        {
+            return 0f;
+        }
+
+        var blockRect = block.GetRectInSpace(simulationSpace);
+        if (blockRect.width <= 0f || blockRect.height <= 0f)
+        {
+            return 0f;
+        }
+
+        blockRect.xMin -= radius;
+        blockRect.xMax += radius;
+        blockRect.yMin -= radius;
+        blockRect.yMax += radius;
+
+        var exitDistance = float.MaxValue;
+        if (travelDirection.x > 0.0001f)
+        {
+            exitDistance = Mathf.Min(exitDistance, (blockRect.xMax - localPosition.x) / travelDirection.x);
+        }
+        else if (travelDirection.x < -0.0001f)
+        {
+            exitDistance = Mathf.Min(exitDistance, (blockRect.xMin - localPosition.x) / travelDirection.x);
+        }
+
+        if (travelDirection.y > 0.0001f)
+        {
+            exitDistance = Mathf.Min(exitDistance, (blockRect.yMax - localPosition.y) / travelDirection.y);
+        }
+        else if (travelDirection.y < -0.0001f)
+        {
+            exitDistance = Mathf.Min(exitDistance, (blockRect.yMin - localPosition.y) / travelDirection.y);
+        }
+
+        if (exitDistance == float.MaxValue)
+        {
+            return 0f;
+        }
+
+        return Mathf.Max(0f, exitDistance) + collisionSkin;
+    }
+
+    private float GetSweepCollisionEpsilon()
+    {
+        return Mathf.Min(collisionSkin * 0.25f, Mathf.Max(0.001f, MinimumSweepCollisionEpsilon));
+    }
+
+    private ChessElement GetIgnoredPassThroughBlock()
+    {
+        return ignoredPassThroughDistanceRemaining > 0f ? ignoredPassThroughBlock : null;
+    }
+
+    private ChessElement GetIgnoredPassThroughAdditionalBlock()
+    {
+        return ignoredPassThroughDistanceRemaining > 0f ? ignoredPassThroughAdditionalBlock : null;
+    }
+
+    private void ConsumeIgnoredPassThroughDistance(float distance)
+    {
+        if (ignoredPassThroughDistanceRemaining <= 0f || distance <= 0f)
+        {
+            return;
+        }
+
+        ignoredPassThroughDistanceRemaining = Mathf.Max(0f, ignoredPassThroughDistanceRemaining - distance);
+        if (ignoredPassThroughDistanceRemaining <= 0f)
+        {
+            ClearIgnoredPassThroughBlocks();
+        }
+    }
+
+    private void ClearIgnoredPassThroughBlocks()
+    {
+        ignoredPassThroughBlock = null;
+        ignoredPassThroughAdditionalBlock = null;
+        ignoredPassThroughDistanceRemaining = 0f;
     }
 
     private bool TryResolveBoundsFallback(ref Vector2 nextPosition, ref Vector2 nextDirection, out Vector2? collectedPoint)
@@ -296,8 +504,6 @@ public class BallProjectile : MonoBehaviour
         var top = collisionBounds.yMax - radius;
         var reflected = false;
 
-        // 中文备注：这是边界兜底。
-        // 主碰撞应该优先算出反弹；如果某一小步漏判了，这里至少保证球不会直接飞出棋盘。
         if (nextPosition.x < left)
         {
             nextPosition.x = left + (left - nextPosition.x);
@@ -330,27 +536,5 @@ public class BallProjectile : MonoBehaviour
         }
 
         return reflected;
-    }
-
-    private void LogOverlapFallbackHit(in BallCollisionHit overlapHit, Vector2 nextPosition, Vector2 resolvedPosition)
-    {
-        var primary = DescribeBlock(overlapHit.Block);
-        var additional = overlapHit.AdditionalBlock != null
-            ? $", Additional={DescribeBlock(overlapHit.AdditionalBlock)}"
-            : string.Empty;
-        Debug.LogError(
-            $"[BallProjectile] Overlap fallback detected. Damage was skipped because the projectile entered block interior without a swept boundary hit. " +
-            $"Projectile={name}, Primary={primary}{additional}, Next={nextPosition}, Resolved={resolvedPosition}, Current={localPosition}, Direction={direction}, Radius={radius}, Skin={collisionSkin}",
-            this);
-    }
-
-    private static string DescribeBlock(ChessElement block)
-    {
-        if (block == null)
-        {
-            return "null";
-        }
-
-        return $"[{block.name}] X={block.X} Y={block.Y} Type={block.Type} Life={block.Life}";
     }
 }

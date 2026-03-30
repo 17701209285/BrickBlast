@@ -102,6 +102,8 @@ public static class BallPhysicsUtility
         float radius,
         float maxDistance,
         float epsilon,
+        ChessElement ignoredBlock,
+        ChessElement ignoredAdditionalBlock,
         out BallCollisionHit hit)
     {
         hit = new BallCollisionHit(BallCollisionType.None, float.MaxValue, origin, Vector2.zero, origin, direction, null);
@@ -117,7 +119,7 @@ public static class BallPhysicsUtility
             foundHit = TrySelectCloserHit(wallHit, ref hit, epsilon) || foundHit;
         }
 
-        if (TryGetBlockHit(board, simulationSpace, origin, direction, radius, maxDistance, epsilon, out var blockHit))
+        if (TryGetBlockHit(board, simulationSpace, origin, direction, radius, maxDistance, epsilon, ignoredBlock, ignoredAdditionalBlock, out var blockHit))
         {
             foundHit = TrySelectCloserHit(blockHit, ref hit, epsilon) || foundHit;
         }
@@ -169,6 +171,8 @@ public static class BallPhysicsUtility
         Vector2 ballCenter,
         float radius,
         float epsilon,
+        ChessElement ignoredBlock,
+        ChessElement ignoredAdditionalBlock,
         out BallCollisionHit hit,
         out Vector2 resolvedPosition)
     {
@@ -178,6 +182,8 @@ public static class BallPhysicsUtility
         {
             return false;
         }
+
+        board.RefreshCollisionCandidates(simulationSpace);
 
         var candidates = board.CollisionCandidates;
         if (candidates == null || candidates.Count == 0)
@@ -192,7 +198,7 @@ public static class BallPhysicsUtility
         {
             var candidate = candidates[i];
             var block = candidate.Element;
-            if (block == null || !block.HasContent)
+            if (block == null || !block.HasContent || ShouldIgnoreBlock(block, ignoredBlock, ignoredAdditionalBlock))
             {
                 continue;
             }
@@ -230,7 +236,7 @@ public static class BallPhysicsUtility
 
         if (foundHit)
         {
-            hit = AugmentSharedBlockHit(hit, candidates, radius, simultaneousTolerance, epsilon);
+            hit = AugmentSharedBlockHit(hit, candidates, radius, simultaneousTolerance, epsilon, ignoredBlock, ignoredAdditionalBlock);
         }
 
         return foundHit;
@@ -244,9 +250,11 @@ public static class BallPhysicsUtility
         float radius,
         float maxDistance,
         float epsilon,
+        ChessElement ignoredBlock,
+        ChessElement ignoredAdditionalBlock,
         out BallCollisionHit hit)
     {
-        return TryGetBlockHit(board, simulationSpace, origin, direction, radius, maxDistance, epsilon, out hit);
+        return TryGetBlockHit(board, simulationSpace, origin, direction, radius, maxDistance, epsilon, ignoredBlock, ignoredAdditionalBlock, out hit);
     }
 
     private static bool TryGetCollectorHit(
@@ -381,6 +389,8 @@ public static class BallPhysicsUtility
         float radius,
         float maxDistance,
         float epsilon,
+        ChessElement ignoredBlock,
+        ChessElement ignoredAdditionalBlock,
         out BallCollisionHit hit)
     {
         hit = default;
@@ -388,6 +398,8 @@ public static class BallPhysicsUtility
         {
             return false;
         }
+
+        board.RefreshCollisionCandidates(simulationSpace);
 
         var candidates = board.CollisionCandidates;
         if (candidates == null || candidates.Count == 0)
@@ -402,7 +414,7 @@ public static class BallPhysicsUtility
         {
             var collisionCandidate = candidates[i];
             var block = collisionCandidate.Element;
-            if (block == null || !block.HasContent)
+            if (block == null || !block.HasContent || ShouldIgnoreBlock(block, ignoredBlock, ignoredAdditionalBlock))
             {
                 continue;
             }
@@ -446,7 +458,7 @@ public static class BallPhysicsUtility
 
         if (foundHit)
         {
-            closestHit = AugmentSharedBlockHit(closestHit, candidates, radius, simultaneousTolerance, epsilon);
+            closestHit = AugmentSharedBlockHit(closestHit, candidates, radius, simultaneousTolerance, epsilon, ignoredBlock, ignoredAdditionalBlock);
         }
 
         hit = closestHit;
@@ -716,7 +728,9 @@ public static class BallPhysicsUtility
         System.Collections.Generic.IReadOnlyList<UIChessBoard.CollisionCandidate> candidates,
         float radius,
         float simultaneousTolerance,
-        float epsilon)
+        float epsilon,
+        ChessElement ignoredBlock,
+        ChessElement ignoredAdditionalBlock)
     {
         if (hit.Type != BallCollisionType.Block || hit.Block == null || candidates == null || candidates.Count == 0)
         {
@@ -729,7 +743,7 @@ public static class BallPhysicsUtility
         {
             var candidate = candidates[i];
             var block = candidate.Element;
-            if (block == null || !block.HasContent || block == augmentedHit.Block || block == augmentedHit.AdditionalBlock)
+            if (block == null || !block.HasContent || block == augmentedHit.Block || block == augmentedHit.AdditionalBlock || ShouldIgnoreBlock(block, ignoredBlock, ignoredAdditionalBlock))
             {
                 continue;
             }
@@ -757,6 +771,11 @@ public static class BallPhysicsUtility
         }
 
         return augmentedHit;
+    }
+
+    private static bool ShouldIgnoreBlock(ChessElement block, ChessElement ignoredBlock, ChessElement ignoredAdditionalBlock)
+    {
+        return block != null && (block == ignoredBlock || block == ignoredAdditionalBlock);
     }
 
     private static Vector2 BuildAxisFallbackNormal(Vector2 a, Vector2 b)

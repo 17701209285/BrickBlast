@@ -6,7 +6,7 @@ public static class BallShootingConstants
     public const float DefaultCollisionRadiusScale = 1f;
     public const float DefaultCollisionSkin = 1f;
     public const float DefaultSimulationStep = 1f / 90f;
-    public const int DefaultMaxCollisionsPerStep = 6;
+    public const int DefaultMaxCollisionsPerStep = 2;
     public const float DefaultFallbackSubstepDistance = 6f;
     public const float DefaultFallbackWidth = 1080f;
     public const float DefaultFallbackHeight = 1920f;
