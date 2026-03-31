@@ -1207,7 +1207,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UIChessBoard
   OriginPrefab: {fileID: 1333875958311173310}
   ParentTransform: {fileID: 5462893073785062948}
-  LevelConfig: {fileID: 11400000, guid: e87ddc551af24425afebf3c6d46c7416, type: 2}
+  LevelConfig: {fileID: 11400000, guid: f5e0a617f08e9484998e527f694310ad, type: 2}
   LoadConfigOnStart: 1
   AnimateDrop: 1
   DropDuration: 0.22
@@ -1279,7 +1279,7 @@ MonoBehaviour:
   LevelLoader: {fileID: 5162348761459023471}
   ResultWindowParent: {fileID: 0}
   ResultWindowAddress: Assets/AssetBundle/Prefabs/UIResultWindow.prefab
-  InitialBallCount: 60
+  InitialBallCount: 1
   BallSpeed: 2000
   LaunchInterval: 0.03
   SplitFanHalfAngle: 32

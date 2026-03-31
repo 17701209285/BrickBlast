@@ -94,7 +94,7 @@ internal static class ChessSpecialEffectProcessor
                     true,
                     true,
                     board.GetSplitLaunchOrigin(target),
-                    BallDirectionUtility.NormalizeOrFallback(incomingDirection),
+                    BallDirectionUtility.NormalizeOrFallback(Vector2.up),
                     false,
                     Vector2.zero,
                     Vector2.zero,
@@ -115,7 +115,7 @@ internal static class ChessSpecialEffectProcessor
                     Vector2.zero,
                     true,
                     board.GetSplitLaunchOrigin(target),
-                    ChessRedirectDirectionResolver.GetRedirectDirection(incomingDirection, redirectIndex),
+                    ChessRedirectDirectionResolver.GetRedirectDirection(Vector2.up, redirectIndex),
                     0);
             case LevelCellType.ExtraBalls:
                 impactAccumulator?.RegisterSpecialTrigger(target.Type);
