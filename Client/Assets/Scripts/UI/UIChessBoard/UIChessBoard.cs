@@ -120,8 +120,8 @@ public class UIChessBoard : MonoBehaviour
     private int[] shiftSourceSpecialValuesBuffer;
     private LegacyBrickShapeType[] shiftSourceShapeTypesBuffer;
     private RectTransform collisionCandidateSpace;
-    private int collisionCandidateFrame = -1;
     private bool collisionCandidatesDirty = true;
+    private int collisionGeometryVersion;
     private int boardWidth;
     private int boardHeight;
     private int visibleStartRow;
@@ -132,6 +132,7 @@ public class UIChessBoard : MonoBehaviour
     public int BoardHeight => boardHeight;
     public int BottomRowIndex => Mathf.Max(0, boardHeight - 1);
     public IReadOnlyList<CollisionCandidate> CollisionCandidates => collisionCandidates;
+    public int CollisionGeometryVersion => collisionGeometryVersion;
     public bool IsGameOver => isGameOver;
     public string CurrentLevelAddress => ResolveLevelAddress(LevelConfig, currentLevelAddress);
     public RectTransform PrimaryShakeTarget => ParentTransform as RectTransform != null
@@ -861,6 +862,24 @@ public class UIChessBoard : MonoBehaviour
             return false;
         }
 
+        if (source == ChessDamageSource.Projectile &&
+            !allowSplitSpecial &&
+            target.Type == LevelCellType.SplitThreeWay)
+        {
+            projectileHitEffect = MergeProjectileHitEffects(
+                projectileHitEffect,
+                new ProjectileHitEffectResult(
+                    false,
+                    true,
+                    Vector2.zero,
+                    Vector2.zero,
+                    false,
+                    Vector2.zero,
+                    Vector2.zero,
+                    0));
+            return false;
+        }
+
         var previousType = target.Type;
         var previousShapeType = target.LegacyShapeType;
         var isSpecialItem = target.IsSpecialItem;
@@ -1033,7 +1052,6 @@ public class UIChessBoard : MonoBehaviour
     {
         collisionCandidates.Clear();
         collisionCandidateSpace = relativeTo;
-        collisionCandidateFrame = Application.isPlaying ? Time.frameCount : -1;
         collisionCandidatesDirty = false;
         if (chessElements == null || relativeTo == null)
         {
@@ -1074,6 +1092,6 @@ public class UIChessBoard : MonoBehaviour
     private void MarkCollisionCandidatesDirty()
     {
         collisionCandidatesDirty = true;
-        collisionCandidateFrame = -1;
+        collisionGeometryVersion++;
     }
 }

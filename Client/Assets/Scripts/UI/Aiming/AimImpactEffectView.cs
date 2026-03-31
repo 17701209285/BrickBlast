@@ -125,7 +125,7 @@ public class AimImpactEffectView : MonoBehaviour
             ReflectionWidth,
             ReflectionColor);
 
-        ConfigureImpactBall(blockImpactBall, impactData.HasBlockImpact, impactData.BlockImpactCenterPoint);
+        ConfigureImpactBall(blockImpactBall, impactData.HasBlockImpact, impactData.BlockImpactPoint, impactData.BlockImpactNormal);
     }
 
     public void Hide()
@@ -263,7 +263,7 @@ public class AimImpactEffectView : MonoBehaviour
         UpdateCircle(marker, 1f, color);
     }
 
-    private void ConfigureImpactBall(ImpactBallMarker marker, bool active, Vector2 localCenterPoint)
+    private void ConfigureImpactBall(ImpactBallMarker marker, bool active, Vector2 localImpactPoint, Vector2 impactNormal)
     {
         if (marker?.RectTransform == null || marker.Image == null)
         {
@@ -278,6 +278,9 @@ public class AimImpactEffectView : MonoBehaviour
         }
 
         ApplyImpactBallStyle(marker);
+        var visualRadius = Mathf.Min(marker.BaseSize.x, marker.BaseSize.y) * 0.5f;
+        var contactNormal = impactNormal.sqrMagnitude > 0.0001f ? impactNormal.normalized : Vector2.up;
+        var localCenterPoint = localImpactPoint + (contactNormal * visualRadius);
         marker.BaseAnchoredPosition = localCenterPoint;
         marker.RectTransform.anchoredPosition = localCenterPoint;
         marker.RectTransform.gameObject.SetActive(true);

@@ -92,6 +92,11 @@ public static class BallPhysicsUtility
 
     private const float DirectionThresholdEpsilon = 0.0001f;
 
+    public static float CalculateSweepCollisionEpsilon(float collisionSkin)
+    {
+        return Mathf.Min(Mathf.Max(0f, collisionSkin) * 0.25f, Mathf.Max(0.001f, 0.01f));
+    }
+
     public static bool TryGetNextHit(
         UIChessBoard board,
         RectTransform simulationSpace,

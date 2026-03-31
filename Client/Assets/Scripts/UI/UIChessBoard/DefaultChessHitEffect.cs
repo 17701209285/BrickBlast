@@ -6,17 +6,6 @@ using UnityEngine.UI;
 public class DefaultChessHitEffect : MonoBehaviour, IChessHitEffectPlayer
 {
     [SerializeField]
-    [Min(1f)]
-    private float HitScale = 1.12f;
-
-    [SerializeField]
-    [Min(1f)]
-    private float DestroyedScale = 1.18f;
-
-    [SerializeField]
-    private bool EnableScaleEffect = false;
-
-    [SerializeField]
     [Min(0.01f)]
     private float HitDuration = 0.12f;
 
@@ -32,9 +21,7 @@ public class DefaultChessHitEffect : MonoBehaviour, IChessHitEffectPlayer
     [Min(0f)]
     private float MinHitEffectInterval = 0.04f;
 
-    private RectTransform selfRectTransform;
     private Image image;
-    private Tween scaleTween;
     private Tween colorTween;
     private float lastHitEffectTime = -999f;
 
@@ -62,34 +49,17 @@ public class DefaultChessHitEffect : MonoBehaviour, IChessHitEffectPlayer
         }
 
         lastHitEffectTime = now;
+        Debug.Log(
+            $"[ChessHitEffect] Target={context.Target?.name ?? "null"} Source={context.DamageSource} Damage={context.Damage} PrevLife={context.PreviousLife} CurrentLife={context.CurrentLife} Destroyed={context.IsDestroyed}",
+            this);
         CacheComponents();
         StopTweens();
 
-        // 中文备注：这里故意只放一个轻量默认效果，
-        // 后面你可以直接删掉这个组件，换成粒子、Shader 或 Spine。
         var totalDuration = context.IsDestroyed ? DestroyedDuration : HitDuration;
-        var targetScale = context.IsDestroyed ? DestroyedScale : HitScale;
         var isBlastDamage =
             context.DamageSource == ChessDamageSource.HorizontalBlast
             || context.DamageSource == ChessDamageSource.VerticalBlast
             || context.DamageSource == ChessDamageSource.CrossBlast;
-
-        if (EnableScaleEffect && selfRectTransform != null && !Mathf.Approximately(targetScale, 1f))
-        {
-            selfRectTransform.localScale = Vector3.one;
-            scaleTween = selfRectTransform
-                .DOScale(targetScale, totalDuration * 0.5f)
-                .SetEase(Ease.OutQuad)
-                .SetLink(gameObject)
-                .OnComplete(() =>
-                {
-                    scaleTween = selfRectTransform
-                        .DOScale(1f, totalDuration * 0.5f)
-                        .SetEase(Ease.InQuad)
-                        .SetLink(gameObject)
-                        .OnComplete(() => scaleTween = null);
-                });
-        }
 
         if (image == null)
         {
@@ -112,11 +82,6 @@ public class DefaultChessHitEffect : MonoBehaviour, IChessHitEffectPlayer
 
     private void CacheComponents()
     {
-        if (selfRectTransform == null)
-        {
-            selfRectTransform = GetComponent<RectTransform>();
-        }
-
         if (image == null)
         {
             image = GetComponent<Image>();
@@ -125,21 +90,10 @@ public class DefaultChessHitEffect : MonoBehaviour, IChessHitEffectPlayer
 
     private void StopTweens()
     {
-        if (scaleTween != null)
-        {
-            scaleTween.Kill(false);
-            scaleTween = null;
-        }
-
         if (colorTween != null)
         {
             colorTween.Kill(false);
             colorTween = null;
-        }
-
-        if (selfRectTransform != null)
-        {
-            selfRectTransform.localScale = Vector3.one;
         }
     }
 }

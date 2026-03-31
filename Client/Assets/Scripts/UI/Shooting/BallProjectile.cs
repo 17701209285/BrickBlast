@@ -26,6 +26,7 @@ public class BallProjectile : MonoBehaviour
     private int maxCollisionsPerStep;
     private bool isFlying;
     private bool canTriggerSplitSpecial;
+    private int observedCollisionGeometryVersion;
     private BallPathSegment activeSegment;
     private float activeSegmentTravelledDistance;
     private bool hasActiveSegment;
@@ -53,6 +54,8 @@ public class BallProjectile : MonoBehaviour
         var stepDuration = Mathf.Max(MinimumSimulationStep, simulationStep);
         while (remainingTime > 0.0001f && isFlying)
         {
+            SyncCollisionGeometryState();
+
             if (ClampInsideBoundsAndResolveCollector())
             {
                 return;
@@ -88,6 +91,7 @@ public class BallProjectile : MonoBehaviour
         fallbackSubstepDistance = Mathf.Max(collisionSkin, launchData.FallbackSubstepDistance);
         maxCollisionsPerStep = Mathf.Max(1, launchData.MaxCollisionsPerStep);
         canTriggerSplitSpecial = launchData.CanTriggerSplitSpecial;
+        observedCollisionGeometryVersion = chessBoard != null ? chessBoard.CollisionGeometryVersion : 0;
         ClearActiveSegment();
         ClearIgnoredPassThroughBlocks();
         isFlying = true;
@@ -119,6 +123,8 @@ public class BallProjectile : MonoBehaviour
 
         while (remainingDistance > 0.001f && isFlying && transitionBudget > 0)
         {
+            SyncCollisionGeometryState();
+
             if (!TryEnsureActiveSegment())
             {
                 if (!TryRecoverFromUnexpectedOverlap(ref remainingDistance))
@@ -260,46 +266,68 @@ public class BallProjectile : MonoBehaviour
             return false;
         }
 
-        // Chinese note: overlap recovery is now a last-resort safety net.
-        // We convert the overlap into a corrected boundary hit instead of stepping
-        // through the field in many tiny slices every frame.
-        var correctedHit = new BallCollisionHit(
-            BallCollisionType.Block,
-            0f,
-            resolvedPosition,
-            overlapHit.Normal,
-            overlapHit.ImpactPoint,
-            direction,
-            overlapHit.Block,
-            overlapHit.AdditionalImpactPoint,
-            overlapHit.AdditionalBlock);
-
-        return ResolveHit(correctedHit, ref remainingDistance);
+        // Chinese note: overlap recovery is penetration correction only.
+        // If the sweep missed the boundary and the ball is already inside a block,
+        // push it out and reflect, but do not apply damage.
+        localPosition = resolvedPosition + BallPhysicsUtility.GetSeparationOffset(overlapHit.Normal, collisionSkin);
+        ClearIgnoredPassThroughBlocks();
+        direction = BallPhysicsUtility.Reflect(direction, overlapHit.Normal);
+        remainingDistance = Mathf.Max(0f, remainingDistance - collisionSkin);
+        ClearActiveSegment();
+        LogUnexpectedOverlap(overlapHit, resolvedPosition);
+        return true;
     }
 
     private void MoveWithoutResolvedSegment(ref float remainingDistance)
     {
         var travelledDistance = Mathf.Min(remainingDistance, fallbackSubstepDistance);
-        var nextPosition = localPosition + (direction * travelledDistance);
-        var nextDirection = direction;
-        if (TryResolveBoundsFallback(ref nextPosition, ref nextDirection, out var collectedPoint))
-        {
-            localPosition = collectedPoint ?? nextPosition;
-            direction = nextDirection;
-            remainingDistance = Mathf.Max(0f, remainingDistance - travelledDistance);
-            ClearActiveSegment();
+        var substepLength = Mathf.Max(collisionSkin, radius * 0.5f);
+        var stepCount = Mathf.Max(1, Mathf.CeilToInt(travelledDistance / substepLength));
+        var stepDistance = travelledDistance / stepCount;
 
-            if (collectedPoint.HasValue)
+        for (int i = 0; i < stepCount; i++)
+        {
+            var nextPosition = localPosition + (direction * stepDistance);
+            var nextDirection = direction;
+            if (TryResolveBoundsFallback(ref nextPosition, ref nextDirection, out var collectedPoint))
             {
-                ApplyPosition();
-                owner?.NotifyProjectileReturned(this, collectedPoint.Value);
+                localPosition = collectedPoint ?? nextPosition;
+                direction = nextDirection;
+                remainingDistance = Mathf.Max(0f, remainingDistance - stepDistance);
+                ClearActiveSegment();
+
+                if (collectedPoint.HasValue)
+                {
+                    ApplyPosition();
+                    owner?.NotifyProjectileReturned(this, collectedPoint.Value);
+                    return;
+                }
+
+                continue;
+            }
+
+            if (BallPhysicsUtility.TryGetOverlapBlockHit(
+                    chessBoard,
+                    simulationSpace,
+                    nextPosition,
+                    radius,
+                    collisionSkin,
+                    GetIgnoredPassThroughBlock(),
+                    GetIgnoredPassThroughAdditionalBlock(),
+                    out var overlapHit,
+                    out var resolvedPosition))
+            {
+                localPosition = resolvedPosition + BallPhysicsUtility.GetSeparationOffset(overlapHit.Normal, collisionSkin);
+                ClearIgnoredPassThroughBlocks();
+                direction = BallPhysicsUtility.Reflect(direction, overlapHit.Normal);
+                remainingDistance = Mathf.Max(0f, remainingDistance - stepDistance);
+                ClearActiveSegment();
+                LogUnexpectedOverlap(overlapHit, resolvedPosition);
                 return;
             }
-        }
-        else
-        {
+
             localPosition = nextPosition;
-            remainingDistance = Mathf.Max(0f, remainingDistance - travelledDistance);
+            remainingDistance = Mathf.Max(0f, remainingDistance - stepDistance);
         }
     }
 
@@ -422,7 +450,7 @@ public class BallProjectile : MonoBehaviour
 
     private float GetSweepCollisionEpsilon()
     {
-        return Mathf.Min(collisionSkin * 0.25f, Mathf.Max(0.001f, MinimumSweepCollisionEpsilon));
+        return Mathf.Max(MinimumSweepCollisionEpsilon, BallPhysicsUtility.CalculateSweepCollisionEpsilon(collisionSkin));
     }
 
     private ChessElement GetIgnoredPassThroughBlock()
@@ -468,6 +496,39 @@ public class BallProjectile : MonoBehaviour
         activeSegment = default;
         activeSegmentTravelledDistance = 0f;
         hasActiveSegment = false;
+    }
+
+    private void SyncCollisionGeometryState()
+    {
+        var currentVersion = chessBoard != null ? chessBoard.CollisionGeometryVersion : 0;
+        if (currentVersion == observedCollisionGeometryVersion)
+        {
+            return;
+        }
+
+        observedCollisionGeometryVersion = currentVersion;
+        ClearActiveSegment();
+    }
+
+    private void LogUnexpectedOverlap(in BallCollisionHit overlapHit, Vector2 resolvedPosition)
+    {
+        var primary = DescribeBlock(overlapHit.Block);
+        var additional = overlapHit.AdditionalBlock != null
+            ? $", Additional={DescribeBlock(overlapHit.AdditionalBlock)}"
+            : string.Empty;
+        Debug.LogError(
+            $"[BallProjectile] Unexpected overlap recovery skipped damage. Projectile={name}, Primary={primary}{additional}, Current={localPosition}, Resolved={resolvedPosition}, Direction={direction}, Radius={radius}, Skin={collisionSkin}",
+            this);
+    }
+
+    private static string DescribeBlock(ChessElement block)
+    {
+        if (block == null)
+        {
+            return "null";
+        }
+
+        return $"[{block.name}] X={block.X} Y={block.Y} Type={block.Type} Life={block.Life}";
     }
 
     // Chinese note: walls are treated as hard limits.

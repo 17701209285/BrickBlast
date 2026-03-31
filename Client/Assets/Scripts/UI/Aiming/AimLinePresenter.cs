@@ -311,6 +311,11 @@ public class AimLinePresenter : MonoBehaviour
 
     private float GetPreviewBallRadius()
     {
+        if (ballVolleyController != null)
+        {
+            return Mathf.Max(1f, ballVolleyController.PreviewCollisionRadius);
+        }
+
         if (AimOrigin == null)
         {
             return 25f;

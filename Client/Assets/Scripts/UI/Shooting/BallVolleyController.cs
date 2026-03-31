@@ -114,6 +114,7 @@ public class BallVolleyController : MonoBehaviour
 
     public int CurrentBallCount => currentBallCount;
     public bool IsVolleyActive => volleyActive;
+    public float PreviewCollisionRadius => GetCollisionRadius();
     public float PreviewCollisionTolerance => Mathf.Max(0.01f, CollisionSkin);
     public LevelSettlementResult LastSettlementResult => lastSettlementResult;
 
@@ -167,6 +168,8 @@ public class BallVolleyController : MonoBehaviour
             return;
         }
 
+        PruneInactiveProjectiles();
+
         if (pendingLaunchCount > 0)
         {
             launchCooldown -= deltaTime;
@@ -183,12 +186,13 @@ public class BallVolleyController : MonoBehaviour
             var projectile = activeProjectiles[i];
             if (projectile == null || !projectile.IsFlying)
             {
-                activeProjectiles.RemoveAt(i);
                 continue;
             }
 
             projectile.Tick(deltaTime);
         }
+
+        PruneInactiveProjectiles();
     }
 
     public void SetBallCount(int ballCount)
@@ -211,7 +215,7 @@ public class BallVolleyController : MonoBehaviour
                 collectorY);
         }
 
-        if (volleyActive && pendingLaunchCount <= 0 && activeProjectileCount <= 0)
+        if (volleyActive && pendingLaunchCount <= 0 && !HasFlyingProjectiles())
         {
             CompleteVolley();
         }
@@ -321,7 +325,7 @@ public class BallVolleyController : MonoBehaviour
 
         projectile.Launch(CreateLaunchData(launchOrigin, launchDirection, true));
         activeProjectiles.Add(projectile);
-        activeProjectileCount++;
+        SyncActiveProjectileCount();
     }
 
     private void CompleteVolley()
@@ -511,7 +515,7 @@ public class BallVolleyController : MonoBehaviour
 
         projectile.Launch(CreateLaunchData(originLocalPosition, direction, false));
         activeProjectiles.Add(projectile);
-        activeProjectileCount++;
+        SyncActiveProjectileCount();
     }
 
     private void ReleaseActiveProjectile(BallProjectile projectile)
@@ -521,9 +525,52 @@ public class BallVolleyController : MonoBehaviour
             return;
         }
 
+        var removed = activeProjectiles.Remove(projectile);
         projectilePool?.Release(projectile);
-        activeProjectiles.Remove(projectile);
-        activeProjectileCount = Mathf.Max(0, activeProjectileCount - 1);
+        if (removed)
+        {
+            SyncActiveProjectileCount();
+        }
+    }
+
+    private void PruneInactiveProjectiles()
+    {
+        var removedAny = false;
+        for (int i = activeProjectiles.Count - 1; i >= 0; i--)
+        {
+            var projectile = activeProjectiles[i];
+            if (projectile != null && projectile.IsFlying)
+            {
+                continue;
+            }
+
+            activeProjectiles.RemoveAt(i);
+            removedAny = true;
+        }
+
+        if (removedAny)
+        {
+            SyncActiveProjectileCount();
+        }
+    }
+
+    private bool HasFlyingProjectiles()
+    {
+        for (int i = 0; i < activeProjectiles.Count; i++)
+        {
+            var projectile = activeProjectiles[i];
+            if (projectile != null && projectile.IsFlying)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void SyncActiveProjectileCount()
+    {
+        activeProjectileCount = activeProjectiles.Count;
     }
 
     private RectTransform GetOrCreateProjectileContainer()
