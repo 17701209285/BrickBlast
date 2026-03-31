@@ -80,7 +80,6 @@
     <Compile Include="Assets\Scripts\Ads\LevelPlayAdsDebugRuntime.cs" />
     <Compile Include="Assets\Scripts\YooAssetBootstrap\PatchFlow\PatchOperation.cs" />
     <Compile Include="Assets\Scripts\UI\UIResultWindow\UIResultWindow.cs" />
-    <Compile Include="Assets\Scripts\UI\Shooting\BallPathSegment.cs" />
     <Compile Include="Assets\Scripts\Scriptables\LevelCellTypeUtility.cs" />
     <Compile Include="Assets\Scripts\UI\Shooting\BallProjectilePool.cs" />
     <Compile Include="Assets\Scripts\UI\UIChessBoard\YooAssetLevelLoader.cs" />
@@ -126,7 +125,6 @@
     <Compile Include="Assets\Scripts\Ads\LevelPlayAdsSettings.cs" />
     <Compile Include="Assets\Scripts\YooAssetBootstrap\PatchFlow\FsmNode\FsmClearCacheBundle.cs" />
     <Compile Include="Assets\Scripts\ImportedLevels\Data\LegacyLevelData.cs" />
-    <Compile Include="Assets\Scripts\YooAssetBootstrap\Resources\YooAssetSpriteAtlasBridge.cs" />
     <Compile Include="Assets\Scripts\UI\Aiming\AimImpactEffectView.cs" />
     <Compile Include="Assets\Scripts\Utilities\GameLog.cs" />
     <Compile Include="Assets\Scripts\UI\UIChessBoard\ChessLineBlastProcessor.cs" />
@@ -136,7 +134,6 @@
     <Compile Include="Assets\Scripts\YooAssetBootstrap\YooAssetUiManager.cs" />
     <Compile Include="Assets\Scripts\ThirdParty\UniFramework\UniEvent\UniLogger.cs" />
     <Compile Include="Assets\Scripts\ThirdParty\UniFramework\UniEvent\UniEventDriver.cs" />
-    <Compile Include="Assets\Scripts\Utilities\MobileFrameRateController.cs" />
     <Compile Include="Assets\Scripts\YooAssetBootstrap\PatchFlow\FsmNode\FsmUpdatePackageManifest.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -1475,10 +1472,6 @@
     <ProjectReference Include="Assembly-CSharp-firstpass.csproj">
       <Project>{079D398E-4AFC-CD7E-7881-F923D075EBD1}</Project>
       <Name>Assembly-CSharp-firstpass</Name>
-    </ProjectReference>
-    <ProjectReference Include="YooAsset.RuntimeExtension.csproj">
-      <Project>{77F092DE-4AEC-4F43-1518-0E7F2EF05863}</Project>
-      <Name>YooAsset.RuntimeExtension</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -21,6 +21,23 @@ public class ChessElement : MonoBehaviour
     private const int RedLifeMin = 200;
     private const int PurpleLifeMin = 250;
 
+    private static readonly Color HorizontalBlastLowLifeColor = new Color(0.47f, 0.89f, 0.46f, 1f);
+    private static readonly Color HorizontalBlastHighLifeColor = new Color(0.16f, 0.67f, 0.31f, 1f);
+    private static readonly Color VerticalBlastLowLifeColor = new Color(0.39f, 0.86f, 0.93f, 1f);
+    private static readonly Color VerticalBlastHighLifeColor = new Color(0.10f, 0.56f, 0.89f, 1f);
+    private static readonly Color SplitThreeWayLowLifeColor = new Color(1.00f, 0.63f, 0.37f, 1f);
+    private static readonly Color SplitThreeWayHighLifeColor = new Color(0.93f, 0.32f, 0.60f, 1f);
+    private static readonly Color RedirectLowLifeColor = new Color(0.99f, 0.78f, 0.42f, 1f);
+    private static readonly Color RedirectHighLifeColor = new Color(0.91f, 0.46f, 0.20f, 1f);
+    private static readonly Color CrossBlastLowLifeColor = new Color(0.55f, 0.92f, 0.70f, 1f);
+    private static readonly Color CrossBlastHighLifeColor = new Color(0.14f, 0.68f, 0.49f, 1f);
+    private static readonly Color ExtraBallsLowLifeColor = new Color(0.76f, 0.96f, 0.49f, 1f);
+    private static readonly Color ExtraBallsHighLifeColor = new Color(0.35f, 0.73f, 0.17f, 1f);
+    private static readonly Color BlueBrickColor = new Color(0.42f, 0.80f, 0.97f, 1f);
+    private static readonly Color GreenBrickColor = new Color(0.42f, 0.82f, 0.42f, 1f);
+    private static readonly Color YellowBrickColor = new Color(0.98f, 0.82f, 0.34f, 1f);
+    private static readonly Color RedBrickColor = new Color(0.92f, 0.32f, 0.28f, 1f);
+    private static readonly Color PurpleBrickColor = new Color(0.86f, 0.46f, 0.93f, 1f);
 
     [SerializeField]
     private Vector2 m_Space;
@@ -214,6 +231,17 @@ public class ChessElement : MonoBehaviour
         return true;
     }
 
+    public bool ConsumeSpecialItem()
+    {
+        if (!IsSpecialItem)
+        {
+            return false;
+        }
+
+        ClearContent();
+        return true;
+    }
+
     public bool TryConsumeSpecialTriggerBudget(int maxTriggerCount)
     {
         if (!IsSpecialItem || maxTriggerCount <= 0 || specialTriggerCountThisVolley >= maxTriggerCount)
@@ -246,55 +274,18 @@ public class ChessElement : MonoBehaviour
             return Rect.zero;
         }
 
-        var parentRectTransform = selfRectTransform.parent as RectTransform;
-        if (parentRectTransform == null)
-        {
-            selfRectTransform.GetWorldCorners(worldCornersBuffer);
+        selfRectTransform.GetWorldCorners(worldCornersBuffer);
 
-            var minCorner = (Vector2)relativeTo.InverseTransformPoint(worldCornersBuffer[0]);
-            var maxCorner = minCorner;
-            for (int i = 1; i < worldCornersBuffer.Length; i++)
-            {
-                var localCorner = (Vector2)relativeTo.InverseTransformPoint(worldCornersBuffer[i]);
-                minCorner = Vector2.Min(minCorner, localCorner);
-                maxCorner = Vector2.Max(maxCorner, localCorner);
-            }
-
-            return Rect.MinMaxRect(minCorner.x, minCorner.y, maxCorner.x, maxCorner.y);
-        }
-
-        var pivot = selfRectTransform.pivot;
-        var size = selfRectTransform.rect.size;
-        if (size.x <= 0f || size.y <= 0f)
-        {
-            size = cellSize;
-        }
-
-        if (size.x <= 0f || size.y <= 0f)
-        {
-            return Rect.zero;
-        }
-
-        // 中文备注：碰撞几何按逻辑格子位置计算，不跟受击、掉落或预览动画一起抖。
-        var logicalMin = baseAnchoredPosition - Vector2.Scale(size, pivot);
-        var min = logicalMin;
-        var max = min + size;
-
-        worldCornersBuffer[0] = parentRectTransform.TransformPoint(new Vector3(min.x, min.y, 0f));
-        worldCornersBuffer[1] = parentRectTransform.TransformPoint(new Vector3(min.x, max.y, 0f));
-        worldCornersBuffer[2] = parentRectTransform.TransformPoint(new Vector3(max.x, max.y, 0f));
-        worldCornersBuffer[3] = parentRectTransform.TransformPoint(new Vector3(max.x, min.y, 0f));
-
-        var minCornerInRelative = (Vector2)relativeTo.InverseTransformPoint(worldCornersBuffer[0]);
-        var maxCornerInRelative = minCornerInRelative;
+        var min = (Vector2)relativeTo.InverseTransformPoint(worldCornersBuffer[0]);
+        var max = min;
         for (int i = 1; i < worldCornersBuffer.Length; i++)
         {
             var localCorner = (Vector2)relativeTo.InverseTransformPoint(worldCornersBuffer[i]);
-            minCornerInRelative = Vector2.Min(minCornerInRelative, localCorner);
-            maxCornerInRelative = Vector2.Max(maxCornerInRelative, localCorner);
+            min = Vector2.Min(min, localCorner);
+            max = Vector2.Max(max, localCorner);
         }
 
-        return Rect.MinMaxRect(minCornerInRelative.x, minCornerInRelative.y, maxCornerInRelative.x, maxCornerInRelative.y);
+        return Rect.MinMaxRect(min.x, min.y, max.x, max.y);
     }
 
     public void CopyContentFrom(ChessElement other)
@@ -417,17 +408,17 @@ public class ChessElement : MonoBehaviour
             case LevelCellType.Square:
                 return GetBrickLifeBandColor(ResolveBrickLifeBand(currentLife));
             case LevelCellType.HorizontalBlast:
-                return Color.Lerp(ColorDefined.HorizontalBlastLowLifeColor, ColorDefined.HorizontalBlastHighLifeColor, t);
+                return Color.Lerp(HorizontalBlastLowLifeColor, HorizontalBlastHighLifeColor, t);
             case LevelCellType.VerticalBlast:
-                return Color.Lerp(ColorDefined.VerticalBlastLowLifeColor, ColorDefined.VerticalBlastHighLifeColor, t);
+                return Color.Lerp(VerticalBlastLowLifeColor, VerticalBlastHighLifeColor, t);
             case LevelCellType.SplitThreeWay:
-                return Color.Lerp(ColorDefined.SplitThreeWayLowLifeColor, ColorDefined.SplitThreeWayHighLifeColor, t);
+                return Color.Lerp(SplitThreeWayLowLifeColor, SplitThreeWayHighLifeColor, t);
             case LevelCellType.Redirect:
-                return Color.Lerp(ColorDefined.RedirectLowLifeColor, ColorDefined.RedirectHighLifeColor, t);
+                return Color.Lerp(RedirectLowLifeColor, RedirectHighLifeColor, t);
             case LevelCellType.CrossBlast:
-                return Color.Lerp(ColorDefined.CrossBlastLowLifeColor, ColorDefined.CrossBlastHighLifeColor, t);
+                return Color.Lerp(CrossBlastLowLifeColor, CrossBlastHighLifeColor, t);
             case LevelCellType.ExtraBalls:
-                return Color.Lerp(ColorDefined.ExtraBallsLowLifeColor, ColorDefined.ExtraBallsHighLifeColor, t);
+                return Color.Lerp(ExtraBallsLowLifeColor, ExtraBallsHighLifeColor, t);
             default:
                 return GetBrickLifeBandColor(ResolveBrickLifeBand(currentLife));
         }
@@ -581,15 +572,15 @@ public class ChessElement : MonoBehaviour
         switch (lifeBand)
         {
             case BrickLifeBand.Purple:
-                return ColorDefined.PurpleBrickColor;
+                return PurpleBrickColor;
             case BrickLifeBand.Red:
-                return ColorDefined.RedBrickColor;
+                return RedBrickColor;
             case BrickLifeBand.Yellow:
-                return ColorDefined.YellowBrickColor;
+                return YellowBrickColor;
             case BrickLifeBand.Green:
-                return ColorDefined.GreenBrickColor;
+                return GreenBrickColor;
             default:
-                return ColorDefined.BlueBrickColor;
+                return BlueBrickColor;
         }
     }
 
@@ -672,49 +663,14 @@ public class ChessElement : MonoBehaviour
 
         if (!hasContent)
         {
-            m_BrickLife.SetText(string.Empty);
+            m_BrickLife.text = string.Empty;
             ApplyLifeLabelOffset(Type, legacyShapeType);
             return;
         }
 
-        SetRuntimeLifeLabel(m_BrickLife, Type, life, specialValue);
+        m_BrickLife.text = GetRuntimeLifeLabel(Type, life, specialValue);
         m_BrickLife.color = GetLifeTextColor(Type, Life);
         ApplyLifeLabelOffset(Type, legacyShapeType);
-    }
-
-    private static void SetRuntimeLifeLabel(TextMeshProUGUI label, LevelCellType type, int currentLife, int currentSpecialValue)
-    {
-        if (label == null)
-        {
-            return;
-        }
-
-        if (type == LevelCellType.Empty)
-        {
-            label.SetText(string.Empty);
-            return;
-        }
-
-        if (type == LevelCellType.ExtraBalls)
-        {
-            label.SetText("+{0}", LevelCellTypeUtility.ResolveSpecialValue(type, currentSpecialValue));
-            return;
-        }
-
-        var marker = GetRuntimeTypeMarker(type);
-        if (LevelCellTypeUtility.IsSpecial(type))
-        {
-            label.SetText(marker);
-            return;
-        }
-
-        if (string.IsNullOrEmpty(marker))
-        {
-            label.SetText("{0}", currentLife);
-            return;
-        }
-
-        label.SetText($"{marker}{currentLife}");
     }
 
     private void ApplyLifeLabelOffset(LevelCellType type, LegacyBrickShapeType shapeType)

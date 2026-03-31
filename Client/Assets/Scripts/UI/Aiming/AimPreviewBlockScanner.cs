@@ -41,18 +41,16 @@ public static class AimPreviewBlockScanner
         }
 
         board.RefreshCollisionCandidates(previewSpace);
-        var previewHitTolerance = Mathf.Max(
-            PreviewHitEpsilon,
-            BallPhysicsUtility.CalculateSweepCollisionEpsilon(collisionTolerance));
+        var previewHitTolerance = Mathf.Max(PreviewHitEpsilon, collisionTolerance);
 
         if (TryGetSegmentBlockHit(board, previewSpace, previewPath.PrimarySegment, ballRadius, previewHitTolerance, out var primaryHit))
         {
-            return new AimPreviewImpactData(true, false, primaryHit.ImpactPoint, primaryHit.Normal, primaryHit.Block, primaryHit.AdditionalBlock);
+            return new AimPreviewImpactData(true, false, primaryHit.Point, primaryHit.Block, primaryHit.AdditionalBlock);
         }
 
         if (previewPath.HasReflectionSegment && TryGetSegmentBlockHit(board, previewSpace, previewPath.ReflectionSegment, ballRadius, previewHitTolerance, out var reflectionHit))
         {
-            return new AimPreviewImpactData(true, true, reflectionHit.ImpactPoint, reflectionHit.Normal, reflectionHit.Block, reflectionHit.AdditionalBlock);
+            return new AimPreviewImpactData(true, true, reflectionHit.Point, reflectionHit.Block, reflectionHit.AdditionalBlock);
         }
 
         return default;
@@ -83,8 +81,6 @@ public static class AimPreviewBlockScanner
             ballRadius,
             segmentLength,
             hitTolerance,
-            null,
-            null,
             out hit);
     }
 

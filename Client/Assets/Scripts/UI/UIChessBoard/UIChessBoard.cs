@@ -120,8 +120,7 @@ public class UIChessBoard : MonoBehaviour
     private int[] shiftSourceSpecialValuesBuffer;
     private LegacyBrickShapeType[] shiftSourceShapeTypesBuffer;
     private RectTransform collisionCandidateSpace;
-    private bool collisionCandidatesDirty = true;
-    private int collisionGeometryVersion;
+    private int collisionCandidateFrame = -1;
     private int boardWidth;
     private int boardHeight;
     private int visibleStartRow;
@@ -132,7 +131,6 @@ public class UIChessBoard : MonoBehaviour
     public int BoardHeight => boardHeight;
     public int BottomRowIndex => Mathf.Max(0, boardHeight - 1);
     public IReadOnlyList<CollisionCandidate> CollisionCandidates => collisionCandidates;
-    public int CollisionGeometryVersion => collisionGeometryVersion;
     public bool IsGameOver => isGameOver;
     public string CurrentLevelAddress => ResolveLevelAddress(LevelConfig, currentLevelAddress);
     public RectTransform PrimaryShakeTarget => ParentTransform as RectTransform != null
@@ -338,7 +336,7 @@ public class UIChessBoard : MonoBehaviour
 
         var result = default(ProjectileHitEffectResult);
         var impactAccumulator = new ChessBoardImpactAccumulator(ChessDamageSource.Projectile, hit.ImpactPoint);
-        var geometryChanged = ApplyDamageWithEffects(
+        ApplyDamageWithEffects(
             hit.Block,
             1,
             hit.ImpactPoint,
@@ -350,7 +348,7 @@ public class UIChessBoard : MonoBehaviour
 
         if (hit.AdditionalBlock != null && hit.AdditionalBlock != hit.Block)
         {
-            geometryChanged |= ApplyDamageWithEffects(
+            ApplyDamageWithEffects(
                 hit.AdditionalBlock,
                 1,
                 hit.AdditionalImpactPoint,
@@ -361,10 +359,7 @@ public class UIChessBoard : MonoBehaviour
                 allowSplitSpecial);
         }
 
-        if (geometryChanged)
-        {
-            MarkCollisionCandidatesDirty();
-        }
+        RebuildCollisionCandidates();
 
         if (impactAccumulator.HasAnyImpact)
         {
@@ -421,15 +416,11 @@ public class UIChessBoard : MonoBehaviour
     {
         if (relativeTo == null)
         {
-            if (collisionCandidatesDirty || collisionCandidateSpace != transform as RectTransform)
-            {
-                RebuildCollisionCandidates();
-            }
-
+            RebuildCollisionCandidates();
             return;
         }
 
-        if (!collisionCandidatesDirty && collisionCandidateSpace == relativeTo)
+        if (collisionCandidateSpace == relativeTo && collisionCandidateFrame == Time.frameCount)
         {
             return;
         }
@@ -847,7 +838,7 @@ public class UIChessBoard : MonoBehaviour
         }
     }
 
-    private bool ApplyDamageWithEffects(
+    private void ApplyDamageWithEffects(
         ChessElement target,
         int damage,
         Vector2 hitPointInBoardSpace,
@@ -859,46 +850,22 @@ public class UIChessBoard : MonoBehaviour
     {
         if (target == null || damage <= 0 || !target.HasContent)
         {
-            return false;
+            return;
         }
 
-        if (source == ChessDamageSource.Projectile &&
-            !allowSplitSpecial &&
-            target.Type == LevelCellType.SplitThreeWay)
-        {
-            projectileHitEffect = MergeProjectileHitEffects(
-                projectileHitEffect,
-                new ProjectileHitEffectResult(
-                    false,
-                    true,
-                    Vector2.zero,
-                    Vector2.zero,
-                    false,
-                    Vector2.zero,
-                    Vector2.zero,
-                    0));
-            return false;
-        }
-
-        var previousType = target.Type;
-        var previousShapeType = target.LegacyShapeType;
         var isSpecialItem = target.IsSpecialItem;
         if (!target.TryApplyDamage(damage, hitPointInBoardSpace, source, out var hitContext))
         {
-            return false;
+            return;
         }
 
         impactAccumulator?.RegisterDamage(hitContext);
 
         if (!isSpecialItem)
         {
-            return previousType != target.Type || previousShapeType != target.LegacyShapeType;
+            return;
         }
 
-        var canChangeOtherBlocks =
-            previousType == LevelCellType.HorizontalBlast ||
-            previousType == LevelCellType.VerticalBlast ||
-            previousType == LevelCellType.CrossBlast;
         var specialEffectResult = ChessSpecialEffectProcessor.TryTrigger(
             this,
             target,
@@ -910,8 +877,6 @@ public class UIChessBoard : MonoBehaviour
         {
             projectileHitEffect = MergeProjectileHitEffects(projectileHitEffect, specialEffectResult.ToProjectileHitEffectResult());
         }
-
-        return canChangeOtherBlocks || previousType != target.Type || previousShapeType != target.LegacyShapeType;
     }
 
     private static ProjectileHitEffectResult MergeProjectileHitEffects(in ProjectileHitEffectResult current, in ProjectileHitEffectResult next)
@@ -950,8 +915,10 @@ public class UIChessBoard : MonoBehaviour
             return false;
         }
 
+        var previousType = target.Type;
+        var previousLife = target.Life;
         var ignoredProjectileHit = default(ProjectileHitEffectResult);
-        return ApplyDamageWithEffects(
+        ApplyDamageWithEffects(
             target,
             LevelCellTypeConstants.SpecialBlastDamage,
             GetElementCenterInBoardSpace(target),
@@ -959,6 +926,7 @@ public class UIChessBoard : MonoBehaviour
             source,
             ref ignoredProjectileHit,
             impactAccumulator);
+        return previousType != target.Type || previousLife != target.Life;
     }
 
     private Vector2 GetElementCenterInBoardSpace(ChessElement target)
@@ -1052,7 +1020,7 @@ public class UIChessBoard : MonoBehaviour
     {
         collisionCandidates.Clear();
         collisionCandidateSpace = relativeTo;
-        collisionCandidatesDirty = false;
+        collisionCandidateFrame = Application.isPlaying ? Time.frameCount : -1;
         if (chessElements == null || relativeTo == null)
         {
             return;
@@ -1087,11 +1055,5 @@ public class UIChessBoard : MonoBehaviour
             sourceRect.yMin + appliedInsetY,
             sourceRect.xMax - appliedInsetX,
             sourceRect.yMax - appliedInsetY);
-    }
-
-    private void MarkCollisionCandidatesDirty()
-    {
-        collisionCandidatesDirty = true;
-        collisionGeometryVersion++;
     }
 }
