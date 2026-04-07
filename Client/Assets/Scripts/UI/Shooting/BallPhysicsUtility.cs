@@ -6,7 +6,8 @@ public enum BallCollisionType
     None = 0,
     Wall = 1,
     Block = 2,
-    Collector = 3
+    Collector = 3,
+    SpecialTrigger = 4
 }
 
 public readonly struct BallCollisionHit
@@ -120,6 +121,11 @@ public static class BallPhysicsUtility
         if (TryGetBlockHit(board, simulationSpace, origin, direction, radius, maxDistance, epsilon, out var blockHit))
         {
             foundHit = TrySelectCloserHit(blockHit, ref hit, epsilon) || foundHit;
+        }
+
+        if (TryGetSpecialTriggerHit(board, simulationSpace, origin, direction, radius, maxDistance, epsilon, out var specialHit))
+        {
+            foundHit = TrySelectCloserHit(specialHit, ref hit, epsilon) || foundHit;
         }
 
         return foundHit && hit.Type != BallCollisionType.None;
@@ -453,6 +459,72 @@ public static class BallPhysicsUtility
         return foundHit;
     }
 
+    private static bool TryGetSpecialTriggerHit(
+        UIChessBoard board,
+        RectTransform simulationSpace,
+        Vector2 origin,
+        Vector2 direction,
+        float radius,
+        float maxDistance,
+        float epsilon,
+        out BallCollisionHit hit)
+    {
+        hit = default;
+        if (board == null || simulationSpace == null)
+        {
+            return false;
+        }
+
+        var candidates = board.SpecialTriggerCandidates;
+        if (candidates == null || candidates.Count == 0)
+        {
+            return false;
+        }
+
+        var closestHit = new BallCollisionHit(BallCollisionType.None, float.MaxValue, origin, Vector2.zero, origin, direction, null);
+        var foundHit = false;
+        for (int i = 0; i < candidates.Count; i++)
+        {
+            var collisionCandidate = candidates[i];
+            var block = collisionCandidate.Element;
+            if (block == null || !block.HasContent || !block.IsSpecialItem)
+            {
+                continue;
+            }
+
+            if (!TryRaycastCollisionCandidate(
+                    collisionCandidate,
+                    origin,
+                    direction,
+                    radius,
+                    maxDistance,
+                    epsilon,
+                    out var distance,
+                    out var centerPoint,
+                    out _,
+                    out var impactPoint))
+            {
+                continue;
+            }
+
+            var hitCandidate = new BallCollisionHit(
+                BallCollisionType.SpecialTrigger,
+                distance,
+                centerPoint,
+                Vector2.zero,
+                impactPoint,
+                direction,
+                block);
+            if (TrySelectCloserHit(hitCandidate, ref closestHit, epsilon))
+            {
+                foundHit = true;
+            }
+        }
+
+        hit = closestHit;
+        return foundHit;
+    }
+
     private static bool TryRaycastExpandedRect(
         Vector2 origin,
         Vector2 direction,
@@ -624,6 +696,17 @@ public static class BallPhysicsUtility
         }
 
         if (Mathf.Abs(candidate.Distance - currentHit.Distance) > epsilon)
+        {
+            return false;
+        }
+
+        if (candidate.Type == BallCollisionType.SpecialTrigger && currentHit.Type != BallCollisionType.SpecialTrigger)
+        {
+            currentHit = candidate;
+            return true;
+        }
+
+        if (currentHit.Type == BallCollisionType.SpecialTrigger)
         {
             return false;
         }

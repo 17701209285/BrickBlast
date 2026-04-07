@@ -96,6 +96,7 @@ public class BallVolleyController : MonoBehaviour
     private bool isBoardStateSubscribed;
     private bool volleyActive;
     private int currentBallCount;
+    private int pendingExtraBallCount;
     private int pendingLaunchCount;
     private int activeProjectileCount;
     private float launchCooldown;
@@ -112,7 +113,7 @@ public class BallVolleyController : MonoBehaviour
     private bool pendingResultIsVictory;
     private LevelSettlementResult lastSettlementResult;
 
-    public int CurrentBallCount => currentBallCount;
+    public int CurrentBallCount => GetNextVolleyBallCount();
     public bool IsVolleyActive => volleyActive;
     public float PreviewCollisionTolerance => Mathf.Max(0.01f, CollisionSkin);
     public LevelSettlementResult LastSettlementResult => lastSettlementResult;
@@ -196,6 +197,7 @@ public class BallVolleyController : MonoBehaviour
     public void SetBallCount(int ballCount)
     {
         currentBallCount = Mathf.Max(1, ballCount);
+        pendingExtraBallCount = 0;
         ScheduleProjectilePoolWarmup();
         RefreshLaunchBallCountLabel();
     }
@@ -269,7 +271,7 @@ public class BallVolleyController : MonoBehaviour
             return;
         }
 
-        currentBallCount += ballCountDelta;
+        pendingExtraBallCount += ballCountDelta;
         ScheduleProjectilePoolWarmup();
         RefreshLaunchBallCountLabel();
     }
@@ -300,7 +302,8 @@ public class BallVolleyController : MonoBehaviour
         shotBounds = AimLinePresenter != null ? AimLinePresenter.GetShotBounds() : GetFallbackBounds();
         firstLandingPoint = originLocalPosition;
         hasRecordedFirstLanding = false;
-        pendingLaunchCount = Mathf.Max(1, currentBallCount);
+        pendingLaunchCount = Mathf.Max(1, GetNextVolleyBallCount());
+        pendingExtraBallCount = 0;
         activeProjectileCount = 0;
         launchCooldown = 0f;
         aimUnlockTimer = 0f;
@@ -674,7 +677,7 @@ public class BallVolleyController : MonoBehaviour
             MaxRuntimeProjectileCount,
             Mathf.Max(
                 BallShootingConstants.MinimumWarmProjectileCount,
-                Mathf.Max(1, currentBallCount) * BallShootingConstants.ProjectileWarmupMultiplier));
+                Mathf.Max(1, GetNextVolleyBallCount()) * BallShootingConstants.ProjectileWarmupMultiplier));
     }
 
     private void MoveLaunchBallTo(Vector2 localPosition)
@@ -737,8 +740,13 @@ public class BallVolleyController : MonoBehaviour
             return;
         }
 
-        LaunchBallCountLabel.text = currentBallCount.ToString();
+        LaunchBallCountLabel.text = GetNextVolleyBallCount().ToString();
         LaunchBallCountLabel.raycastTarget = false;
+    }
+
+    private int GetNextVolleyBallCount()
+    {
+        return Mathf.Max(1, currentBallCount + pendingExtraBallCount);
     }
 
     private void SetLaunchBallCountVisible(bool visible)

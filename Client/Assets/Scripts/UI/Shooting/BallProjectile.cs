@@ -126,7 +126,7 @@ public class BallProjectile : MonoBehaviour
                 return;
             }
 
-            if (hit.Type == BallCollisionType.Block && hit.Block != null)
+            if ((hit.Type == BallCollisionType.Block || hit.Type == BallCollisionType.SpecialTrigger) && hit.Block != null)
             {
                 var effectResult = chessBoard != null
                     ? chessBoard.ResolveProjectileBlockHit(hit, canTriggerSplitSpecial)
@@ -134,6 +134,12 @@ public class BallProjectile : MonoBehaviour
                 if (TryHandleProjectileHitEffect(effectResult))
                 {
                     return;
+                }
+
+                if (hit.Type == BallCollisionType.SpecialTrigger)
+                {
+                    AdvancePassThrough(ref remainingDistance);
+                    continue;
                 }
 
                 if (effectResult.PassThrough)

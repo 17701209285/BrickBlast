@@ -114,6 +114,7 @@ public class UIChessBoard : MonoBehaviour
 
     private ArrayList<ChessElement> chessElements;
     private readonly List<CollisionCandidate> collisionCandidates = new List<CollisionCandidate>(64);
+    private readonly List<CollisionCandidate> specialTriggerCandidates = new List<CollisionCandidate>(32);
     private readonly Vector3[] playAreaWorldCornersBuffer = new Vector3[4];
     private LevelCellType[] shiftSourceTypesBuffer;
     private int[] shiftSourceLivesBuffer;
@@ -131,6 +132,7 @@ public class UIChessBoard : MonoBehaviour
     public int BoardHeight => boardHeight;
     public int BottomRowIndex => Mathf.Max(0, boardHeight - 1);
     public IReadOnlyList<CollisionCandidate> CollisionCandidates => collisionCandidates;
+    public IReadOnlyList<CollisionCandidate> SpecialTriggerCandidates => specialTriggerCandidates;
     public bool IsGameOver => isGameOver;
     public string CurrentLevelAddress => ResolveLevelAddress(LevelConfig, currentLevelAddress);
     public RectTransform PrimaryShakeTarget => ParentTransform as RectTransform != null
@@ -329,7 +331,7 @@ public class UIChessBoard : MonoBehaviour
 
     public ProjectileHitEffectResult ResolveProjectileBlockHit(in BallCollisionHit hit, bool allowSplitSpecial)
     {
-        if (hit.Type != BallCollisionType.Block)
+        if (hit.Type != BallCollisionType.Block && hit.Type != BallCollisionType.SpecialTrigger)
         {
             return default;
         }
@@ -346,7 +348,7 @@ public class UIChessBoard : MonoBehaviour
             impactAccumulator,
             allowSplitSpecial);
 
-        if (hit.AdditionalBlock != null && hit.AdditionalBlock != hit.Block)
+        if (hit.Type == BallCollisionType.Block && hit.AdditionalBlock != null && hit.AdditionalBlock != hit.Block)
         {
             ApplyDamageWithEffects(
                 hit.AdditionalBlock,
@@ -965,9 +967,9 @@ public class UIChessBoard : MonoBehaviour
             return rect.center;
         }
 
-        return new Vector2(
-            rect.center.x,
-            rect.yMax + Mathf.Max(LevelCellTypeConstants.SplitLaunchMinOffset, rect.height * LevelCellTypeConstants.SplitLaunchHeightRatio));
+        // 中文备注：分裂/重定向从道具中心重新发射。
+        // 边界起射会让第一段命中距离接近 0，容易被 sweep 当成无效接触直接放行。
+        return rect.center;
     }
 
     private void ClearInstancedElements()
@@ -1019,6 +1021,7 @@ public class UIChessBoard : MonoBehaviour
     private void RebuildCollisionCandidates(RectTransform relativeTo)
     {
         collisionCandidates.Clear();
+        specialTriggerCandidates.Clear();
         collisionCandidateSpace = relativeTo;
         collisionCandidateFrame = Application.isPlaying ? Time.frameCount : -1;
         if (chessElements == null || relativeTo == null)
@@ -1031,10 +1034,21 @@ public class UIChessBoard : MonoBehaviour
             for (int x = 0; x < boardWidth; x++)
             {
                 var chessElement = chessElements.Get(x, y);
-                if (chessElement != null && chessElement.HasContent)
+                if (chessElement == null || !chessElement.HasContent)
                 {
-                    var collisionRect = GetInsetCollisionRect(chessElement.GetRectInSpace(relativeTo));
+                    continue;
+                }
+
+                var collisionRect = GetInsetCollisionRect(chessElement.GetRectInSpace(relativeTo));
+                if (chessElement.CountsAsBrick)
+                {
                     collisionCandidates.Add(new CollisionCandidate(chessElement, collisionRect, chessElement.LegacyShapeType));
+                    continue;
+                }
+
+                if (chessElement.IsSpecialItem)
+                {
+                    specialTriggerCandidates.Add(new CollisionCandidate(chessElement, collisionRect, chessElement.LegacyShapeType));
                 }
             }
         }
