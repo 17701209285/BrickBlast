@@ -48,7 +48,7 @@ public class AimLinePresenter : MonoBehaviour
 
     [SerializeField]
     [Min(0f)]
-    private float BoundaryPadding = 6f;
+    private float BoundaryPadding = 0f;
 
     public bool HasValidAim { get; private set; }
     public Vector2 CurrentAimDirection { get; private set; } = Vector2.up;

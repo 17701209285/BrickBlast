@@ -227,9 +227,9 @@ PrefabInstance:
       propertyPath: m_Name
       value: UIChessBoard
       objectReference: {fileID: 0}
-    - target: {fileID: 6548271640948263211, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
-      propertyPath: InitialBallCount
-      value: 60
+    - target: {fileID: 6301200011732254101, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
+      propertyPath: BoundaryPadding
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7419450678404451547, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
       propertyPath: m_Parameters.widthCurve.m_Curve.Array.data[0].value

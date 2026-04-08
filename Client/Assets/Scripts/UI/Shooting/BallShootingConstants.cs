@@ -4,7 +4,7 @@ public static class BallShootingConstants
     public const float DefaultLaunchInterval = 0.02f;
     public const float DefaultSplitFanHalfAngle = 32f;
     public const float DefaultCollisionRadiusScale = 1f;
-    public const float DefaultCollisionSkin = 1f;
+    public const float DefaultCollisionSkin = 0f;
     public const float DefaultSimulationStep = 1f / 90f;
     public const int DefaultMaxCollisionsPerStep = 6;
     public const float DefaultFallbackSubstepDistance = 6f;

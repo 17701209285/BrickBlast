@@ -1257,7 +1257,7 @@ MonoBehaviour:
   MinAimAngle: 4
   MaxAimAngle: 165
   MaxLineLength: 1600
-  BoundaryPadding: 6
+  BoundaryPadding: 0
 --- !u!114 &6548271640948263211
 MonoBehaviour:
   m_ObjectHideFlags: 0
