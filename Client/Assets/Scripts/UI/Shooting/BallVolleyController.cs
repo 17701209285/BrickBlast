@@ -82,6 +82,10 @@ public class BallVolleyController : MonoBehaviour
     private float FallbackSubstepDistance = BallShootingConstants.DefaultFallbackSubstepDistance;
 
     [SerializeField]
+    [Min(100f)]
+    private float RecallSpeed = 4200f;
+
+    [SerializeField]
     [Min(1)]
     private int MaxRuntimeProjectileCount = BallShootingConstants.DefaultMaxRuntimeProjectileCount;
 
@@ -274,6 +278,48 @@ public class BallVolleyController : MonoBehaviour
         pendingExtraBallCount += ballCountDelta;
         ScheduleProjectilePoolWarmup();
         RefreshLaunchBallCountLabel();
+    }
+
+    public void RecallAllProjectilesAndAdvanceTurn()
+    {
+        if (!volleyActive)
+        {
+            return;
+        }
+
+        pendingLaunchCount = 0;
+        launchCooldown = 0f;
+        var recallTarget = GetRecallLandingPoint();
+        var hasFlyingProjectiles = false;
+
+        for (int i = activeProjectiles.Count - 1; i >= 0; i--)
+        {
+            var projectile = activeProjectiles[i];
+            if (projectile == null)
+            {
+                activeProjectiles.RemoveAt(i);
+                continue;
+            }
+
+            if (!projectile.IsFlying)
+            {
+                activeProjectiles.RemoveAt(i);
+                continue;
+            }
+
+            projectile.RecallTo(recallTarget, RecallSpeed);
+            hasFlyingProjectiles = true;
+        }
+
+        activeProjectileCount = hasFlyingProjectiles ? activeProjectiles.Count : 0;
+        if (hasFlyingProjectiles)
+        {
+            return;
+        }
+
+        firstLandingPoint = recallTarget;
+        hasRecordedFirstLanding = true;
+        CompleteVolley();
     }
 
     private void HandleAimReleased(Vector2 originLocalPosition, Vector2 aimDirection)
@@ -747,6 +793,19 @@ public class BallVolleyController : MonoBehaviour
     private int GetNextVolleyBallCount()
     {
         return Mathf.Max(1, currentBallCount + pendingExtraBallCount);
+    }
+
+    private Vector2 GetRecallLandingPoint()
+    {
+        var fallbackX = Mathf.Clamp(launchOrigin.x, shotBounds.xMin + GetBallRadius(), shotBounds.xMax - GetBallRadius());
+        if (!hasRecordedFirstLanding)
+        {
+            return new Vector2(fallbackX, collectorY);
+        }
+
+        return new Vector2(
+            Mathf.Clamp(firstLandingPoint.x, shotBounds.xMin + GetBallRadius(), shotBounds.xMax - GetBallRadius()),
+            collectorY);
     }
 
     private void SetLaunchBallCountVisible(bool visible)

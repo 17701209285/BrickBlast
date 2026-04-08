@@ -22,6 +22,9 @@ public class BallProjectile : MonoBehaviour
     private float simulationAccumulator;
     private bool isFlying;
     private bool canTriggerSplitSpecial;
+    private bool isRecalling;
+    private Vector2 recallTarget;
+    private float recallSpeed;
 
     public bool IsFlying => isFlying;
     public bool CanTriggerSplitSpecial => canTriggerSplitSpecial;
@@ -36,6 +39,12 @@ public class BallProjectile : MonoBehaviour
     {
         if (!isFlying)
         {
+            return;
+        }
+
+        if (isRecalling)
+        {
+            SimulateRecall(deltaTime);
             return;
         }
 
@@ -62,6 +71,9 @@ public class BallProjectile : MonoBehaviour
         fallbackSubstepDistance = Mathf.Max(0.5f, launchData.FallbackSubstepDistance);
         canTriggerSplitSpecial = launchData.CanTriggerSplitSpecial;
         simulationAccumulator = 0f;
+        isRecalling = false;
+        recallTarget = default;
+        recallSpeed = 0f;
         isFlying = true;
 
         gameObject.SetActive(true);
@@ -73,7 +85,23 @@ public class BallProjectile : MonoBehaviour
     {
         isFlying = false;
         simulationAccumulator = 0f;
+        isRecalling = false;
+        recallTarget = default;
+        recallSpeed = 0f;
         gameObject.SetActive(false);
+    }
+
+    public void RecallTo(Vector2 targetLocalPosition, float moveSpeed)
+    {
+        if (!isFlying)
+        {
+            return;
+        }
+
+        simulationAccumulator = 0f;
+        isRecalling = true;
+        recallTarget = targetLocalPosition;
+        recallSpeed = Mathf.Max(100f, moveSpeed);
     }
 
     private void Simulate(float deltaTime)
@@ -89,6 +117,31 @@ public class BallProjectile : MonoBehaviour
             SimulateStep(simulationStep);
             simulationAccumulator -= simulationStep;
         }
+    }
+
+    private void SimulateRecall(float deltaTime)
+    {
+        if (deltaTime <= 0f)
+        {
+            return;
+        }
+
+        localPosition = Vector2.MoveTowards(localPosition, recallTarget, recallSpeed * deltaTime);
+        ApplyPosition();
+        if ((localPosition - recallTarget).sqrMagnitude > 0.01f)
+        {
+            return;
+        }
+
+        localPosition = recallTarget;
+        ApplyPosition();
+        if (owner != null)
+        {
+            owner.NotifyProjectileReturned(this, recallTarget);
+            return;
+        }
+
+        ReturnToPool();
     }
 
     private void SimulateStep(float stepDuration)
