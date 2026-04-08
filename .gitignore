@@ -14,3 +14,5 @@ Client/Assembly-CSharp-Editor-firstpass-testable.csproj
 Client/Assembly-CSharp-Editor.csproj
 Client/Assembly-CSharp-Editor.csproj
 Client/Assembly-CSharp-firstpass.csproj
+/Client/Bundles
+/Client/Bundles
