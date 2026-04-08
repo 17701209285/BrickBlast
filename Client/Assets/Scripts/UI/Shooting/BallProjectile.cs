@@ -25,6 +25,7 @@ public class BallProjectile : MonoBehaviour
     private bool isRecalling;
     private Vector2 recallTarget;
     private float recallSpeed;
+    private Color visualTint = Color.white;
 
     public bool IsFlying => isFlying;
     public bool CanTriggerSplitSpecial => canTriggerSplitSpecial;
@@ -74,10 +75,14 @@ public class BallProjectile : MonoBehaviour
         isRecalling = false;
         recallTarget = default;
         recallSpeed = 0f;
+        // 中文：球的颜色是发射时一次性注入的视觉状态，不参与碰撞、分裂或伤害计算。
+        // English: the projectile tint is injected once at launch and affects visuals only, not physics, splitting, or damage.
+        visualTint = launchData.VisualTint;
         isFlying = true;
 
         gameObject.SetActive(true);
         transform.SetAsLastSibling();
+        ApplyVisualTint();
         ApplyPosition();
     }
 
@@ -88,6 +93,8 @@ public class BallProjectile : MonoBehaviour
         isRecalling = false;
         recallTarget = default;
         recallSpeed = 0f;
+        visualTint = Color.white;
+        ApplyVisualTint();
         gameObject.SetActive(false);
     }
 
@@ -237,6 +244,16 @@ public class BallProjectile : MonoBehaviour
         {
             graphic.enabled = true;
             graphic.raycastTarget = false;
+        }
+    }
+
+    private void ApplyVisualTint()
+    {
+        if (graphic != null)
+        {
+            // 中文：球的外观色独立于弹道数据，只在这里落到实际 Graphic。
+            // English: projectile tint stays separate from trajectory logic and is applied to the actual Graphic only here.
+            graphic.color = visualTint;
         }
     }
 

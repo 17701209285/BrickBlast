@@ -2,6 +2,8 @@ using UnityEngine;
 
 public readonly struct BallProjectileLaunchData
 {
+    // 中文：VisualTint 用来描述“一整轮球”的统一视觉状态，例如续关后的紫球。
+    // English: VisualTint describes the shared visual state for a whole volley, such as the rescue purple balls.
     public BallVolleyController Owner { get; }
     public UIChessBoard ChessBoard { get; }
     public RectTransform SimulationSpace { get; }
@@ -16,6 +18,7 @@ public readonly struct BallProjectileLaunchData
     public int MaxCollisionsPerStep { get; }
     public float FallbackSubstepDistance { get; }
     public bool CanTriggerSplitSpecial { get; }
+    public Color VisualTint { get; }
 
     public BallProjectileLaunchData(
         BallVolleyController owner,
@@ -31,7 +34,8 @@ public readonly struct BallProjectileLaunchData
         float simulationStep,
         int maxCollisionsPerStep,
         float fallbackSubstepDistance,
-        bool canTriggerSplitSpecial)
+        bool canTriggerSplitSpecial,
+        Color visualTint)
     {
         Owner = owner;
         ChessBoard = chessBoard;
@@ -47,5 +51,6 @@ public readonly struct BallProjectileLaunchData
         MaxCollisionsPerStep = maxCollisionsPerStep;
         FallbackSubstepDistance = fallbackSubstepDistance;
         CanTriggerSplitSpecial = canTriggerSplitSpecial;
+        VisualTint = visualTint;
     }
 }

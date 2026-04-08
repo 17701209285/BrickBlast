@@ -49,6 +49,26 @@ public enum ChessDamageSource
 
 public class UIChessBoard : MonoBehaviour
 {
+    private sealed class VisibleBoardSnapshot
+    {
+        // 中文：这里只缓存“当前可见区域”的运行时状态，不复制整份关卡静态数据。
+        // English: this snapshot stores only the runtime state of the visible board instead of the whole static level asset.
+        public int VisibleStartRow { get; }
+        public LevelCellType[] Types { get; }
+        public int[] Lives { get; }
+        public int[] SpecialValues { get; }
+        public LegacyBrickShapeType[] ShapeTypes { get; }
+
+        public VisibleBoardSnapshot(int visibleStartRow, int cellCount)
+        {
+            VisibleStartRow = visibleStartRow;
+            Types = new LevelCellType[cellCount];
+            Lives = new int[cellCount];
+            SpecialValues = new int[cellCount];
+            ShapeTypes = new LegacyBrickShapeType[cellCount];
+        }
+    }
+
     public event Action<bool> GameOverStateChanged;
     public event Action<ChessBoardImpactSummary> ImpactResolved;
 
@@ -101,6 +121,10 @@ public class UIChessBoard : MonoBehaviour
     private float CollisionRectInset = 0f;
 
     [SerializeField]
+    [Min(1)]
+    private int ContinueSnapshotHistorySize = 3;
+
+    [SerializeField]
     private UIChessBoardLayoutController LayoutController;
 
     [SerializeField]
@@ -115,6 +139,7 @@ public class UIChessBoard : MonoBehaviour
     private ArrayList<ChessElement> chessElements;
     private readonly List<CollisionCandidate> collisionCandidates = new List<CollisionCandidate>(64);
     private readonly List<CollisionCandidate> specialTriggerCandidates = new List<CollisionCandidate>(32);
+    private readonly List<VisibleBoardSnapshot> continueSnapshots = new List<VisibleBoardSnapshot>(4);
     private readonly Vector3[] playAreaWorldCornersBuffer = new Vector3[4];
     private LevelCellType[] shiftSourceTypesBuffer;
     private int[] shiftSourceLivesBuffer;
@@ -219,6 +244,87 @@ public class UIChessBoard : MonoBehaviour
         }
 
         ShiftVisibleContentDown(rowCount);
+    }
+
+    public void CaptureContinueSnapshot()
+    {
+        if (chessElements == null || boardWidth <= 0 || boardHeight <= 0)
+        {
+            return;
+        }
+
+        // 中文：失败续关需要把棋盘“回拨”到前几回合的可见状态，
+        // 所以这里在每次下压前保存一份轻量快照。
+        // English: defeat-continue rewinds the visible board a few turns,
+        // so we capture a lightweight snapshot before each downward shift.
+        var cellCount = boardWidth * boardHeight;
+        var snapshot = new VisibleBoardSnapshot(visibleStartRow, cellCount);
+        for (int y = 0; y < boardHeight; y++)
+        {
+            for (int x = 0; x < boardWidth; x++)
+            {
+                var element = chessElements.Get(x, y);
+                var index = y * boardWidth + x;
+                snapshot.Types[index] = element == null ? LevelCellType.Empty : element.Type;
+                snapshot.Lives[index] = element == null ? 0 : element.Life;
+                snapshot.SpecialValues[index] = element == null ? 0 : element.SpecialValue;
+                snapshot.ShapeTypes[index] = element == null ? LegacyBrickShapeType.None : element.LegacyShapeType;
+            }
+        }
+
+        continueSnapshots.Add(snapshot);
+        var maxHistory = Mathf.Max(1, ContinueSnapshotHistorySize);
+        while (continueSnapshots.Count > maxHistory)
+        {
+            continueSnapshots.RemoveAt(0);
+        }
+    }
+
+    public bool TryRestoreContinueSnapshot(int rollbackRows)
+    {
+        if (continueSnapshots.Count <= 0)
+        {
+            return false;
+        }
+
+        // 中文：回退行数会被夹在已有历史范围内，避免请求超出保存的快照数。
+        // English: rollback rows are clamped to the stored history so restore never indexes past available snapshots.
+        var steps = Mathf.Clamp(rollbackRows, 1, continueSnapshots.Count);
+        var snapshot = continueSnapshots[continueSnapshots.Count - steps];
+        RestoreSnapshot(snapshot);
+        continueSnapshots.Clear();
+        return true;
+    }
+
+    public bool HasContinueSnapshot()
+    {
+        return continueSnapshots.Count > 0;
+    }
+
+    public IEnumerator PlayContinueRestoreAnimation(int rollbackRows)
+    {
+        if (continueSnapshots.Count <= 0)
+        {
+            yield break;
+        }
+
+        var steps = Mathf.Clamp(rollbackRows, 1, continueSnapshots.Count);
+        var duration = GetDropAnimationDuration(1);
+        for (int i = 1; i <= steps; i++)
+        {
+            var snapshot = continueSnapshots[continueSnapshots.Count - i];
+            RestoreSnapshot(snapshot, animateRiseRows: 1);
+            if (duration > 0f)
+            {
+                yield return new WaitForSeconds(duration);
+            }
+            else
+            {
+                yield return null;
+            }
+        }
+
+        continueSnapshots.Clear();
     }
 
     private void MoveBoardDownAndFillPendingRows(int rowCount)
@@ -466,6 +572,7 @@ public class UIChessBoard : MonoBehaviour
         LevelConfig = levelConfig;
         currentLevelAddress = ResolveLevelAddress(levelConfig, levelAddress);
         visibleStartRow = LevelConfig == null ? 0 : LevelConfig.GetInitialVisibleStartRow();
+        continueSnapshots.Clear();
         RefreshLevelLabels();
         ApplyBoardLayout();
         SetGameOverState(false);
@@ -622,6 +729,7 @@ public class UIChessBoard : MonoBehaviour
         }
 
         SetGameOverState(false);
+        continueSnapshots.Clear();
         RebuildCollisionCandidates();
     }
 
@@ -984,6 +1092,49 @@ public class UIChessBoard : MonoBehaviour
             var child = ParentTransform.GetChild(i);
             DestroyElement(child.gameObject);
         }
+    }
+
+    private void RestoreSnapshot(VisibleBoardSnapshot snapshot, int animateRiseRows = 0)
+    {
+        if (snapshot == null || chessElements == null)
+        {
+            return;
+        }
+
+        visibleStartRow = snapshot.VisibleStartRow;
+        for (int y = 0; y < boardHeight; y++)
+        {
+            for (int x = 0; x < boardWidth; x++)
+            {
+                var element = chessElements.Get(x, y);
+                if (element == null)
+                {
+                    continue;
+                }
+
+                var index = y * boardWidth + x;
+                element.SetCellContent(
+                    snapshot.Types[index],
+                    snapshot.Lives[index],
+                    snapshot.SpecialValues[index],
+                    snapshot.ShapeTypes[index]);
+                if (animateRiseRows > 0)
+                {
+                    element.PlayRiseAnimationFromRows(animateRiseRows, GetDropAnimationDuration(animateRiseRows), DropEase);
+                }
+                else
+                {
+                    element.ResetVisualPosition();
+                }
+            }
+        }
+
+        // 中文：续关恢复后必须先解除失败态，再重建碰撞候选，
+        // 这样瞄准、发射、道具判定都会和恢复后的盘面一致。
+        // English: after a continue restore we must clear game-over first,
+        // then rebuild collision candidates so aim, firing, and special triggers match the restored board.
+        SetGameOverState(false);
+        RebuildCollisionCandidates();
     }
 
     private T InstanceChessElement<T>(T inOrigin) where T : UnityEngine.Object

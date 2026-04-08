@@ -13,9 +13,38 @@ public enum LevelSettlementResult
     Defeat = 2
 }
 
+[Serializable]
+public sealed class DefeatContinueSettings
+{
+    // 中文：是否开启失败后的激励续关。
+    // English: whether rewarded-continue after defeat is enabled.
+    [SerializeField] private bool enabled = true;
+    // 中文：续关时向上回退的可见行数，默认对标 Brick Blast 的 3 行。
+    // English: how many visible rows are rewound on continue; defaults to Brick Blast's 3 rows.
+    [SerializeField] [Min(1)] private int rollbackRows = 3;
+    // 中文：激励视频在这个时间内还没准备好，就直接放行续关。
+    // English: if the rewarded ad is still not ready within this timeout, the continue is granted directly.
+    [SerializeField] [Min(0f)] private float rewardedLoadFallbackSeconds = 6f;
+    // 中文：紫球当前先做成“续关后下一轮球”的临时外观色。
+    // English: purple balls are currently represented as a temporary tint for the next volley after continue.
+    [SerializeField] private Color purpleBallTint = new Color(0.96f, 0.56f, 0.98f, 1f);
+
+    public bool Enabled => enabled;
+    public int RollbackRows => Mathf.Max(1, rollbackRows);
+    public float RewardedLoadFallbackSeconds => Mathf.Max(0f, rewardedLoadFallbackSeconds);
+    public Color PurpleBallTint => purpleBallTint;
+}
+
 [DisallowMultipleComponent]
 public class BallVolleyController : MonoBehaviour
 {
+    private enum DefeatContinueRequestState
+    {
+        Idle = 0,
+        WaitingForRewardedLoad = 1,
+        ShowingRewarded = 2
+    }
+
     public event Action<LevelSettlementResult> LevelSettlementTriggered;
 
     [SerializeField]
@@ -44,6 +73,12 @@ public class BallVolleyController : MonoBehaviour
 
     [SerializeField]
     private string ResultWindowAddress = "Assets/AssetBundle/Prefabs/UIResultWindow.prefab";
+
+    [SerializeField]
+    private LevelPlayAdsManager AdsManager;
+
+    [SerializeField]
+    private DefeatContinueSettings DefeatContinue = new DefeatContinueSettings();
 
     [SerializeField]
     [Min(1)]
@@ -115,7 +150,17 @@ public class BallVolleyController : MonoBehaviour
     private AssetHandle resultWindowPrefabHandle;
     private bool isResultWindowLoading;
     private bool pendingResultIsVictory;
+    private bool isAdsSubscribed;
+    private bool defeatContinueUsedThisLevel;
+    private bool pendingPurpleBallVolley;
+    private bool currentVolleyUsesPurpleBalls;
+    private bool defeatContinueRewardGranted;
+    private bool defeatContinueAnimationInProgress;
     private LevelSettlementResult lastSettlementResult;
+    private DefeatContinueRequestState defeatContinueRequestState;
+    private Coroutine defeatContinueFallbackCoroutine;
+    private Coroutine defeatContinueAnimationCoroutine;
+    private Color defaultLaunchBallTint = Color.white;
 
     public int CurrentBallCount => GetNextVolleyBallCount();
     public bool IsVolleyActive => volleyActive;
@@ -128,6 +173,7 @@ public class BallVolleyController : MonoBehaviour
         EnsureDependencies();
         WarmupProjectilePool();
         CacheLaunchBallGraphic();
+        RefreshLaunchBallVisual();
         RefreshLaunchBallCountLabel();
         SetLaunchBallVisible(true);
         SetLaunchBallCountVisible(true);
@@ -142,6 +188,8 @@ public class BallVolleyController : MonoBehaviour
     private void OnDisable()
     {
         Unsubscribe();
+        CancelDefeatContinueFlow(resetButtonState: false);
+        StopDefeatContinueAnimation();
         StopVolleyImmediately();
     }
 
@@ -202,7 +250,10 @@ public class BallVolleyController : MonoBehaviour
     {
         currentBallCount = Mathf.Max(1, ballCount);
         pendingExtraBallCount = 0;
+        pendingPurpleBallVolley = false;
+        currentVolleyUsesPurpleBalls = false;
         ScheduleProjectilePoolWarmup();
+        RefreshLaunchBallVisual();
         RefreshLaunchBallCountLabel();
     }
 
@@ -348,6 +399,10 @@ public class BallVolleyController : MonoBehaviour
         shotBounds = AimLinePresenter != null ? AimLinePresenter.GetShotBounds() : GetFallbackBounds();
         firstLandingPoint = originLocalPosition;
         hasRecordedFirstLanding = false;
+        currentVolleyUsesPurpleBalls = pendingPurpleBallVolley;
+        pendingPurpleBallVolley = false;
+        // 中文：额外球只吃“下一回合”一次，这里在真正开球时统一结算并清空。
+        // English: extra balls apply to the next volley only, so they are consumed here when the volley actually starts.
         pendingLaunchCount = Mathf.Max(1, GetNextVolleyBallCount());
         pendingExtraBallCount = 0;
         activeProjectileCount = 0;
@@ -378,6 +433,7 @@ public class BallVolleyController : MonoBehaviour
     private void CompleteVolley()
     {
         volleyActive = false;
+        currentVolleyUsesPurpleBalls = false;
 
         if (!hasRecordedFirstLanding)
         {
@@ -398,6 +454,9 @@ public class BallVolleyController : MonoBehaviour
 
         if (MoveBoardDownAfterVolley && ChessBoard != null)
         {
+            // 中文：下压前记录一份可见盘面快照，失败续关时再按回退行数恢复。
+            // English: capture the visible board before shifting down so continue can restore it later.
+            ChessBoard.CaptureContinueSnapshot();
             ChessBoard.MoveBoardDownOneRow();
             if (ChessBoard.IsGameOver)
             {
@@ -421,6 +480,7 @@ public class BallVolleyController : MonoBehaviour
 
         SetLaunchBallCountVisible(true);
         AimLinePresenter?.SetAimInputEnabled(true);
+        RefreshLaunchBallVisual();
     }
 
     private void StopVolleyImmediately()
@@ -429,11 +489,13 @@ public class BallVolleyController : MonoBehaviour
         pendingLaunchCount = 0;
         activeProjectileCount = 0;
         aimUnlockTimer = 0f;
+        currentVolleyUsesPurpleBalls = false;
 
         projectilePool?.ReleaseAll();
         activeProjectiles.Clear();
 
         SetLaunchBallVisible(true);
+        RefreshLaunchBallVisual();
         RefreshLaunchBallCountLabel();
         SetLaunchBallCountVisible(true);
 
@@ -497,6 +559,11 @@ public class BallVolleyController : MonoBehaviour
             LevelLoader = GetComponent<YooAssetLevelLoader>();
         }
 
+        if (AdsManager == null)
+        {
+            AdsManager = LevelPlayAdsManager.Instance;
+        }
+
         EnsureProjectileCanvas();
         EnsureProjectilePool();
     }
@@ -515,6 +582,8 @@ public class BallVolleyController : MonoBehaviour
             isBoardStateSubscribed = true;
             HandleChessBoardGameOverStateChanged(ChessBoard.IsGameOver);
         }
+
+        SubscribeAds();
     }
 
     private void Unsubscribe()
@@ -530,6 +599,8 @@ public class BallVolleyController : MonoBehaviour
             ChessBoard.GameOverStateChanged -= HandleChessBoardGameOverStateChanged;
             isBoardStateSubscribed = false;
         }
+
+        UnsubscribeAds();
     }
 
     private BallProjectile AcquireProjectile()
@@ -686,7 +757,8 @@ public class BallVolleyController : MonoBehaviour
             SimulationStep,
             MaxCollisionsPerStep,
             FallbackSubstepDistance,
-            canTriggerSplitSpecial);
+            canTriggerSplitSpecial,
+            GetCurrentVolleyBallTint());
     }
 
     private void WarmupProjectilePool()
@@ -742,6 +814,10 @@ public class BallVolleyController : MonoBehaviour
         }
 
         launchBallGraphic = LaunchBall.GetComponent<Graphic>();
+        if (launchBallGraphic != null)
+        {
+            defaultLaunchBallTint = launchBallGraphic.color;
+        }
     }
 
     private void HandleChessBoardGameOverStateChanged(bool isGameOver)
@@ -761,6 +837,11 @@ public class BallVolleyController : MonoBehaviour
             AimLinePresenter?.SetAimInputEnabled(false);
             OnBottomRowGameOver();
             ShowResultWindow(false);
+            return;
+        }
+
+        if (defeatContinueAnimationInProgress)
+        {
             return;
         }
 
@@ -790,9 +871,32 @@ public class BallVolleyController : MonoBehaviour
         LaunchBallCountLabel.raycastTarget = false;
     }
 
+    private void RefreshLaunchBallVisual()
+    {
+        if (launchBallGraphic == null)
+        {
+            CacheLaunchBallGraphic();
+        }
+
+        if (launchBallGraphic == null)
+        {
+            return;
+        }
+
+        // 中文：紫球先做成“下一回合的临时球态”，只影响这一轮的球外观。
+        // English: the purple-ball rescue is implemented as a temporary next-volley ball state
+        // that only affects the look of that volley's balls for now.
+        launchBallGraphic.color = pendingPurpleBallVolley ? DefeatContinue.PurpleBallTint : defaultLaunchBallTint;
+    }
+
     private int GetNextVolleyBallCount()
     {
         return Mathf.Max(1, currentBallCount + pendingExtraBallCount);
+    }
+
+    private Color GetCurrentVolleyBallTint()
+    {
+        return currentVolleyUsesPurpleBalls ? DefeatContinue.PurpleBallTint : defaultLaunchBallTint;
     }
 
     private Vector2 GetRecallLandingPoint()
@@ -927,11 +1031,17 @@ public class BallVolleyController : MonoBehaviour
         }
 
         ResultWindow.transform.SetAsLastSibling();
-        ResultWindow.Show(pendingResultIsVictory, LevelLoader != null && LevelLoader.CanLoadNextLevel(), HandleResultPrimaryButtonClicked);
+        ResultWindow.Show(BuildResultWindowPresentation(), HandleResultPrimaryButtonClicked);
     }
 
     private void HandleResultPrimaryButtonClicked()
     {
+        if (!pendingResultIsVictory && CanOfferDefeatContinue())
+        {
+            BeginDefeatContinueRequest();
+            return;
+        }
+
         if (IsLevelTransitionLoading())
         {
             return;
@@ -963,6 +1073,7 @@ public class BallVolleyController : MonoBehaviour
             return;
         }
 
+        ResetDefeatContinueStateForCurrentLevel();
         if (ResultWindow != null)
         {
             ResultWindow.Hide();
@@ -1030,6 +1141,279 @@ public class BallVolleyController : MonoBehaviour
 
         lastSettlementResult = settlementResult;
         LevelSettlementTriggered?.Invoke(settlementResult);
+    }
+
+    private UIResultWindowPresentation BuildResultWindowPresentation()
+    {
+        if (pendingResultIsVictory)
+        {
+            var canAdvance = LevelLoader != null && LevelLoader.CanLoadNextLevel();
+            return new UIResultWindowPresentation("通关成功", canAdvance ? "下一关" : "重新开始");
+        }
+
+        // 中文：每关只允许一次失败续关，用掉以后结果窗直接回退到“重新开始”。
+        // English: each level grants at most one defeat continue; once spent, the result window falls back to Restart.
+        return new UIResultWindowPresentation("挑战失败", CanOfferDefeatContinue() ? "继续" : "重新开始");
+    }
+
+    private bool CanOfferDefeatContinue()
+    {
+        return DefeatContinue.Enabled && !defeatContinueUsedThisLevel;
+    }
+
+    private void BeginDefeatContinueRequest()
+    {
+        if (defeatContinueRequestState != DefeatContinueRequestState.Idle)
+        {
+            return;
+        }
+
+        EnsureDependencies();
+        SubscribeAds();
+        ResultWindow?.SetPrimaryButtonInteractable(false);
+        ResultWindow?.SetPrimaryButtonLabel("加载中...");
+
+        if (AdsManager == null)
+        {
+            Debug.LogWarning("[BallVolleyController] Rewarded ads manager is missing. Granting defeat continue immediately.", this);
+            GrantDefeatContinue();
+            return;
+        }
+
+        if (AdsManager.IsRewardedReady && TryShowDefeatContinueRewarded())
+        {
+            return;
+        }
+
+        // 中文：和 Brick Blast 一样，激励视频在限定时间内没准备好，就直接放行继续。
+        // English: matching Brick Blast, if the rewarded ad does not become ready within the timeout,
+        // we grant the continue directly instead of blocking the player.
+        defeatContinueRequestState = DefeatContinueRequestState.WaitingForRewardedLoad;
+        AdsManager.LoadRewardedAd();
+        StartDefeatContinueFallbackTimer();
+    }
+
+    private bool TryShowDefeatContinueRewarded()
+    {
+        if (AdsManager == null || !AdsManager.IsRewardedReady)
+        {
+            return false;
+        }
+
+        if (!AdsManager.ShowRewardedAd())
+        {
+            return false;
+        }
+
+        defeatContinueRequestState = DefeatContinueRequestState.ShowingRewarded;
+        StopDefeatContinueFallbackTimer();
+        ResultWindow?.SetPrimaryButtonLabel("观看中...");
+        return true;
+    }
+
+    private void StartDefeatContinueFallbackTimer()
+    {
+        StopDefeatContinueFallbackTimer();
+        defeatContinueFallbackCoroutine = StartCoroutine(DefeatContinueFallbackRoutine());
+    }
+
+    private void StopDefeatContinueFallbackTimer()
+    {
+        if (defeatContinueFallbackCoroutine == null)
+        {
+            return;
+        }
+
+        StopCoroutine(defeatContinueFallbackCoroutine);
+        defeatContinueFallbackCoroutine = null;
+    }
+
+    private IEnumerator DefeatContinueFallbackRoutine()
+    {
+        var deadline = Time.unscaledTime + DefeatContinue.RewardedLoadFallbackSeconds;
+        while (defeatContinueRequestState == DefeatContinueRequestState.WaitingForRewardedLoad && Time.unscaledTime < deadline)
+        {
+            yield return null;
+        }
+
+        defeatContinueFallbackCoroutine = null;
+        if (defeatContinueRequestState != DefeatContinueRequestState.WaitingForRewardedLoad)
+        {
+            yield break;
+        }
+
+        Debug.LogWarning("[BallVolleyController] Rewarded ad did not become ready in time. Granting defeat continue directly.", this);
+        GrantDefeatContinue();
+    }
+
+    private void GrantDefeatContinue()
+    {
+        StopDefeatContinueFallbackTimer();
+        defeatContinueRequestState = DefeatContinueRequestState.Idle;
+        defeatContinueRewardGranted = false;
+
+        // 中文：续关不是重开，而是把当前可见盘面回拨若干行后继续这一局。
+        // English: a continue does not restart the stage; it rewinds the current visible board and resumes the same run.
+        if (ChessBoard == null || !ChessBoard.HasContinueSnapshot())
+        {
+            Debug.LogError("[BallVolleyController] Defeat continue failed because no rollback snapshot was available.", this);
+            ResultWindow?.SetPrimaryButtonInteractable(true);
+            ResultWindow?.SetPrimaryButtonLabel("重新开始");
+            return;
+        }
+
+        defeatContinueUsedThisLevel = true;
+        // 中文：紫球状态只保留到“续关后的下一轮发射”为止，避免污染后续所有回合。
+        // English: the purple-ball state is intentionally limited to the next volley after continue only.
+        pendingPurpleBallVolley = true;
+        RefreshLaunchBallVisual();
+
+        if (ResultWindow != null)
+        {
+            ResultWindow.Hide();
+        }
+
+        StopDefeatContinueAnimation();
+        defeatContinueAnimationCoroutine = StartCoroutine(PlayDefeatContinueAnimationRoutine());
+    }
+
+    private void CancelDefeatContinueFlow(bool resetButtonState)
+    {
+        StopDefeatContinueFallbackTimer();
+        defeatContinueRequestState = DefeatContinueRequestState.Idle;
+        defeatContinueRewardGranted = false;
+
+        if (!resetButtonState || ResultWindow == null)
+        {
+            return;
+        }
+
+        ResultWindow.SetPrimaryButtonInteractable(true);
+        ResultWindow.SetPrimaryButtonLabel(CanOfferDefeatContinue() ? "继续" : "重新开始");
+    }
+
+    private void StopDefeatContinueAnimation()
+    {
+        if (defeatContinueAnimationCoroutine == null)
+        {
+            return;
+        }
+
+        StopCoroutine(defeatContinueAnimationCoroutine);
+        defeatContinueAnimationCoroutine = null;
+        defeatContinueAnimationInProgress = false;
+    }
+
+    private IEnumerator PlayDefeatContinueAnimationRoutine()
+    {
+        defeatContinueAnimationInProgress = true;
+        SetLaunchBallVisible(true);
+        RefreshLaunchBallCountLabel();
+        SetLaunchBallCountVisible(false);
+        AimLinePresenter?.SetAimInputEnabled(false);
+
+        Debug.Log($"[BallVolleyController] Defeat continue granted. Rolling back {DefeatContinue.RollbackRows} rows.", this);
+        yield return StartCoroutine(ChessBoard.PlayContinueRestoreAnimation(DefeatContinue.RollbackRows));
+
+        defeatContinueAnimationInProgress = false;
+        defeatContinueAnimationCoroutine = null;
+        lastSettlementResult = LevelSettlementResult.None;
+        SetLaunchBallVisible(true);
+        RefreshLaunchBallCountLabel();
+        SetLaunchBallCountVisible(true);
+        AimLinePresenter?.SetAimInputEnabled(true);
+    }
+
+    private void ResetDefeatContinueStateForCurrentLevel()
+    {
+        CancelDefeatContinueFlow(resetButtonState: false);
+        // 中文：进入新关或重开时，清空本关的一次性续关资格和所有临时紫球状态。
+        // English: a fresh attempt resets the one-time continue entitlement and all temporary purple-ball state.
+        defeatContinueUsedThisLevel = false;
+        pendingPurpleBallVolley = false;
+        currentVolleyUsesPurpleBalls = false;
+        RefreshLaunchBallVisual();
+    }
+
+    private void SubscribeAds()
+    {
+        if (isAdsSubscribed)
+        {
+            return;
+        }
+
+        if (AdsManager == null)
+        {
+            AdsManager = LevelPlayAdsManager.Instance;
+        }
+
+        if (AdsManager == null)
+        {
+            return;
+        }
+
+        AdsManager.RewardedLoaded += HandleRewardedLoaded;
+        AdsManager.RewardedCompleted += HandleRewardedCompleted;
+        AdsManager.RewardedClosed += HandleRewardedClosed;
+        isAdsSubscribed = true;
+    }
+
+    private void UnsubscribeAds()
+    {
+        if (!isAdsSubscribed || AdsManager == null)
+        {
+            isAdsSubscribed = false;
+            return;
+        }
+
+        AdsManager.RewardedLoaded -= HandleRewardedLoaded;
+        AdsManager.RewardedCompleted -= HandleRewardedCompleted;
+        AdsManager.RewardedClosed -= HandleRewardedClosed;
+        isAdsSubscribed = false;
+    }
+
+    private void HandleRewardedLoaded()
+    {
+        if (defeatContinueRequestState != DefeatContinueRequestState.WaitingForRewardedLoad)
+        {
+            return;
+        }
+
+        // 中文：只要 6 秒兜底窗口内加载成功，就优先走正常观看广告的路径。
+        // English: if the ad becomes ready before the fallback timeout, prefer the normal rewarded flow.
+        TryShowDefeatContinueRewarded();
+    }
+
+    private void HandleRewardedCompleted()
+    {
+        if (defeatContinueRequestState != DefeatContinueRequestState.ShowingRewarded)
+        {
+            return;
+        }
+
+        // 中文：这里只标记“奖励资格已拿到”，真正续关在广告关闭后统一执行。
+        // English: this only marks the reward as earned; the actual continue is finalized after the ad closes.
+        defeatContinueRewardGranted = true;
+        Debug.Log("[BallVolleyController] Rewarded ad reported completion for defeat continue.", this);
+    }
+
+    private void HandleRewardedClosed()
+    {
+        if (defeatContinueRequestState != DefeatContinueRequestState.ShowingRewarded)
+        {
+            return;
+        }
+
+        if (defeatContinueRewardGranted)
+        {
+            GrantDefeatContinue();
+            return;
+        }
+
+        // 中文：如果广告没拿到奖励就不给续关，按钮状态恢复到当前结果窗默认动作。
+        // English: if the ad closes without reward, continue is cancelled and the result window returns to its default action.
+        Debug.LogWarning("[BallVolleyController] Rewarded ad closed without reward grant. Continue cancelled.", this);
+        CancelDefeatContinueFlow(resetButtonState: true);
     }
 
     private static void ReleaseHandle(ref AssetHandle handle)

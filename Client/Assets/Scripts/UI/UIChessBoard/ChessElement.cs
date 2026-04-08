@@ -335,6 +335,32 @@ public class ChessElement : MonoBehaviour
             .OnComplete(() => moveTween = null);
     }
 
+    public void PlayRiseAnimationFromRows(int rowCount, float duration, Ease ease)
+    {
+        CacheComponents();
+        if (selfRectTransform == null || rowCount <= 0 || !HasContent)
+        {
+            ResetVisualPosition();
+            return;
+        }
+
+        var targetPosition = baseAnchoredPosition;
+        var startPosition = targetPosition - Vector2.up * (GetRowStep() * rowCount);
+        if (!Application.isPlaying || duration <= 0f)
+        {
+            selfRectTransform.anchoredPosition = targetPosition;
+            return;
+        }
+
+        StopMoveAnimation();
+        selfRectTransform.anchoredPosition = startPosition;
+        moveTween = selfRectTransform
+            .DOAnchorPos(targetPosition, duration)
+            .SetEase(ease)
+            .SetLink(gameObject)
+            .OnComplete(() => moveTween = null);
+    }
+
     private void RefreshPosition()
     {
         if (ChessData == null)

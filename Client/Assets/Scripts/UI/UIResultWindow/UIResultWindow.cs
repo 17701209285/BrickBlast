@@ -3,6 +3,20 @@ using UnityEngine.UI;
 using TMPro;
 using System;
 
+public readonly struct UIResultWindowPresentation
+{
+    // 中文：结果窗只依赖这份稳定的展示模型，业务层不用知道内部按钮和文本节点。
+    // English: the result window depends only on this stable presentation model, so gameplay code does not touch internal UI nodes.
+    public string Title { get; }
+    public string PrimaryButtonLabel { get; }
+
+    public UIResultWindowPresentation(string title, string primaryButtonLabel)
+    {
+        Title = title ?? string.Empty;
+        PrimaryButtonLabel = primaryButtonLabel ?? string.Empty;
+    }
+}
+
 public class UIResultWindow : MonoBehaviour
 {
     [SerializeField]
@@ -32,25 +46,37 @@ public class UIResultWindow : MonoBehaviour
         }
     }
 
-    public void Show(bool isVictory, bool canAdvanceToNextLevel, Action onPrimaryButtonClicked)
+    public void Show(in UIResultWindowPresentation presentation, Action onPrimaryButtonClicked)
     {
+        // 中文：结果窗只接收一个纯展示模型，避免外部直接操作内部控件。
+        // English: the result window only consumes a presentation model,
+        // so outside callers do not need to know about its internal controls.
         CacheReferences();
         primaryAction = onPrimaryButtonClicked;
 
         if (TitleLabel != null)
         {
-            TitleLabel.text = isVictory ? "通关成功" : "挑战失败";
+            TitleLabel.text = presentation.Title;
         }
 
         if (NextButtonLabel != null)
         {
-            NextButtonLabel.text = isVictory && canAdvanceToNextLevel ? "下一关" : "重新开始";
+            NextButtonLabel.text = presentation.PrimaryButtonLabel;
         }
 
         SetPrimaryButtonInteractable(true);
         if (!gameObject.activeSelf)
         {
             gameObject.SetActive(true);
+        }
+    }
+
+    public void SetPrimaryButtonLabel(string label)
+    {
+        CacheReferences();
+        if (NextButtonLabel != null)
+        {
+            NextButtonLabel.text = label ?? string.Empty;
         }
     }
 
