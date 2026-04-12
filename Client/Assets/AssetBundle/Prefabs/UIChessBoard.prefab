@@ -1317,7 +1317,7 @@ MonoBehaviour:
   Effects: {fileID: 11400000, guid: 2ce581406bed64a4b99a2fc9f45956ce, type: 2}
   GameOverEffectParent: {fileID: 2241505147702293450}
   EffectClipRect: {fileID: 8443957670038043914}
-  UseCustomGameOverEffectPosition: 1
+  UseCustomGameOverEffectPosition: 0
   GameOverEffectPosition: {x: 0, y: 0}
 --- !u!114 &5162348761459023471
 MonoBehaviour:
