@@ -5,18 +5,20 @@ using UnityEngine;
 public sealed class VolleyScoreSettings
 {
     [SerializeField] private bool enabled = true;
+    [SerializeField] private bool awardPointsForSpecialTriggers = false;
     [SerializeField] [Min(0)] private int damageBrickPoints = 10;
     [SerializeField] [Min(0)] private int destroyedBrickBonus = 40;
-    [SerializeField] [Min(0)] private int horizontalBlastBonus = 60;
-    [SerializeField] [Min(0)] private int verticalBlastBonus = 60;
-    [SerializeField] [Min(0)] private int crossBlastBonus = 90;
-    [SerializeField] [Min(0)] private int splitThreeWayBonus = 80;
-    [SerializeField] [Min(0)] private int redirectBonus = 50;
-    [SerializeField] [Min(0)] private int extraBallsBonus = 75;
+    [SerializeField] [Min(0)] private int horizontalBlastBonus = 0;
+    [SerializeField] [Min(0)] private int verticalBlastBonus = 0;
+    [SerializeField] [Min(0)] private int crossBlastBonus = 0;
+    [SerializeField] [Min(0)] private int splitThreeWayBonus = 0;
+    [SerializeField] [Min(0)] private int redirectBonus = 0;
+    [SerializeField] [Min(0)] private int extraBallsBonus = 0;
     [SerializeField] [Min(0)] private int victoryBonus = 500;
     [SerializeField] [Min(0)] private int defeatBonus = 0;
 
     public bool Enabled => enabled;
+    public bool AwardPointsForSpecialTriggers => awardPointsForSpecialTriggers;
     public int DamageBrickPoints => Mathf.Max(0, damageBrickPoints);
     public int DestroyedBrickBonus => Mathf.Max(0, destroyedBrickBonus);
     public int VictoryBonus => Mathf.Max(0, victoryBonus);
@@ -101,7 +103,8 @@ public sealed class VolleyScoreModule
         delta += impactSummary.DamagedBrickCount * settings.DamageBrickPoints;
         delta += impactSummary.DestroyedBrickCount * settings.DestroyedBrickBonus;
 
-        if (impactSummary.HasTriggeredSpecial)
+        // 道具本体默认不直接给分，只统计它真正造成的砖块受伤/击毁收益。
+        if (settings.AwardPointsForSpecialTriggers && impactSummary.HasTriggeredSpecial)
         {
             delta += settings.GetSpecialTriggerBonus(impactSummary.TriggeredSpecialType);
         }
