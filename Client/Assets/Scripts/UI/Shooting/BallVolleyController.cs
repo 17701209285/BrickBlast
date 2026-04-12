@@ -81,6 +81,9 @@ public class BallVolleyController : MonoBehaviour
     private DefeatContinueSettings DefeatContinue = new DefeatContinueSettings();
 
     [SerializeField]
+    private VolleyPraiseSettings VolleyPraise = new VolleyPraiseSettings();
+
+    [SerializeField]
     [Min(0f)]
     private float VictoryResultDelaySeconds = 1f;
 
@@ -137,6 +140,7 @@ public class BallVolleyController : MonoBehaviour
     private Graphic launchBallGraphic;
     private bool isAimSubscribed;
     private bool isBoardStateSubscribed;
+    private bool isImpactSubscribed;
     private bool volleyActive;
     private int currentBallCount;
     private int pendingExtraBallCount;
@@ -166,6 +170,7 @@ public class BallVolleyController : MonoBehaviour
     private Coroutine defeatContinueAnimationCoroutine;
     private Coroutine victoryResultDelayCoroutine;
     private Color defaultLaunchBallTint = Color.white;
+    private VolleyPraiseEffectModule volleyPraiseModule;
 
     public int CurrentBallCount => GetNextVolleyBallCount();
     public bool IsVolleyActive => volleyActive;
@@ -399,6 +404,7 @@ public class BallVolleyController : MonoBehaviour
             return;
         }
 
+        volleyPraiseModule?.BeginVolley();
         launchOrigin = originLocalPosition;
         launchDirection = aimDirection.normalized;
         collectorY = originLocalPosition.y;
@@ -453,7 +459,7 @@ public class BallVolleyController : MonoBehaviour
         ChessBoard?.ClearTouchedSpecialItemsAtTurnEnd();
 
         var aimLockDuration = 0f;
-        if (TryHandleLevelCompleted())
+        if (HandleLevelCompletedAfterVolley())
         {
             return;
         }
@@ -466,10 +472,11 @@ public class BallVolleyController : MonoBehaviour
             ChessBoard.MoveBoardDownOneRow();
             if (ChessBoard.IsGameOver)
             {
+                volleyPraiseModule?.CompleteVolley(LevelSettlementResult.Defeat);
                 return;
             }
 
-            if (TryHandleLevelCompleted())
+            if (HandleLevelCompletedAfterVolley())
             {
                 return;
             }
@@ -484,6 +491,7 @@ public class BallVolleyController : MonoBehaviour
             return;
         }
 
+        volleyPraiseModule?.CompleteVolley(LevelSettlementResult.None);
         SetLaunchBallCountVisible(true);
         AimLinePresenter?.SetAimInputEnabled(true);
         RefreshLaunchBallVisual();
@@ -496,6 +504,7 @@ public class BallVolleyController : MonoBehaviour
         activeProjectileCount = 0;
         aimUnlockTimer = 0f;
         currentVolleyUsesPurpleBalls = false;
+        volleyPraiseModule?.CancelVolley();
 
         projectilePool?.ReleaseAll();
         activeProjectiles.Clear();
@@ -565,6 +574,11 @@ public class BallVolleyController : MonoBehaviour
             LevelLoader = GetComponent<YooAssetLevelLoader>();
         }
 
+        if (volleyPraiseModule == null && ChessBoard != null)
+        {
+            volleyPraiseModule = new VolleyPraiseEffectModule(ChessBoard, VolleyPraise);
+        }
+
         if (AdsManager == null)
         {
             AdsManager = LevelPlayAdsManager.Instance;
@@ -589,6 +603,12 @@ public class BallVolleyController : MonoBehaviour
             HandleChessBoardGameOverStateChanged(ChessBoard.IsGameOver);
         }
 
+        if (!isImpactSubscribed && ChessBoard != null)
+        {
+            ChessBoard.ImpactResolved += HandleBoardImpactResolved;
+            isImpactSubscribed = true;
+        }
+
         SubscribeAds();
     }
 
@@ -604,6 +624,12 @@ public class BallVolleyController : MonoBehaviour
         {
             ChessBoard.GameOverStateChanged -= HandleChessBoardGameOverStateChanged;
             isBoardStateSubscribed = false;
+        }
+
+        if (isImpactSubscribed && ChessBoard != null)
+        {
+            ChessBoard.ImpactResolved -= HandleBoardImpactResolved;
+            isImpactSubscribed = false;
         }
 
         UnsubscribeAds();
@@ -944,13 +970,19 @@ public class BallVolleyController : MonoBehaviour
         }
     }
 
-    private bool TryHandleLevelCompleted()
+    private void HandleBoardImpactResolved(ChessBoardImpactSummary impactSummary)
+    {
+        volleyPraiseModule?.RegisterImpact(impactSummary);
+    }
+
+    private bool HandleLevelCompletedAfterVolley()
     {
         if (ChessBoard == null || !ChessBoard.IsLevelCompleted())
         {
             return false;
         }
 
+        volleyPraiseModule?.CompleteVolley(LevelSettlementResult.Victory);
         ShowResultWindow(true);
         return true;
     }

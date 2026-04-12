@@ -6,22 +6,30 @@ public static class GlobleValue
     public static int ChessHeight = 14;
 
     /// <summary>
-    /// Ë®Æ½Ïû³ýÌØÐ§
+    /// Ë®Æ½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð§
     /// </summary>
     public static string EFFECT_HORIZONTAL = "effect_horizontal";
 
     /// <summary>
-    /// ÊúÖ±Ïû³ýÌØÐ§
+    /// ï¿½ï¿½Ö±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð§
     /// </summary>
     public static string EFFECT_VERTICAL = "effect_vertical";
 
     /// <summary>
-    /// Ê®×ÖÏû³ýÌØÐ§
+    /// Ê®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð§
     /// </summary>
     public static string EFFECT_CROSS = "effect_cross";
 
     /// <summary>
-    /// ÌØÐ§²¥·ÅÍê³É
-    /// </summary>
+    /// ï¿½ï¿½Ð§ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    /// </summary> 
     public static string EFFECT_COMPLETE = "effect_complete";
+
+
+
+    public static string EFFECT_AWESOME = "effect_awesome";
+
+    public static string EFFECT_EXCELLENT = "effect_excellent";
+
+    public static string EFFECT_PERFECT = "effect_perfect";
 }

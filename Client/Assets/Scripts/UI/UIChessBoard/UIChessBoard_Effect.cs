@@ -77,10 +77,23 @@ public partial class UIChessBoard : MonoBehaviour
             false);
     }
 
+
+    public void PlayPraiseEffect(VolleyPraiseTier tier, RectTransform parentOverride = null, Vector2? anchoredPositionOverride = null)
+    {
+        var effectKey = ResolvePraiseEffectKey(tier);
+        if (string.IsNullOrEmpty(effectKey))
+        {
+            return;
+        }
+
+        PlayEffect(effectKey, null, 0f, parentOverride, anchoredPositionOverride, false);
+    }
+
     public void PlayGameOverEffect(RectTransform parent, Vector2 anchoredPosition)
     {
         PlayEffect(GlobleValue.EFFECT_COMPLETE, null, 0f, parent, anchoredPosition, false);
     }
+
 
     private void Update()
     {
@@ -258,6 +271,21 @@ public partial class UIChessBoard : MonoBehaviour
         var ownerKey = origin == null ? "global" : origin.GetInstanceID().ToString();
         var clipModeKey = useClipRect ? "clip" : "raw";
         return string.Concat(effectName, "@", Mathf.RoundToInt(rotationZ), "@", ownerKey, "@", clipModeKey);
+    }
+
+    private static string ResolvePraiseEffectKey(VolleyPraiseTier tier)
+    {
+        switch (tier)
+        {
+            case VolleyPraiseTier.Awesome:
+                return GlobleValue.EFFECT_AWESOME;
+            case VolleyPraiseTier.Excellent:
+                return GlobleValue.EFFECT_EXCELLENT;
+            case VolleyPraiseTier.Perfect:
+                return GlobleValue.EFFECT_PERFECT;
+            default:
+                return string.Empty;
+        }
     }
 
     private static Material[][] CaptureSharedMaterials(ParticleSystemRenderer[] particleRenderers)

@@ -127,6 +127,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 266607273}
     m_Modifications:
+    - target: {fileID: 486698889837046563, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1860902773978886331, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -226,10 +230,6 @@ PrefabInstance:
     - target: {fileID: 3748741464985914959, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
       propertyPath: m_Name
       value: UIChessBoard
-      objectReference: {fileID: 0}
-    - target: {fileID: 4285825462255419185, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
-      propertyPath: UseCustomGameOverEffectPosition
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7419450678404451547, guid: 0b799e57309104a47bcae6f19cbebad3, type: 3}
       propertyPath: m_Parameters.widthCurve.m_Curve.Array.data[0].value
