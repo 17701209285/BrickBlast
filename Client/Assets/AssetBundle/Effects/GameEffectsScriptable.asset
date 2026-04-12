@@ -21,3 +21,9 @@ MonoBehaviour:
     effect: {fileID: 821396891180354222, guid: 4ed044ca0eb75be4faf1049117da0be4, type: 3}
   - key: effect_complete
     effect: {fileID: 6373644161777916920, guid: 5dc301134ec82f44daa394651b03d12b, type: 3}
+  - key: effect_awesome
+    effect: {fileID: 1155104691800037732, guid: a33c16f98604a4847854321b40ac6177, type: 3}
+  - key: effect_excellent
+    effect: {fileID: 7084382080076895812, guid: 36ee99d5127265c469e43c79e68457b0, type: 3}
+  - key: effect_prefect
+    effect: {fileID: 2532950674439900360, guid: 20f4f5e88d47bf44883eb6aef6d64e3e, type: 3}
