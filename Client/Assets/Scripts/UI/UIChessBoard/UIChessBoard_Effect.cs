@@ -13,6 +13,8 @@ public partial class UIChessBoard : MonoBehaviour
         public GameObject Instance;
         public ParticleSystem[] ParticleSystems;
         public ParticleSystemRenderer[] ParticleRenderers;
+        public Material[][] OriginalSharedMaterials;
+        public Material[][] ClippedSharedMaterials;
         public Material[] RuntimeMaterials;
         public MaterialPropertyBlock PropertyBlock;
         public Graphic Graphic;
@@ -71,12 +73,13 @@ public partial class UIChessBoard : MonoBehaviour
             null,
             0f,
             GameOverEffectParent,
-            UseCustomGameOverEffectPosition ? (Vector2?)GameOverEffectPosition : null);
+            UseCustomGameOverEffectPosition ? (Vector2?)GameOverEffectPosition : null,
+            false);
     }
 
     public void PlayGameOverEffect(RectTransform parent, Vector2 anchoredPosition)
     {
-        PlayEffect(GlobleValue.EFFECT_COMPLETE, null, 0f, parent, anchoredPosition);
+        PlayEffect(GlobleValue.EFFECT_COMPLETE, null, 0f, parent, anchoredPosition, false);
     }
 
     private void Update()
@@ -99,12 +102,7 @@ public partial class UIChessBoard : MonoBehaviour
         }
     }
 
-    private bool PlayEffect(
-        string effectName,
-        ChessElement origin,
-        float rotationZ,
-        RectTransform parentOverride = null,
-        Vector2? anchoredPositionOverride = null)
+    private bool PlayEffect( string effectName, ChessElement origin, float rotationZ, RectTransform parentOverride = null, Vector2? anchoredPositionOverride = null, bool isClipRect = true)
     {
         if (Effects == null)
         {
@@ -116,7 +114,7 @@ public partial class UIChessBoard : MonoBehaviour
             return false;
         }
 
-        var cachedEffect = AcquireEffect(effectName, rotationZ, effectPrefab, origin);
+        var cachedEffect = AcquireEffect(effectName, rotationZ, effectPrefab, origin, isClipRect);
         var effectInstance = cachedEffect.Instance;
         effectInstance.name = effectPrefab.name;
         effectInstance.SetActive(true);
@@ -139,8 +137,7 @@ public partial class UIChessBoard : MonoBehaviour
             effectInstance.transform.localScale = DefaultEffectScale;
         }
 
-        ApplyClipRect(cachedEffect, ResolveEffectClipRect(targetParent));
-
+        ApplyClipRect(cachedEffect, isClipRect ? ResolveEffectClipRect(targetParent) : null);
         if (cachedEffect.Graphic != null)
         {
             cachedEffect.Graphic.raycastTarget = false;
@@ -217,9 +214,9 @@ public partial class UIChessBoard : MonoBehaviour
         return Vector2.zero;
     }
 
-    private CachedEffectInstance AcquireEffect(string effectName, float rotationZ, GameObject effectPrefab, ChessElement origin)
+    private CachedEffectInstance AcquireEffect(string effectName, float rotationZ, GameObject effectPrefab, ChessElement origin, bool useClipRect)
     {
-        var cacheKey = BuildEffectCacheKey(effectName, rotationZ, origin);
+        var cacheKey = BuildEffectCacheKey(effectName, rotationZ, origin, useClipRect);
         if (cachedEffects.TryGetValue(cacheKey, out var cachedEffect) && cachedEffect != null && cachedEffect.Instance != null)
         {
             return cachedEffect;
@@ -234,9 +231,9 @@ public partial class UIChessBoard : MonoBehaviour
             Instance = instance,
             ParticleSystems = instance.GetComponentsInChildren<ParticleSystem>(true),
             ParticleRenderers = instance.GetComponentsInChildren<ParticleSystemRenderer>(true),
+            OriginalSharedMaterials = CaptureSharedMaterials(instance.GetComponentsInChildren<ParticleSystemRenderer>(true)),
             Graphic = instance.GetComponent<Graphic>()
         };
-        PrepareRuntimeClipMaterials(cachedEffect);
         cachedEffects[cacheKey] = cachedEffect;
         return cachedEffect;
     }
@@ -256,15 +253,53 @@ public partial class UIChessBoard : MonoBehaviour
         activeEffects.RemoveAt(activeIndex);
     }
 
-    private static string BuildEffectCacheKey(string effectName, float rotationZ, ChessElement origin)
+    private static string BuildEffectCacheKey(string effectName, float rotationZ, ChessElement origin, bool useClipRect)
     {
         var ownerKey = origin == null ? "global" : origin.GetInstanceID().ToString();
-        return string.Concat(effectName, "@", Mathf.RoundToInt(rotationZ), "@", ownerKey);
+        var clipModeKey = useClipRect ? "clip" : "raw";
+        return string.Concat(effectName, "@", Mathf.RoundToInt(rotationZ), "@", ownerKey, "@", clipModeKey);
     }
 
-    private void PrepareRuntimeClipMaterials(CachedEffectInstance effect)
+    private static Material[][] CaptureSharedMaterials(ParticleSystemRenderer[] particleRenderers)
     {
-        if (effect == null || effect.ParticleRenderers == null || effect.ParticleRenderers.Length == 0)
+        if (particleRenderers == null || particleRenderers.Length == 0)
+        {
+            return null;
+        }
+
+        var capturedMaterials = new Material[particleRenderers.Length][];
+        for (int rendererIndex = 0; rendererIndex < particleRenderers.Length; rendererIndex++)
+        {
+            var particleRenderer = particleRenderers[rendererIndex];
+            if (particleRenderer == null)
+            {
+                continue;
+            }
+
+            var sharedMaterials = particleRenderer.sharedMaterials;
+            if (sharedMaterials == null || sharedMaterials.Length == 0)
+            {
+                continue;
+            }
+
+            var copiedMaterials = new Material[sharedMaterials.Length];
+            for (int materialIndex = 0; materialIndex < sharedMaterials.Length; materialIndex++)
+            {
+                copiedMaterials[materialIndex] = sharedMaterials[materialIndex];
+            }
+
+            capturedMaterials[rendererIndex] = copiedMaterials;
+        }
+
+        return capturedMaterials;
+    }
+
+    private void EnsureRuntimeClipMaterials(CachedEffectInstance effect)
+    {
+        if (effect == null ||
+            effect.ParticleRenderers == null ||
+            effect.ParticleRenderers.Length == 0 ||
+            effect.ClippedSharedMaterials != null)
         {
             return;
         }
@@ -276,6 +311,7 @@ public partial class UIChessBoard : MonoBehaviour
         }
 
         var runtimeMaterials = new List<Material>(effect.ParticleRenderers.Length * 2);
+        var clippedSharedMaterials = new Material[effect.ParticleRenderers.Length][];
         for (int rendererIndex = 0; rendererIndex < effect.ParticleRenderers.Length; rendererIndex++)
         {
             var particleRenderer = effect.ParticleRenderers[rendererIndex];
@@ -284,7 +320,9 @@ public partial class UIChessBoard : MonoBehaviour
                 continue;
             }
 
-            var sharedMaterials = particleRenderer.sharedMaterials;
+            var sharedMaterials = effect.OriginalSharedMaterials != null && rendererIndex < effect.OriginalSharedMaterials.Length
+                ? effect.OriginalSharedMaterials[rendererIndex]
+                : particleRenderer.sharedMaterials;
             if (sharedMaterials == null || sharedMaterials.Length == 0)
             {
                 continue;
@@ -312,10 +350,11 @@ public partial class UIChessBoard : MonoBehaviour
 
             if (hasValidMaterial)
             {
-                particleRenderer.sharedMaterials = clippedMaterials;
+                clippedSharedMaterials[rendererIndex] = clippedMaterials;
             }
         }
 
+        effect.ClippedSharedMaterials = clippedSharedMaterials;
         effect.RuntimeMaterials = runtimeMaterials.ToArray();
         effect.PropertyBlock = new MaterialPropertyBlock();
     }
@@ -332,6 +371,7 @@ public partial class UIChessBoard : MonoBehaviour
         Matrix4x4 clipWorldToLocal = IdentityClipMatrix;
         if (useClipRect)
         {
+            EnsureRuntimeClipMaterials(effect);
             var rect = clipRectTransform.rect;
             clipRectLocal = new Vector4(rect.xMin, rect.yMin, rect.xMax, rect.yMax);
             clipWorldToLocal = clipRectTransform.worldToLocalMatrix;
@@ -344,6 +384,22 @@ public partial class UIChessBoard : MonoBehaviour
             if (particleRenderer == null)
             {
                 continue;
+            }
+
+            if (useClipRect)
+            {
+                if (effect.ClippedSharedMaterials != null &&
+                    i < effect.ClippedSharedMaterials.Length &&
+                    effect.ClippedSharedMaterials[i] != null)
+                {
+                    particleRenderer.sharedMaterials = effect.ClippedSharedMaterials[i];
+                }
+            }
+            else if (effect.OriginalSharedMaterials != null &&
+                     i < effect.OriginalSharedMaterials.Length &&
+                     effect.OriginalSharedMaterials[i] != null)
+            {
+                particleRenderer.sharedMaterials = effect.OriginalSharedMaterials[i];
             }
 
             particleRenderer.GetPropertyBlock(propertyBlock);
