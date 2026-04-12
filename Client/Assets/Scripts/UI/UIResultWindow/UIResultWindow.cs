@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System;
+using System.Collections;
 
 public readonly struct UIResultWindowPresentation
 {
@@ -28,9 +29,13 @@ public class UIResultWindow : MonoBehaviour
     [SerializeField]
     private TextMeshProUGUI NextButtonLabel;
 
+    [SerializeField]
+    private GameObject[] Effects;
+
     private Action primaryAction;
 
     public bool IsVisible => gameObject.activeSelf;
+
 
     private void Awake()
     {
@@ -136,5 +141,19 @@ public class UIResultWindow : MonoBehaviour
     private void HandlePrimaryButtonClicked()
     {
         primaryAction?.Invoke();
+    }
+
+    IEnumerator PlayEffect()
+    {
+        if (Effects != null && Effects.Length > 0 && Effects[0] != null)
+        {
+            var particleSystem = Effects[0].GetComponent<ParticleSystem>();
+            if (particleSystem != null)
+            {
+                particleSystem.Play();
+            }
+        }
+
+        yield break;
     }
 }

@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa8892cf012486f40b81630ca69f3c5d, type: 3}
+  m_Name: GameEffectsScriptable
+  m_EditorClassIdentifier: Assembly-CSharp::GameEffectsScriptable
+  effects:
+  - key: effect_horizontal
+    effect: {fileID: 4542339592325363254, guid: 63af0a2c8d7428d42b69a747e0da242d, type: 3}
+  - key: effect_vertical
+    effect: {fileID: 821396891180354222, guid: e48755389ad79444da549de9356c6756, type: 3}
+  - key: effect_cross
+    effect: {fileID: 821396891180354222, guid: 4ed044ca0eb75be4faf1049117da0be4, type: 3}
+  - key: effect_complete
+    effect: {fileID: 6373644161777916920, guid: 5dc301134ec82f44daa394651b03d12b, type: 3}

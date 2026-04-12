@@ -81,6 +81,10 @@ public class BallVolleyController : MonoBehaviour
     private DefeatContinueSettings DefeatContinue = new DefeatContinueSettings();
 
     [SerializeField]
+    [Min(0f)]
+    private float VictoryResultDelaySeconds = 1f;
+
+    [SerializeField]
     [Min(1)]
     private int InitialBallCount = 60;
 
@@ -160,6 +164,7 @@ public class BallVolleyController : MonoBehaviour
     private DefeatContinueRequestState defeatContinueRequestState;
     private Coroutine defeatContinueFallbackCoroutine;
     private Coroutine defeatContinueAnimationCoroutine;
+    private Coroutine victoryResultDelayCoroutine;
     private Color defaultLaunchBallTint = Color.white;
 
     public int CurrentBallCount => GetNextVolleyBallCount();
@@ -190,6 +195,7 @@ public class BallVolleyController : MonoBehaviour
         Unsubscribe();
         CancelDefeatContinueFlow(resetButtonState: false);
         StopDefeatContinueAnimation();
+        StopVictoryResultDelay();
         StopVolleyImmediately();
     }
 
@@ -955,7 +961,25 @@ public class BallVolleyController : MonoBehaviour
         pendingResultIsVictory = isVictory;
         aimUnlockTimer = 0f;
         AimLinePresenter?.SetAimInputEnabled(false);
+        StopVictoryResultDelay();
 
+        if (isVictory)
+        {
+            ChessBoard?.PlayGameOverEffect();
+            if (ResultWindow == null && !isResultWindowLoading)
+            {
+                StartCoroutine(LoadResultWindowRoutine(showOnLoaded: false));
+            }
+
+            victoryResultDelayCoroutine = StartCoroutine(ShowVictoryResultWindowAfterDelay());
+            return;
+        }
+
+        ShowResultWindowImmediate();
+    }
+
+    private void ShowResultWindowImmediate()
+    {
         if (ResultWindow != null)
         {
             ConfigureAndShowResultWindow();
@@ -964,11 +988,18 @@ public class BallVolleyController : MonoBehaviour
 
         if (!isResultWindowLoading)
         {
-            StartCoroutine(LoadResultWindowRoutine());
+            StartCoroutine(LoadResultWindowRoutine(showOnLoaded: true));
         }
     }
 
-    private IEnumerator LoadResultWindowRoutine()
+    private IEnumerator ShowVictoryResultWindowAfterDelay()
+    {
+        yield return new WaitForSecondsRealtime(Mathf.Max(0f, VictoryResultDelaySeconds));
+        victoryResultDelayCoroutine = null;
+        ShowResultWindowImmediate();
+    }
+
+    private IEnumerator LoadResultWindowRoutine(bool showOnLoaded)
     {
         isResultWindowLoading = true;
 
@@ -1019,8 +1050,11 @@ public class BallVolleyController : MonoBehaviour
             yield break;
         }
 
-        ConfigureAndShowResultWindow();
         isResultWindowLoading = false;
+        if (showOnLoaded)
+        {
+            ConfigureAndShowResultWindow();
+        }
     }
 
     private void ConfigureAndShowResultWindow()
@@ -1302,6 +1336,17 @@ public class BallVolleyController : MonoBehaviour
         StopCoroutine(defeatContinueAnimationCoroutine);
         defeatContinueAnimationCoroutine = null;
         defeatContinueAnimationInProgress = false;
+    }
+
+    private void StopVictoryResultDelay()
+    {
+        if (victoryResultDelayCoroutine == null)
+        {
+            return;
+        }
+
+        StopCoroutine(victoryResultDelayCoroutine);
+        victoryResultDelayCoroutine = null;
     }
 
     private IEnumerator PlayDefeatContinueAnimationRoutine()

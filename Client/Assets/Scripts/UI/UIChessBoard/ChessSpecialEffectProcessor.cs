@@ -67,14 +67,17 @@ internal static class ChessSpecialEffectProcessor
         {
             case LevelCellType.HorizontalBlast:
                 impactAccumulator?.RegisterSpecialTrigger(target.Type);
+                board.PlayHorizontalEffect(target);
                 ChessLineBlastProcessor.TriggerHorizontal(board, target, impactAccumulator);
                 return new ChessSpecialEffectResult(true, true, false, Vector2.zero, Vector2.zero, false, Vector2.zero, Vector2.zero, 0);
             case LevelCellType.VerticalBlast:
                 impactAccumulator?.RegisterSpecialTrigger(target.Type);
+                board.PlayVerticalEffect(target);
                 ChessLineBlastProcessor.TriggerVertical(board, target, impactAccumulator);
                 return new ChessSpecialEffectResult(true, true, false, Vector2.zero, Vector2.zero, false, Vector2.zero, Vector2.zero, 0);
             case LevelCellType.CrossBlast:
                 impactAccumulator?.RegisterSpecialTrigger(target.Type);
+                board.PlayCrossEffect(target);
                 ChessLineBlastProcessor.TriggerCross(board, target, impactAccumulator);
                 return new ChessSpecialEffectResult(true, true, false, Vector2.zero, Vector2.zero, false, Vector2.zero, Vector2.zero, 0);
             case LevelCellType.SplitThreeWay:

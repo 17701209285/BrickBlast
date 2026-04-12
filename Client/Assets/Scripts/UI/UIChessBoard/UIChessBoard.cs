@@ -47,7 +47,7 @@ public enum ChessDamageSource
     CrossBlast = 3
 }
 
-public class UIChessBoard : MonoBehaviour
+public partial class UIChessBoard : MonoBehaviour
 {
     private sealed class VisibleBoardSnapshot
     {
