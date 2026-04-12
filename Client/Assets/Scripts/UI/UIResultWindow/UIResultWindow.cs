@@ -10,11 +10,15 @@ public readonly struct UIResultWindowPresentation
     // English: the result window depends only on this stable presentation model, so gameplay code does not touch internal UI nodes.
     public string Title { get; }
     public string PrimaryButtonLabel { get; }
+    public string ScoreText { get; }
+    public string BestScoreText { get; }
 
-    public UIResultWindowPresentation(string title, string primaryButtonLabel)
+    public UIResultWindowPresentation(string title, string primaryButtonLabel, string scoreText = null, string bestScoreText = null)
     {
         Title = title ?? string.Empty;
         PrimaryButtonLabel = primaryButtonLabel ?? string.Empty;
+        ScoreText = scoreText ?? string.Empty;
+        BestScoreText = bestScoreText ?? string.Empty;
     }
 }
 
@@ -28,6 +32,12 @@ public class UIResultWindow : MonoBehaviour
 
     [SerializeField]
     private TextMeshProUGUI NextButtonLabel;
+
+    [SerializeField]
+    private TextMeshProUGUI ScoreLabel;
+
+    [SerializeField]
+    private TextMeshProUGUI BestScoreLabel;
 
     [SerializeField]
     private GameObject[] Effects;
@@ -67,6 +77,16 @@ public class UIResultWindow : MonoBehaviour
         if (NextButtonLabel != null)
         {
             NextButtonLabel.text = presentation.PrimaryButtonLabel;
+        }
+
+        if (ScoreLabel != null)
+        {
+            ScoreLabel.text = presentation.ScoreText;
+        }
+
+        if (BestScoreLabel != null)
+        {
+            BestScoreLabel.text = presentation.BestScoreText;
         }
 
         SetPrimaryButtonInteractable(true);
@@ -125,17 +145,44 @@ public class UIResultWindow : MonoBehaviour
         {
             TitleLabel = FindOptionalText("Title");
         }
+
+        if (ScoreLabel == null)
+        {
+            ScoreLabel = FindOptionalText("Score", "CurrentScore");
+        }
+
+        if (BestScoreLabel == null)
+        {
+            BestScoreLabel = FindOptionalText("BestScore");
+        }
     }
 
-    private TextMeshProUGUI FindOptionalText(string childName)
+    private TextMeshProUGUI FindOptionalText(params string[] childNames)
     {
-        var child = transform.Find(childName);
-        if (child == null)
+        if (childNames == null || childNames.Length <= 0)
         {
             return null;
         }
 
-        return child.GetComponent<TextMeshProUGUI>();
+        var textLabels = GetComponentsInChildren<TextMeshProUGUI>(true);
+        for (int i = 0; i < textLabels.Length; i++)
+        {
+            var textLabel = textLabels[i];
+            if (textLabel == null)
+            {
+                continue;
+            }
+
+            for (int j = 0; j < childNames.Length; j++)
+            {
+                if (string.Equals(textLabel.gameObject.name, childNames[j], StringComparison.OrdinalIgnoreCase))
+                {
+                    return textLabel;
+                }
+            }
+        }
+
+        return null;
     }
 
     private void HandlePrimaryButtonClicked()

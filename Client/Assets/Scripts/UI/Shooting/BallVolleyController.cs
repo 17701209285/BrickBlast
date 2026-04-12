@@ -84,6 +84,9 @@ public class BallVolleyController : MonoBehaviour
     private VolleyPraiseSettings VolleyPraise = new VolleyPraiseSettings();
 
     [SerializeField]
+    private VolleyScoreSettings VolleyScore = new VolleyScoreSettings();
+
+    [SerializeField]
     [Min(0f)]
     private float VictoryResultDelaySeconds = 1f;
 
@@ -171,6 +174,7 @@ public class BallVolleyController : MonoBehaviour
     private Coroutine victoryResultDelayCoroutine;
     private Color defaultLaunchBallTint = Color.white;
     private VolleyPraiseEffectModule volleyPraiseModule;
+    private VolleyScoreModule volleyScoreModule;
 
     public int CurrentBallCount => GetNextVolleyBallCount();
     public bool IsVolleyActive => volleyActive;
@@ -181,12 +185,18 @@ public class BallVolleyController : MonoBehaviour
     {
         currentBallCount = Mathf.Max(1, InitialBallCount);
         EnsureDependencies();
+        volleyScoreModule?.ResetForLevel(ChessBoard != null ? ChessBoard.CurrentLevelAddress : string.Empty);
         WarmupProjectilePool();
         CacheLaunchBallGraphic();
         RefreshLaunchBallVisual();
         RefreshLaunchBallCountLabel();
         SetLaunchBallVisible(true);
         SetLaunchBallCountVisible(true);
+    }
+
+    private void Start()
+    {
+        volleyScoreModule?.ResetForLevel(ChessBoard != null ? ChessBoard.CurrentLevelAddress : string.Empty);
     }
 
     private void OnEnable()
@@ -486,6 +496,7 @@ public class BallVolleyController : MonoBehaviour
 
         if (aimLockDuration > 0f)
         {
+            volleyPraiseModule?.CompleteVolley(LevelSettlementResult.None);
             aimUnlockTimer = aimLockDuration;
             SetLaunchBallCountVisible(false);
             return;
@@ -577,6 +588,11 @@ public class BallVolleyController : MonoBehaviour
         if (volleyPraiseModule == null && ChessBoard != null)
         {
             volleyPraiseModule = new VolleyPraiseEffectModule(ChessBoard, VolleyPraise);
+        }
+
+        if (volleyScoreModule == null && ChessBoard != null)
+        {
+            volleyScoreModule = new VolleyScoreModule(ChessBoard, VolleyScore);
         }
 
         if (AdsManager == null)
@@ -973,6 +989,7 @@ public class BallVolleyController : MonoBehaviour
     private void HandleBoardImpactResolved(ChessBoardImpactSummary impactSummary)
     {
         volleyPraiseModule?.RegisterImpact(impactSummary);
+        volleyScoreModule?.RegisterImpact(impactSummary);
     }
 
     private bool HandleLevelCompletedAfterVolley()
@@ -989,6 +1006,7 @@ public class BallVolleyController : MonoBehaviour
 
     private void ShowResultWindow(bool isVictory)
     {
+        volleyScoreModule?.CompleteSettlement(isVictory ? LevelSettlementResult.Victory : LevelSettlementResult.Defeat);
         NotifyLevelSettlement(isVictory ? LevelSettlementResult.Victory : LevelSettlementResult.Defeat);
         pendingResultIsVictory = isVictory;
         aimUnlockTimer = 0f;
@@ -1146,6 +1164,7 @@ public class BallVolleyController : MonoBehaviour
         }
 
         lastSettlementResult = LevelSettlementResult.None;
+        volleyScoreModule?.ResetForLevel(ChessBoard != null ? ChessBoard.CurrentLevelAddress : string.Empty);
 
         if (!volleyActive && aimUnlockTimer <= 0f && (ChessBoard == null || !ChessBoard.IsGameOver))
         {
@@ -1211,15 +1230,19 @@ public class BallVolleyController : MonoBehaviour
 
     private UIResultWindowPresentation BuildResultWindowPresentation()
     {
+        var scoreSnapshot = volleyScoreModule?.Snapshot ?? default;
+        var scoreText = scoreSnapshot.CurrentScore > 0 ? scoreSnapshot.CurrentScore.ToString() : string.Empty;
+        var bestScoreText = scoreSnapshot.BestScore > 0 ? scoreSnapshot.BestScore.ToString() : string.Empty;
+
         if (pendingResultIsVictory)
         {
             var canAdvance = LevelLoader != null && LevelLoader.CanLoadNextLevel();
-            return new UIResultWindowPresentation("通关成功", canAdvance ? "下一关" : "重新开始");
+            return new UIResultWindowPresentation("通关成功", canAdvance ? "下一关" : "重新开始", scoreText, bestScoreText);
         }
 
         // 中文：每关只允许一次失败续关，用掉以后结果窗直接回退到“重新开始”。
         // English: each level grants at most one defeat continue; once spent, the result window falls back to Restart.
-        return new UIResultWindowPresentation("挑战失败", CanOfferDefeatContinue() ? "继续" : "重新开始");
+        return new UIResultWindowPresentation("挑战失败", CanOfferDefeatContinue() ? "继续" : "重新开始", scoreText, bestScoreText);
     }
 
     private bool CanOfferDefeatContinue()
@@ -1339,6 +1362,7 @@ public class BallVolleyController : MonoBehaviour
             ResultWindow.Hide();
         }
 
+        volleyScoreModule?.ResumeAfterContinue();
         StopDefeatContinueAnimation();
         defeatContinueAnimationCoroutine = StartCoroutine(PlayDefeatContinueAnimationRoutine());
     }

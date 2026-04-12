@@ -22,16 +22,19 @@ public sealed class VolleyPraiseSettings
     [SerializeField] [Min(0)] private int awesomeDamagedBricks = 4;
     [SerializeField] [Min(0)] private int awesomeDestroyedBricks = 1;
     [SerializeField] [Min(0)] private int awesomeSpecialTriggers = 2;
+    [SerializeField] [Range(1, 3)] private int awesomeRequiredMatches = 1;
 
     [Header("Excellent Threshold")]
     [SerializeField] [Min(0)] private int excellentDamagedBricks = 8;
     [SerializeField] [Min(0)] private int excellentDestroyedBricks = 3;
     [SerializeField] [Min(0)] private int excellentSpecialTriggers = 3;
+    [SerializeField] [Range(1, 3)] private int excellentRequiredMatches = 2;
 
     [Header("Perfect Threshold")]
     [SerializeField] [Min(0)] private int perfectDamagedBricks = 12;
     [SerializeField] [Min(0)] private int perfectDestroyedBricks = 5;
     [SerializeField] [Min(0)] private int perfectSpecialTriggers = 4;
+    [SerializeField] [Range(1, 3)] private int perfectRequiredMatches = 3;
 
     public bool Enabled => enabled;
     public bool AllowDuringVictory => allowDuringVictory;
@@ -50,17 +53,17 @@ public sealed class VolleyPraiseSettings
             return VolleyPraiseTier.None;
         }
 
-        if (metrics.Meets(perfectDamagedBricks, perfectDestroyedBricks, perfectSpecialTriggers))
+        if (metrics.Meets(perfectDamagedBricks, perfectDestroyedBricks, perfectSpecialTriggers, perfectRequiredMatches))
         {
             return VolleyPraiseTier.Perfect;
         }
 
-        if (metrics.Meets(excellentDamagedBricks, excellentDestroyedBricks, excellentSpecialTriggers))
+        if (metrics.Meets(excellentDamagedBricks, excellentDestroyedBricks, excellentSpecialTriggers, excellentRequiredMatches))
         {
             return VolleyPraiseTier.Excellent;
         }
 
-        if (metrics.Meets(awesomeDamagedBricks, awesomeDestroyedBricks, awesomeSpecialTriggers))
+        if (metrics.Meets(awesomeDamagedBricks, awesomeDestroyedBricks, awesomeSpecialTriggers, awesomeRequiredMatches))
         {
             return VolleyPraiseTier.Awesome;
         }
@@ -90,11 +93,25 @@ public readonly struct VolleyPraiseMetrics
             TriggeredSpecialCount + (summary.HasTriggeredSpecial ? 1 : 0));
     }
 
-    public bool Meets(int damagedBrickCount, int destroyedBrickCount, int triggeredSpecialCount)
+    public bool Meets(int damagedBrickCount, int destroyedBrickCount, int triggeredSpecialCount, int requiredMatches)
     {
-        return DamagedBrickCount >= Mathf.Max(0, damagedBrickCount) ||
-               DestroyedBrickCount >= Mathf.Max(0, destroyedBrickCount) ||
-               TriggeredSpecialCount >= Mathf.Max(0, triggeredSpecialCount);
+        var matchedCount = 0;
+        if (DamagedBrickCount >= Mathf.Max(0, damagedBrickCount))
+        {
+            matchedCount++;
+        }
+
+        if (DestroyedBrickCount >= Mathf.Max(0, destroyedBrickCount))
+        {
+            matchedCount++;
+        }
+
+        if (TriggeredSpecialCount >= Mathf.Max(0, triggeredSpecialCount))
+        {
+            matchedCount++;
+        }
+
+        return matchedCount >= Mathf.Clamp(requiredMatches, 1, 3);
     }
 }
 
